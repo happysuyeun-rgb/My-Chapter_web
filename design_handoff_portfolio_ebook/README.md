@@ -1,3 +1,14 @@
+# Frozen reference — not the product runtime
+
+이 폴더는 **frozen reference / design handoff** 이다.
+
+- 실제 런타임은 `_shared/`, `_template/`, `server/`, `books/` 이다.
+- 여기의 JS / CSS / HTML을 제품 코드로 수정하지 말 것.
+- 신규 개발은 이 디렉터리에 하지 말 것.
+- `_shared`와 파일이 겹쳐도 이번 단계에서는 이동·삭제하지 않는다.
+
+---
+
 # Handoff: 전자책 「내 포트폴리오, AI로 직접 만들기」
 
 ## Overview

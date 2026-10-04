@@ -8,3 +8,14 @@ Thumbs.db
 .DS_Store
 *.log
 .cursor/
+
+# Personal manuscripts — do not re-commit
+books/**/source/
+
+# Generated export / PDF cache
+books/**/*.pdf
+books/**/*.epub
+books/**/*.zip
+
+# Runtime image state (not Content SoT)
+books/**/.image-slots.state.json

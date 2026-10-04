@@ -1,8 +1,8 @@
 {
-  "name": "portfolio-ebook",
+  "name": "my-chapter",
   "version": "1.0.0",
   "private": true,
-  "description": "내 포트폴리오, AI로 직접 만들기 — 미리보기·편집·PDF 출력",
+  "description": "My Chapter — manuscript to structured ebook, preview, and PDF",
   "scripts": {
     "preview": "node preview-server.mjs"
   },
