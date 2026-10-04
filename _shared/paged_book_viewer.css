@@ -1,0 +1,282 @@
+/* Chrome around the Paged.js page stack. Paired with paged_book_viewer.js. */
+
+:root {
+  --pbv-bg: #ecead8;
+  --pbv-toolbar-bg: #ffffff;
+  --pbv-toolbar-h: 44px;
+  --pbv-sidebar-w: 200px;
+  --pbv-sidebar-bg: #faf8f0;
+  --pbv-border: rgba(0, 0, 0, 0.08);
+  --pbv-text: #1a1a1a;
+  --pbv-muted: #6b6b6b;
+  --pbv-accent: #1a3a52;
+  --pbv-page-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --pbv-active-bg: #e8edf3;
+}
+
+body.pbv-shell {
+  margin: 0;
+  background: var(--pbv-bg);
+  color: var(--pbv-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", sans-serif;
+}
+
+body.pbv-shell {
+  display: grid;
+  grid-template-columns: var(--pbv-sidebar-w) 1fr;
+  grid-template-rows: var(--pbv-toolbar-h) 1fr;
+  grid-template-areas:
+    "toolbar toolbar"
+    "sidebar main";
+}
+
+/* Clamp via class (not @media screen — polyfill strips those; not inline
+   style — release race with print snapshot). Removed on first print signal. */
+html.pbv-clamp, body.pbv-shell.pbv-clamp {
+  height: 100vh;
+  overflow: hidden;
+}
+
+body.pbv-sidebar-collapsed {
+  grid-template-columns: 0 1fr;
+}
+body.pbv-sidebar-collapsed .pbv-sidebar {
+  display: none;
+}
+
+/* ─── Toolbar ─────────────────────────────────────────────────────── */
+.pbv-toolbar {
+  grid-area: toolbar;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  background: var(--pbv-toolbar-bg);
+  border-bottom: 1px solid var(--pbv-border);
+  font-size: 13px;
+}
+.pbv-toolbar > * { flex-shrink: 0; }
+.pbv-title {
+  flex: 1 1 0;
+  min-width: 0;
+  font-weight: 500;
+  color: var(--pbv-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 4px;
+}
+.pbv-counter {
+  color: var(--pbv-muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.pbv-toolbar > .pbv-edit-status { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* Width classes are set from JS: Paged.js drops @media blocks from screen CSS. */
+body.pbv-narrow .pbv-toolbar { gap: 6px; padding: 0 8px; }
+body.pbv-narrow .pbv-toolbar > .pbv-title { flex: 0 1 0; padding: 0; }
+body.pbv-narrow .pbv-toolbar > .pbv-counter { margin-right: auto; }
+body.pbv-tiny .pbv-toolbar { gap: 4px; }
+body.pbv-tiny .pbv-modes .pbv-btn { padding: 5px 6px; }
+body.pbv-tiny .pbv-toolbar .pbv-pdf-btn,
+body.pbv-tiny .pbv-toolbar .pbv-edit-btn,
+body.pbv-tiny .pbv-toolbar .pbv-save-btn { padding: 6px 8px; }
+body.pbv-tiny .pbv-toolbar > .pbv-edit-status { display: none; }
+.pbv-modes {
+  display: flex;
+  gap: 4px;
+  background: #f0eee4;
+  padding: 3px;
+  border-radius: 7px;
+}
+.pbv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--pbv-text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.pbv-btn:hover { background: rgba(0, 0, 0, 0.04); }
+.pbv-btn.pbv-active {
+  background: var(--pbv-toolbar-bg);
+  border-color: var(--pbv-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.pbv-pdf-btn {
+  padding: 6px 12px;
+  background: var(--pbv-accent);
+  color: #fff;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pbv-pdf-btn:hover { background: #24506f; }
+.pbv-pdf-btn.pbv-busy { opacity: .7; cursor: progress; }
+.pbv-sidebar-toggle {
+  padding: 6px;
+  color: var(--pbv-muted);
+}
+.pbv-sidebar-toggle svg { display: block; }
+
+/* ─── Sidebar ─────────────────────────────────────────────────────── */
+.pbv-sidebar {
+  grid-area: sidebar;
+  background: var(--pbv-sidebar-bg);
+  border-right: 1px solid var(--pbv-border);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.pbv-thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+.pbv-thumb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  width: 100%;
+}
+.pbv-thumb:hover { background: rgba(0, 0, 0, 0.03); }
+.pbv-thumb.pbv-active {
+  background: var(--pbv-active-bg);
+  border-color: rgba(26, 58, 82, 0.25);
+}
+.pbv-thumb-preview {
+  display: block;
+  width: 100%;
+  background: white;
+  border: 1px solid var(--pbv-border);
+  overflow: hidden;
+  position: relative;
+  min-height: 100px; /* placeholder; JS sets real height post-measure */
+}
+.pbv-thumb-preview .pagedjs_page {
+  margin: 0;
+  box-shadow: none;
+}
+.pbv-thumb-num {
+  font-size: 11px;
+  color: var(--pbv-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Main scroll area ────────────────────────────────────────────── */
+.pbv-main {
+  grid-area: main;
+  overflow: hidden;
+  background: var(--pbv-bg);
+}
+.pbv-scroller {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* ─── pagedjs_pages container — centering + per-mode layout ──────── */
+.pagedjs_pages {
+  margin: 0 auto !important;
+  width: fit-content;
+}
+.pagedjs_page {
+  background: white;
+  box-shadow: var(--pbv-page-shadow);
+  margin: 0 0 20px 0;
+}
+.pagedjs_page:last-child { margin-bottom: 0; }
+
+.pbv-mode-single .pagedjs_pages {
+  display: block;
+}
+
+/* Spread: cover sits in the right (recto) slot to match real books. */
+.pbv-mode-spread .pagedjs_pages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  justify-content: center;
+}
+.pbv-mode-spread .pagedjs_page {
+  margin: 0 0 20px 0;
+}
+.pbv-mode-spread .pagedjs_page:first-child {
+  margin-left: var(--pbv-page-cover-offset, 50%);
+}
+
+/* Grid: zoom not scale (scale leaves full-size layout slots).
+   `width:auto` overrides fit-content so auto-fill sees container width. */
+.pbv-mode-thumb .pagedjs_pages {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  padding: 4px;
+  width: auto;
+}
+.pbv-mode-thumb .pagedjs_page {
+  zoom: 0.22;
+  margin: 0;
+  cursor: zoom-in;
+}
+
+/* ─── 1-page degenerate ──────────────────────────────────────────── */
+.pbv-mode-thumb .pagedjs_pages:has(> .pagedjs_page:only-child) {
+  grid-template-columns: 1fr;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* ─── Narrow viewport guard ──────────────────────────────────────── */
+@media (max-width: 480px) {
+  body.pbv-shell {
+    grid-template-columns: 0 1fr;
+  }
+  .pbv-sidebar { display: none; }
+  .pbv-sidebar-toggle { display: none; }
+  .pbv-modes [data-mode="spread"] { display: none; }
+}
+
+/* Print mode: dismantle the grid so .pbv-scroller flows full-doc height —
+   removing the height clamp alone leaves the scroller bounded to one row. */
+body.pbv-shell.pbv-printing {
+  display: block !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+body.pbv-printing .pbv-toolbar,
+body.pbv-printing .pbv-sidebar { display: none !important; }
+body.pbv-printing .pbv-main {
+  display: block !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+body.pbv-printing .pbv-scroller {
+  height: auto !important;
+  overflow: visible !important;
+  padding: 0 !important;
+}
+body.pbv-printing .pagedjs_pages {
+  width: auto !important;
+  transform: none !important;
+}
+body.pbv-printing .pagedjs_page {
+  box-shadow: none;
+  margin: 0;
+  zoom: 1 !important;
+}

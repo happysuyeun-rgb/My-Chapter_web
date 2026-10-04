@@ -1,0 +1,15 @@
+{
+  "name": "portfolio-ebook",
+  "version": "1.0.0",
+  "private": true,
+  "description": "내 포트폴리오, AI로 직접 만들기 — 미리보기·편집·PDF 출력",
+  "scripts": {
+    "preview": "node preview-server.mjs"
+  },
+  "author": "이서아",
+  "dependencies": {
+    "mammoth": "^1.13.0",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.3.289"
+  }
+}

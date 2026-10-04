@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>{{TITLE}}</title>
+<meta name="author" content="{{AUTHOR}}">
+<meta name="description" content="{{SUBTITLE}}">
+<meta name="keywords" content="{{AUTHOR}}">
+<link rel="preload" href="../../_shared/fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
+<script src="../../_shared/image_slot.js"></script>
+<script>
+  window.PagedConfig = {
+    before: () => document.fonts.load('700 12px Pretendard').catch(() => {}),
+    after: () => window.__pbv_attach?.(),
+  };
+</script>
+<script src="../../_shared/paged.polyfill.js"></script>
+<link rel="stylesheet" href="../../_shared/paged_book_viewer.css">
+<script src="../../_shared/paged_book_viewer.js" defer></script>
+<link rel="stylesheet" href="book.css">
+</head>
+<body>
+
+<section class="cover" data-screen-label="Cover">
+  <div class="cover-grid"></div>
+  <div class="cover-art">
+    <div class="cover-top"><span>EBOOK</span><span>{{YEAR}}</span></div>
+    <div class="cover-title">
+      <div class="kicker">{{SUBTITLE}}</div>
+      <h1>{{TITLE}}</h1>
+    </div>
+    <div class="cover-rule"></div>
+    <div class="cover-bottom"><span>{{AUTHOR}}</span><span></span></div>
+  </div>
+  <image-slot id="cover-image" shape="rect" fit="cover" placeholder="[표지 이미지 자리 — 170×240mm 비율]"></image-slot>
+</section>
+
+<section class="titlepage">
+  <div class="tp-label">EBOOK</div>
+  <h1>{{TITLE}}</h1>
+  <p class="tp-sub">{{SUBTITLE}}</p>
+</section>
+
+<section class="colophon">
+  <div class="col-inner">
+    <p class="col-title">{{TITLE}}</p>
+    <p class="col-sub">{{SUBTITLE}}</p>
+    <dl>
+      <dt>저자</dt><dd>{{AUTHOR}}</dd>
+      <dt>확인 기준일</dt><dd>{{DATE}}</dd>
+      <dt>형태</dt><dd>전자책 (PDF)</dd>
+    </dl>
+    <div class="col-notes">
+      <p>이 책의 저작권은 저자에게 있습니다. 저자의 동의 없이 내용의 전부 또는 일부를 무단으로 복제·배포·재판매할 수 없습니다.</p>
+    </div>
+    <p class="col-copy">© {{YEAR}} {{AUTHOR}}. All rights reserved.</p>
+  </div>
+</section>
+
+<section class="toc" id="toc"><div class="toc-label">CONTENTS</div><h1 class="toc-title">차례</h1><ol>
+<li class="toc-ch toc-pro"><a href="#c01"><span class="tc-no">P</span><span class="tc-t">프롤로그</span></a></li>
+<li class="toc-part"><a href="#part1"><span class="tp-no">PART 1</span><span class="tp-t">첫 번째 파트 제목</span></a></li>
+<li class="toc-ch toc-ch"><a href="#c02"><span class="tc-no">01</span><span class="tc-t">첫 번째 장 제목</span></a></li>
+<li class="toc-ch toc-ch"><a href="#c03"><span class="tc-no">02</span><span class="tc-t">두 번째 장 제목</span></a></li>
+<li class="toc-ch toc-epi"><a href="#c04"><span class="tc-no">E</span><span class="tc-t">에필로그</span></a></li>
+</ol></section>
+
+<section class="chapter chapter-pro" id="c01"><header class="opener"><div class="op-label">PROLOGUE</div><h1>프롤로그</h1></header>
+<p>여기에 프롤로그를 씁니다. 미리보기에서 [편집하기]를 눌러 바로 고칠 수 있습니다.</p>
+</section>
+
+<section class="part" id="part1"><div class="part-inner">
+  <div class="part-label">PART</div>
+  <div class="part-num">01</div>
+  <h1 class="part-title">첫 번째 파트 제목</h1>
+  <ol class="part-list">
+    <li><span class="pl-no">01</span>첫 번째 장 제목</li>
+    <li><span class="pl-no">02</span>두 번째 장 제목</li>
+  </ol>
+</div></section>
+
+<section class="chapter chapter-ch" id="c02"><header class="opener"><div class="op-label">CHAPTER 01</div><div class="op-num">01</div><h1>첫 번째 장 제목</h1><p class="op-sub">장 부제</p></header>
+<h2>소제목</h2>
+<p>본문 문단입니다. <strong>강조할 문장</strong>은 이렇게 표시됩니다.</p>
+<h3>작은 제목</h3>
+<ul><li>목록 항목</li><li>목록 항목</li></ul>
+<div class="prompt short"><div class="prompt-tag"><span>PROMPT</span></div><div class="prompt-body"><p>여기에 프롬프트 문장을 씁니다. <mark>[바꿀 부분]</mark>은 이렇게 표시합니다.</p></div></div>
+<ul class="checklist"><li>체크리스트 항목</li><li>체크리스트 항목</li></ul>
+<figure class="shot"><image-slot id="slot-01" shape="rect" fit="contain" placeholder="[화면 캡처 자리 — 화면 설명]"></image-slot><figcaption><span class="fig-no">그림 01</span>화면 설명</figcaption></figure>
+</section>
+
+<section class="chapter chapter-ch" id="c03"><header class="opener"><div class="op-label">CHAPTER 02</div><div class="op-num">02</div><h1>두 번째 장 제목</h1></header>
+<p>본문 문단입니다.</p>
+</section>
+
+<section class="chapter chapter-epi" id="c04"><header class="opener"><div class="op-label">EPILOGUE</div><h1>에필로그</h1></header>
+<p>여기에 에필로그를 씁니다.</p>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>내 서재</title>
+<style>
+  @font-face { font-family: "Pretendard"; src: url("/_shared/fonts/PretendardVariable.woff2") format("woff2"); font-weight: 45 920; }
+  @font-face { font-family: "JBM"; src: url("/_shared/fonts/JetBrainsMono-700.woff2") format("woff2"); font-weight: 700; }
+
+  :root {
+    --paper: #FAF8F4;
+    --paper-2: #F1EEE7;
+    --bg: #EFECE4;
+    --ink: #1C1B19;
+    --ink-2: #55524C;
+    --ink-3: #8C887F;
+    --rule: #DAD5CB;
+    --accent: #2F55D4;
+    --accent-dark: #2445B3;
+    --accent-soft: #E6EBFA;
+    --cover-accent: #8FA6F0;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Pretendard", "Malgun Gothic", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    word-break: keep-all;
+  }
+  button, input { font: inherit; color: inherit; }
+
+  /* ───── Top bar ───── */
+  .top {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 14px clamp(16px, 4vw, 40px);
+    background: rgba(239, 236, 228, .88);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(28, 27, 25, .06);
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
+  .brand h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -.03em; }
+  .brand .count { font: 700 11px/1 "JBM", monospace; letter-spacing: .08em; color: var(--ink-3); }
+  .search {
+    position: relative; flex: 0 1 240px; min-width: 140px;
+  }
+  .search input {
+    width: 100%; height: 36px; padding: 0 12px 0 32px;
+    border: 1px solid var(--rule); border-radius: 8px; background: var(--paper);
+    font-size: 13px; outline: none;
+  }
+  .search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--ink-3); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 36px; padding: 0 14px; border-radius: 8px;
+    border: 1px solid var(--rule); background: var(--paper);
+    font-size: 13px; font-weight: 600; white-space: nowrap;
+    text-decoration: none; cursor: pointer; transition: background .12s, border-color .12s;
+  }
+  .btn:hover { background: #fff; border-color: #c9c3b6; }
+  .btn.primary { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .btn.primary:hover { background: #33312d; }
+  .btn.accent { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.accent:hover { background: var(--accent-dark); }
+  .btn[disabled] { opacity: .65; cursor: progress; }
+  .btn.small { height: 32px; padding: 0 11px; font-size: 12.5px; }
+
+  /* ───── Shelf ───── */
+  main { padding: 28px clamp(16px, 4vw, 40px) 64px; }
+  .shelf {
+    display: grid; gap: 28px 22px;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  }
+  .book { display: flex; flex-direction: column; min-width: 0; }
+  .book[hidden] { display: none; }
+
+  .cover {
+    position: relative; display: block; aspect-ratio: 170 / 240;
+    border-radius: 4px 8px 8px 4px; overflow: hidden;
+    background: var(--ink); color: var(--paper); text-decoration: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 10px 24px -8px rgba(28,27,25,.35);
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .cover::before {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(250,248,244,.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(250,248,244,.06) 1px, transparent 1px);
+    background-size: 12px 12px; background-position: 7px 7px;
+  }
+  .cover::after {
+    content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 6px;
+    background: linear-gradient(to right, rgba(0,0,0,.35), rgba(255,255,255,.06) 60%, transparent);
+  }
+  .cover:hover { transform: translateY(-4px); box-shadow: 0 2px 4px rgba(0,0,0,.12), 0 18px 32px -10px rgba(28,27,25,.45); }
+  .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+  .cover-inner {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    padding: 12% 11% 10%;
+  }
+  .cover-top { font: 700 7px/1 "JBM", monospace; letter-spacing: .16em; color: rgba(250,248,244,.5); display: flex; justify-content: space-between; }
+  .cover-kicker { margin-top: auto; font-size: 9.5px; font-weight: 600; line-height: 1.45; color: var(--cover-accent); margin-bottom: 8px;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .cover-title { font-size: 17px; font-weight: 800; line-height: 1.2; letter-spacing: -.035em;
+    display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .cover-rule { width: 18px; height: 2px; background: var(--accent); margin: 10px 0 8px; }
+  .cover-author { font: 700 8px/1.3 "JBM", "Pretendard", monospace; letter-spacing: .08em; color: rgba(250,248,244,.6); }
+
+  .meta { padding: 14px 2px 0; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .meta h2 { margin: 0; font-size: 15px; font-weight: 750; line-height: 1.35; letter-spacing: -.02em;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .meta h2 a { color: inherit; text-decoration: none; }
+  .meta h2 a:hover { color: var(--accent); }
+  .line { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
+  .line b { font-weight: 600; color: var(--ink-2); }
+  .pdf-state { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--ink-3); }
+  .pdf-state .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--rule); }
+  .pdf-state.ok .dot { background: #2E9E5B; }
+  .pdf-state.stale .dot { background: #D99A1E; }
+  .pdf-state a { color: inherit; }
+  .pdf-state a:hover { color: var(--accent); }
+  .actions { display: flex; gap: 6px; margin-top: 10px; }
+  .actions .btn { flex: 1; }
+
+  /* New-book tile */
+  .new-tile {
+    aspect-ratio: 170 / 240; border-radius: 4px 8px 8px 4px;
+    border: 1.5px dashed #BDB6A8; background: rgba(250,248,244,.5);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    color: var(--ink-2); cursor: pointer; transition: border-color .15s, background .15s, color .15s;
+  }
+  .new-tile:hover { border-color: var(--accent); background: var(--paper); color: var(--accent); }
+  .new-tile .plus { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid currentColor; display: grid; place-items: center; font-size: 24px; font-weight: 300; }
+  .new-tile span { font-size: 13px; font-weight: 600; }
+
+  .empty-search { grid-column: 1 / -1; padding: 40px 0; text-align: center; color: var(--ink-3); font-size: 14px; }
+
+  /* ───── Dialog ───── */
+  dialog {
+    width: min(440px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto;
+    padding: 0; border: 0; border-radius: 14px;
+    background: var(--paper); color: var(--ink);
+    box-shadow: 0 30px 80px -20px rgba(0,0,0,.45);
+  }
+  dialog::backdrop { background: rgba(28,27,25,.45); backdrop-filter: blur(2px); }
+  .dlg-head { padding: 22px 24px 4px; }
+  .dlg-head h2 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
+  .dlg-head p { margin: 6px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+  .dlg-body { padding: 14px 24px 4px; display: grid; gap: 12px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 5px; }
+  .field label em { font-style: normal; color: var(--accent); }
+  .field input {
+    width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 8px;
+    background: #fff; font-size: 14px; outline: none;
+  }
+  .field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .field .opt { font-weight: 400; color: var(--ink-3); }
+
+  .field label.drop {
+    display: flex; align-items: center; gap: 12px; margin: 0; padding: 14px; border: 1.5px dashed #c9c3b6; border-radius: 10px;
+    background: #fff; cursor: pointer; transition: border-color .15s, background .15s; font-weight: 400;
+  }
+  .field label.drop:hover, .field label.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+  .drop input { display: none; }
+  .drop .ico {
+    flex: none; width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center;
+    background: var(--paper); color: var(--ink-2);
+  }
+  .drop .txt { min-width: 0; flex: 1; font-size: 13px; line-height: 1.45; }
+  .drop .txt b { display: block; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .drop .txt span { color: var(--ink-3); font-size: 12px; }
+  .field label.drop.has { border-style: solid; border-color: var(--accent); }
+  .drop.has .ico { background: var(--accent); color: #fff; font: 700 9.5px/1 "JBM", monospace; letter-spacing: .02em; }
+  .drop .clear {
+    flex: none; width: 28px; height: 28px; border: 0; border-radius: 6px; background: transparent;
+    color: var(--ink-3); font-size: 18px; line-height: 1; cursor: pointer;
+  }
+  .drop .clear:hover { background: var(--paper); color: var(--ink); }
+  .hint { margin: 6px 2px 0; font-size: 11.5px; color: var(--ink-3); line-height: 1.5; }
+  .dlg-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 18px 24px 22px; }
+
+  /* ───── Toast ───── */
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px);
+    background: var(--ink); color: var(--paper); padding: 11px 16px; border-radius: 10px;
+    font-size: 13px; box-shadow: 0 12px 30px -10px rgba(0,0,0,.5);
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 20; max-width: calc(100vw - 32px);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast.error { background: #9B2C22; }
+
+  /* ───── Sort · filter ───── */
+  .tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 22px; }
+  .chips { display: flex; gap: 4px; padding: 3px; background: rgba(28,27,25,.05); border-radius: 9px; }
+  .chip { border: 0; background: transparent; padding: 6px 11px; border-radius: 7px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
+  .chip:hover { color: var(--ink); }
+  .chip.on { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .chip .n { font: 700 10px/1 "JBM", monospace; color: var(--ink-3); margin-left: 3px; }
+  .tools select { height: 32px; padding: 0 28px 0 10px; border: 1px solid var(--rule); border-radius: 8px; background: var(--paper); font: inherit; font-size: 12.5px; cursor: pointer; }
+  .tools .spacer { flex: 1; }
+  .trash-btn { background: transparent; border-color: transparent; color: var(--ink-2); }
+  .trash-btn:hover { background: var(--paper); }
+
+  /* ───── Card extras ───── */
+  .book { position: relative; }
+  .more {
+    position: absolute; top: 8px; right: 8px; z-index: 3; width: 30px; height: 30px; border-radius: 8px; border: 0;
+    background: rgba(250,248,244,.92); color: var(--ink); font-size: 16px; line-height: 1; cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,.18); opacity: 0; transition: opacity .12s;
+  }
+  .book:hover .more, .more:focus-visible, .more[aria-expanded="true"] { opacity: 1; }
+  @media (hover: none) { .more { opacity: 1; } }
+  .menu {
+    position: absolute; top: 42px; right: 8px; z-index: 4; min-width: 168px; padding: 5px;
+    background: #fff; border-radius: 10px; box-shadow: 0 14px 34px -8px rgba(0,0,0,.3), 0 0 0 1px rgba(0,0,0,.05);
+  }
+  .menu button { display: flex; width: 100%; align-items: center; gap: 8px; padding: 8px 10px; border: 0; background: none; border-radius: 6px; font-size: 13px; text-align: left; cursor: pointer; }
+  .menu button:hover { background: var(--paper); }
+  .menu button.danger { color: #9B2C22; }
+  .menu hr { border: 0; border-top: 1px solid var(--rule); margin: 4px 2px; }
+  .status { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; vertical-align: 1px; }
+  .status.draft { background: #ECE8DF; color: #6A655B; }
+  .status.review { background: #FFF1D6; color: #8A5A00; }
+  .status.done { background: #DDF2E4; color: #1E6B3C; }
+  .tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tag { font-size: 11px; color: var(--ink-2); background: rgba(28,27,25,.05); padding: 1px 7px; border-radius: 5px; }
+  .cover.light { color: var(--ink); }
+  .cover.light .cover-top, .cover.light .cover-author { color: rgba(28,27,25,.55); }
+  .cover.light::before { background-image: linear-gradient(to right, rgba(28,27,25,.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(28,27,25,.05) 1px, transparent 1px); }
+
+  /* ───── Info dialog ───── */
+  .field textarea, .field select { width: 100%; padding: 9px 12px; border: 1px solid var(--rule); border-radius: 8px; background: #fff; font: inherit; font-size: 14px; outline: none; }
+  .field select { height: 40px; padding: 0 10px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-2); }
+  .swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+  .swatch { width: 30px; height: 30px; border-radius: 7px; border: 2px solid transparent; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+  .swatch.on { border-color: var(--accent); }
+  .swatch.none { background: repeating-linear-gradient(45deg, #fff 0 4px, #eee 4px 8px); }
+  .cover-pick { display: flex; align-items: center; gap: 12px; }
+  .field .cover-pick label.btn { display: inline-flex; margin: 0; font-size: 12.5px; color: var(--ink); }
+  .btn[hidden] { display: none; }
+  .cover-pick .thumb { width: 54px; aspect-ratio: 170/240; border-radius: 3px; background: var(--paper-2) center/cover no-repeat; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); }
+
+  /* ───── Trash ───── */
+  .trash-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .trash-list li { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #fff; border-radius: 8px; border: 1px solid var(--rule); }
+  .trash-list .t { flex: 1; min-width: 0; font-size: 13.5px; }
+  .trash-list .t b { display: block; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .trash-list .t span { font-size: 11.5px; color: var(--ink-3); }
+  .trash-empty { color: var(--ink-3); font-size: 13px; padding: 16px 0; text-align: center; }
+
+  .spin { width: 12px; height: 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><h1>내 서재</h1><span class="count" id="count"></span></div>
+  <label class="search" id="search-wrap">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6"/><path d="m11 11 3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <input id="search" type="search" placeholder="제목·저자 검색" autocomplete="off">
+  </label>
+  <button class="btn accent" id="open-new" type="button">+ 새 책 만들기</button>
+</header>
+
+<main>
+  <div class="tools" id="tools">
+    <div class="chips" id="chips"></div>
+    <select id="sort" aria-label="정렬">
+      <option value="recent">최근 수정순</option>
+      <option value="title">제목순</option>
+      <option value="status">상태순</option>
+    </select>
+    <span class="spacer"></span>
+    <button class="btn small trash-btn" id="open-trash" type="button">🗑 휴지통 <span id="trash-n"></span></button>
+  </div>
+  <div class="shelf" id="shelf"></div>
+</main>
+
+<dialog id="info-dialog">
+  <form method="dialog" id="info-form">
+    <div class="dlg-head"><h2>책 정보</h2><p>표지·속표지·판권에 들어간 제목과 저자를 함께 바꿉니다. 본문은 건드리지 않아요.</p></div>
+    <div class="dlg-body">
+      <div class="field"><label for="i-title">제목 <em>*</em></label><input id="i-title" name="title" required></div>
+      <div class="field"><label for="i-sub">부제</label><input id="i-sub" name="subtitle"></div>
+      <div class="field"><label for="i-author">저자</label><input id="i-author" name="author"></div>
+      <label class="check"><input type="checkbox" id="i-rename" name="renameFolder"> 책 폴더 이름도 새 제목으로 바꾸기</label>
+      <div class="row2">
+        <div class="field"><label for="i-status">진행 상태</label>
+          <select id="i-status" name="status"><option value="draft">초안</option><option value="review">검토 중</option><option value="done">완료</option></select></div>
+        <div class="field"><label for="i-tags">태그 <span class="opt">(쉼표로 구분)</span></label><input id="i-tags" name="tags" placeholder="예: 실용, 2026"></div>
+      </div>
+      <div class="field"><label>표지 바탕색</label><div class="swatches" id="swatches"></div></div>
+      <div class="field"><label>표지 이미지</label>
+        <div class="cover-pick">
+          <div class="thumb" id="i-thumb"></div>
+          <label class="btn small" for="i-cover">이미지 고르기</label>
+          <input type="file" id="i-cover" accept="image/png,image/jpeg,image/webp" hidden>
+          <button class="btn small" type="button" id="i-cover-clear">빼기</button>
+        </div>
+        <p class="hint">170×240mm(세로형) 비율이 가장 잘 맞습니다. 이미지가 있으면 바탕색 대신 이미지가 표지 전체를 덮어요.</p>
+      </div>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn" value="cancel" formnovalidate type="submit">취소</button>
+      <button class="btn primary" id="info-save" value="save" type="submit">저장</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="trash-dialog">
+  <div class="dlg-head"><h2>휴지통</h2><p>지운 책은 여기 보관됩니다. 되살리면 서재로 돌아오고, 영구 삭제하면 되돌릴 수 없어요.</p></div>
+  <div class="dlg-body"><ul class="trash-list" id="trash-list"></ul></div>
+  <div class="dlg-foot"><button class="btn" type="button" onclick="this.closest('dialog').close()">닫기</button></div>
+</dialog>
+
+<dialog id="new-dialog">
+  <form method="dialog" id="new-form">
+    <div class="dlg-head">
+      <h2>새 책 만들기</h2>
+      <p>표지·판권·차례·장 틀이 들어간 새 책을 books 폴더에 만듭니다. 원고 파일을 넣으면 차례와 장을 자동으로 나눠 채워 드려요.</p>
+    </div>
+    <div class="dlg-body">
+      <div class="field">
+        <label>원고 파일 <span class="opt">(선택)</span></label>
+        <label class="drop" id="drop">
+          <input type="file" id="f-file" accept=".txt,.md,.markdown,.pdf,.docx">
+          <div class="ico" id="drop-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="txt" id="drop-txt"><b>파일을 끌어다 놓거나 눌러서 고르세요</b><span>TXT · MD · PDF · DOCX</span></div>
+          <button class="clear" id="drop-clear" type="button" title="파일 빼기" hidden>×</button>
+        </label>
+        <p class="hint">"제1장", "PART 1", "프롤로그", "# 제목" 같은 표시를 찾아 장과 소제목을 나눕니다. 이미지는 옮겨지지 않아요.</p>
+      </div>
+      <div class="field"><label for="f-title">제목 <em>*</em></label><input id="f-title" name="title" required placeholder="예: 나만의 첫 전자책"></div>
+      <div class="field"><label for="f-sub">부제</label><input id="f-sub" name="subtitle" placeholder="선택"></div>
+      <div class="field"><label for="f-author">저자</label><input id="f-author" name="author" placeholder="예: 이서아"></div>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn" value="cancel" formnovalidate type="submit">취소</button>
+      <button class="btn primary" id="create-btn" value="create" type="submit">만들고 열기</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const LIB = __LIBRARY__;
+const BOOKS = LIB.books;
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const urlFor = (rel) => '/' + rel.split('/').map(encodeURIComponent).join('/');
+
+function when(ms) {
+  const diff = (Date.now() - ms) / 1000;
+  if (diff < 60) return '방금 전';
+  if (diff < 3600) return Math.floor(diff / 60) + '분 전';
+  if (diff < 86400) return Math.floor(diff / 3600) + '시간 전';
+  if (diff < 86400 * 7) return Math.floor(diff / 86400) + '일 전';
+  const d = new Date(ms);
+  return (d.getMonth() + 1) + '월 ' + d.getDate() + '일';
+}
+
+function pdfState(b) {
+  if (!b.pdf) return '<span class="pdf-state"><span class="dot"></span>PDF 없음</span>';
+  const stale = b.pdf.mtime < b.mtime;
+  return `<span class="pdf-state ${stale ? 'stale' : 'ok'}" title="${stale ? '원고가 PDF보다 나중에 수정되었습니다' : '최신 원고로 만든 PDF'}"><span class="dot"></span>` +
+    `<a href="${esc(urlFor(b.pdf.file))}" target="_blank">PDF ${when(b.pdf.mtime)}${stale ? ' · 원고 수정됨' : ''}</a></span>`;
+}
+
+const STATUS = { draft: '초안', review: '검토 중', done: '완료' };
+const COLORS = ['#1C1B19', '#1F2A44', '#2D3B2F', '#5A2E2A', '#3B2F4A', '#F1EEE7'];
+const view = { status: 'all', sort: localStorage.getItem('lib-sort') || 'recent' };
+
+function statsLine(b) {
+  if (!b.stats) return '';
+  const s = b.stats;
+  const warn = s.issues ? ` · <span title="점검 패널에서 확인할 항목">확인할 곳 ${s.issues}</span>` : '';
+  return `<div class="line">${s.chars.toLocaleString()}자 · 원고지 ${s.sheets.toLocaleString()}매${s.placeholders ? ` · 빈 그림 자리 ${s.placeholders}` : ''}${warn}</div>`;
+}
+
+function card(b, i) {
+  const title = b.title || b.folder;
+  const href = esc(urlFor(b.file));
+  const cover = b.hasCover
+    ? `<img src="/__cover?file=${encodeURIComponent(b.file)}&v=${Date.now()}" alt="">`
+    : '';
+  const bg = b.coverColor ? ` style="background:${esc(b.coverColor)}"` : '';
+  const light = b.coverColor === '#F1EEE7' ? ' light' : '';
+  return `
+  <article class="book" data-i="${i}" data-q="${esc((title + ' ' + (b.author || '') + ' ' + (b.subtitle || '') + ' ' + b.tags.join(' ')).toLowerCase())}">
+    <button class="more" type="button" data-more="${i}" aria-haspopup="menu" aria-expanded="false" title="더보기">⋯</button>
+    <a class="cover${light}" href="${href}" aria-label="${esc(title)} 열기"${bg}>
+      ${cover}
+      <div class="cover-inner">
+        <div class="cover-top"><span>EBOOK</span><span>${new Date(b.mtime).getFullYear()}</span></div>
+        ${b.subtitle ? `<div class="cover-kicker">${esc(b.subtitle)}</div>` : '<div class="cover-kicker"></div>'}
+        <div class="cover-title">${esc(title)}</div>
+        <div class="cover-rule"></div>
+        <div class="cover-author">${esc(b.author || '')}</div>
+      </div>
+    </a>
+    <div class="meta">
+      <h2><a href="${href}">${esc(title)}</a></h2>
+      <div class="line"><span class="status ${b.status}">${STATUS[b.status]}</span> <b>${esc(b.author || '저자 미입력')}</b> · ${when(b.mtime)} 수정</div>
+      ${statsLine(b)}
+      ${b.tags.length ? `<div class="tags">${b.tags.map((t) => `<span class="tag">#${esc(t)}</span>`).join('')}</div>` : ''}
+      ${pdfState(b)}
+      <div class="actions">
+        <a class="btn primary small" href="${href}">열기 · 편집</a>
+        <button class="btn small" type="button" data-pdf="${i}">PDF 받기</button>
+      </div>
+    </div>
+  </article>`;
+}
+
+function sorted() {
+  const idx = BOOKS.map((b, i) => i);
+  const title = (b) => (b.title || b.folder);
+  const rank = { draft: 0, review: 1, done: 2 };
+  if (view.sort === 'title') idx.sort((a, b) => title(BOOKS[a]).localeCompare(title(BOOKS[b]), 'ko'));
+  else if (view.sort === 'status') idx.sort((a, b) => rank[BOOKS[a].status] - rank[BOOKS[b].status] || BOOKS[b].mtime - BOOKS[a].mtime);
+  else idx.sort((a, b) => BOOKS[b].mtime - BOOKS[a].mtime);
+  return idx;
+}
+
+function render() {
+  $('#count').textContent = BOOKS.length + ' BOOKS';
+  $('#search-wrap').style.display = BOOKS.length > 3 ? '' : 'none';
+  $('#tools').style.display = BOOKS.length || LIB.trash.length ? '' : 'none';
+  $('#trash-n').textContent = LIB.trash.length || '';
+  $('#sort').value = view.sort;
+  const count = (s) => BOOKS.filter((b) => s === 'all' || b.status === s).length;
+  $('#chips').innerHTML = [['all', '전체'], ...Object.entries(STATUS)]
+    .map(([k, v]) => `<button type="button" class="chip${view.status === k ? ' on' : ''}" data-status="${k}">${v}<span class="n">${count(k)}</span></button>`).join('');
+  $('#shelf').innerHTML = sorted().map((i) => card(BOOKS[i], i)).join('') +
+    `<button class="new-tile" type="button" id="new-tile"><div class="plus">+</div><span>새 책 만들기</span></button>` +
+    `<p class="empty-search" id="no-result" hidden>조건에 맞는 책이 없습니다.</p>`;
+  $('#new-tile').addEventListener('click', openDialog);
+  document.querySelectorAll('[data-pdf]').forEach((btn) => btn.addEventListener('click', () => downloadPdf(btn, BOOKS[+btn.dataset.pdf])));
+  applyFilter();
+}
+
+function applyFilter() {
+  const q = $('#search').value.trim().toLowerCase();
+  let shown = 0;
+  document.querySelectorAll('.book').forEach((el) => {
+    const b = BOOKS[+el.dataset.i];
+    const hit = (!q || el.dataset.q.includes(q)) && (view.status === 'all' || b.status === view.status);
+    el.hidden = !hit;
+    if (hit) shown++;
+  });
+  $('#no-result').hidden = shown > 0 || !BOOKS.length;
+}
+
+$('#chips').addEventListener('click', (e) => {
+  const c = e.target.closest('[data-status]');
+  if (!c) return;
+  view.status = c.dataset.status;
+  document.querySelectorAll('.chip').forEach((x) => x.classList.toggle('on', x === c));
+  applyFilter();
+});
+$('#sort').addEventListener('change', (e) => {
+  view.sort = e.target.value;
+  localStorage.setItem('lib-sort', view.sort);
+  render();
+});
+
+async function api(path, body) {
+  const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(out.error || '요청을 처리하지 못했습니다.');
+  return out;
+}
+function reloadSoon(msg) {
+  sessionStorage.setItem('lib-toast', msg);
+  location.reload();
+}
+
+// ───── 더보기 메뉴 ─────
+let openMenu = null;
+function closeMenu() {
+  if (!openMenu) return;
+  openMenu.menu.remove();
+  openMenu.btn.setAttribute('aria-expanded', 'false');
+  openMenu = null;
+}
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-more]');
+  if (openMenu && !e.target.closest('.menu')) {
+    const same = openMenu.btn === btn;
+    closeMenu();
+    if (same) return;
+  }
+  if (!btn) return;
+  const b = BOOKS[+btn.dataset.more];
+  const menu = document.createElement('div');
+  menu.className = 'menu';
+  menu.setAttribute('role', 'menu');
+  menu.innerHTML =
+    '<button type="button" data-act="info">✎ 책 정보·표지 편집</button>' +
+    '<button type="button" data-act="dup">⧉ 사본 만들기</button>' +
+    '<hr><button type="button" data-act="trash" class="danger">🗑 휴지통으로 옮기기</button>';
+  btn.after(menu);
+  btn.setAttribute('aria-expanded', 'true');
+  openMenu = { btn, menu };
+  menu.addEventListener('click', async (ev) => {
+    const act = ev.target.closest('[data-act]')?.dataset.act;
+    if (!act) return;
+    closeMenu();
+    try {
+      if (act === 'info') return openInfo(b);
+      if (act === 'dup') {
+        busy = true;
+        await api('/__book/duplicate', { file: b.file });
+        return reloadSoon('사본을 만들었습니다.');
+      }
+      if (act === 'trash') {
+        if (!confirm(`"${b.title || b.folder}"을(를) 휴지통으로 옮길까요?\n휴지통에서 언제든 되살릴 수 있습니다.`)) return;
+        busy = true;
+        await api('/__book/trash', { file: b.file });
+        return reloadSoon('휴지통으로 옮겼습니다.');
+      }
+    } catch (err) {
+      busy = false;
+      toast(err.message || String(err), true);
+    }
+  });
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+
+// ───── 책 정보 창 ─────
+let infoBook = null;
+let coverChange;
+function openInfo(b) {
+  infoBook = b;
+  coverChange = undefined;
+  $('#i-title').value = b.title || '';
+  $('#i-sub').value = b.subtitle || '';
+  $('#i-author').value = b.author || '';
+  $('#i-rename').checked = false;
+  $('#i-status').value = b.status;
+  $('#i-tags').value = b.tags.join(', ');
+  $('#swatches').innerHTML = ['', ...COLORS].map((c) =>
+    `<button type="button" class="swatch${c ? '' : ' none'}${(b.coverColor || '') === c ? ' on' : ''}" data-color="${c}" title="${c || '기본'}"${c ? ` style="background:${c}"` : ''}></button>`).join('');
+  setThumb(b.hasCover ? `/__cover?file=${encodeURIComponent(b.file)}&v=${Date.now()}` : '');
+  $('#info-dialog').showModal();
+}
+function setThumb(src) {
+  $('#i-thumb').style.backgroundImage = src ? `url("${src}")` : '';
+  $('#i-cover-clear').hidden = !src;
+}
+$('#swatches').addEventListener('click', (e) => {
+  const s = e.target.closest('.swatch');
+  if (!s) return;
+  document.querySelectorAll('.swatch').forEach((x) => x.classList.toggle('on', x === s));
+});
+$('#i-cover').addEventListener('change', async (e) => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  try {
+    coverChange = await downscale(f, 1600);
+    setThumb(coverChange);
+  } catch (err) { toast(err.message, true); }
+});
+$('#i-cover-clear').addEventListener('click', () => { coverChange = null; setThumb(''); });
+
+function downscale(file, maxH) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, maxH / img.naturalHeight);
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.naturalWidth * k);
+      c.height = Math.round(img.naturalHeight * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(img.src);
+      resolve(c.toDataURL('image/webp', 0.86));
+    };
+    img.onerror = () => reject(new Error('이미지를 읽지 못했습니다.'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+$('#info-form').addEventListener('submit', async (e) => {
+  if (e.submitter && e.submitter.value === 'cancel') return;
+  e.preventDefault();
+  const b = infoBook;
+  const btn = $('#info-save');
+  btn.disabled = true;
+  busy = true;
+  try {
+    let file = b.file;
+    const title = $('#i-title').value.trim();
+    const subtitle = $('#i-sub').value.trim();
+    const author = $('#i-author').value.trim();
+    if (coverChange !== undefined) await api('/__book/cover', { file, data: coverChange });
+    const color = document.querySelector('.swatch.on')?.dataset.color ?? '';
+    await api('/__book/meta', { file, status: $('#i-status').value, tags: $('#i-tags').value, ...(color !== (b.coverColor || '') ? { coverColor: color } : {}) });
+    if (title !== (b.title || '') || subtitle !== (b.subtitle || '') || author !== (b.author || '') || $('#i-rename').checked) {
+      ({ file } = await api('/__book/info', { file, title, subtitle, author, renameFolder: $('#i-rename').checked }));
+    }
+    $('#info-dialog').close();
+    reloadSoon('책 정보를 저장했습니다.');
+  } catch (err) {
+    toast(err.message || String(err), true);
+    btn.disabled = false;
+    busy = false;
+  }
+});
+
+// ───── 휴지통 ─────
+function renderTrash() {
+  const list = $('#trash-list');
+  if (!LIB.trash.length) { list.innerHTML = '<li class="trash-empty" style="border:0;background:none">휴지통이 비어 있습니다.</li>'; return; }
+  list.innerHTML = LIB.trash.map((t, i) => `
+    <li><div class="t"><b>${esc(t.title)}</b><span>${esc(t.author || '저자 미입력')} · ${when(t.deletedAt)} 지움</span></div>
+    <button class="btn small" type="button" data-restore="${i}">되살리기</button>
+    <button class="btn small" type="button" data-purge="${i}" title="영구 삭제">영구 삭제</button></li>`).join('');
+}
+$('#open-trash').addEventListener('click', () => { renderTrash(); $('#trash-dialog').showModal(); });
+$('#trash-list').addEventListener('click', async (e) => {
+  const r = e.target.closest('[data-restore]');
+  const p = e.target.closest('[data-purge]');
+  if (!r && !p) return;
+  const item = LIB.trash[r ? +r.dataset.restore : +p.dataset.purge];
+  try {
+    busy = true;
+    if (r) {
+      await api('/__trash/restore', { id: item.id });
+      return reloadSoon(`"${item.title}"을(를) 서재로 되살렸습니다.`);
+    }
+    if (!confirm(`"${item.title}"을(를) 영구 삭제할까요?\n원고·기록·PDF가 모두 지워지고 되돌릴 수 없습니다.`)) { busy = false; return; }
+    await api('/__trash/purge', { id: item.id });
+    LIB.trash = LIB.trash.filter((x) => x !== item);
+    renderTrash();
+    $('#trash-n').textContent = LIB.trash.length || '';
+    toast('영구 삭제했습니다.');
+    busy = false;
+  } catch (err) {
+    busy = false;
+    toast(err.message || String(err), true);
+  }
+});
+
+function toast(msg, isError) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.toggle('error', !!isError);
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('show'), isError ? 6000 : 3000);
+}
+
+let busy = false;
+async function downloadPdf(btn, b) {
+  if (btn.disabled) return;
+  const label = btn.innerHTML;
+  const t0 = Date.now();
+  btn.disabled = true;
+  busy = true;
+  const tick = () => { btn.innerHTML = `<span class="spin"></span>${Math.floor((Date.now() - t0) / 1000)}초`; };
+  tick();
+  const timer = setInterval(tick, 1000);
+  try {
+    const res = await fetch('/__pdf?file=' + encodeURIComponent(b.file));
+    if (!res.ok) throw new Error(await res.text());
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(await res.blob());
+    a.download = (b.title || b.folder) + '.pdf';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    toast('PDF를 내려받았습니다. 책 폴더에도 저장했어요.');
+    const name = decodeURIComponent((res.headers.get('Content-Disposition') || '').match(/filename\*=UTF-8''([^;]+)/)?.[1] || '') || (b.title || b.folder) + '.pdf';
+    b.pdf = { file: b.file.replace(/[^/]+$/, '') + name, mtime: Date.now() };
+    btn.closest('.book').querySelector('.pdf-state').outerHTML = pdfState(b);
+  } catch (e) {
+    toast('PDF를 만들지 못했습니다. ' + (e.message || e), true);
+  } finally {
+    clearInterval(timer);
+    btn.disabled = false;
+    btn.innerHTML = label;
+    busy = false;
+  }
+}
+
+const MAX_FILE = 50 * 1024 * 1024;
+const FILE_EXT = ['txt', 'md', 'markdown', 'pdf', 'docx'];
+let sourceFile = null;
+let titleFromFile = '';
+
+function sizeText(n) {
+  return n < 1024 * 1024 ? Math.max(1, Math.round(n / 1024)) + ' KB' : (n / 1024 / 1024).toFixed(1) + ' MB';
+}
+
+function setFile(file) {
+  const ext = file ? file.name.split('.').pop().toLowerCase() : '';
+  if (file && !FILE_EXT.includes(ext)) return toast('TXT, MD, PDF, DOCX 파일만 넣을 수 있어요.', true);
+  if (file && file.size > MAX_FILE) return toast('50MB보다 작은 파일만 넣을 수 있어요.', true);
+  sourceFile = file || null;
+  const drop = $('#drop');
+  drop.classList.toggle('has', !!file);
+  $('#drop-clear').hidden = !file;
+  if (file) {
+    $('#drop-ico').textContent = ext === 'markdown' ? 'MD' : ext.toUpperCase();
+    $('#drop-txt').innerHTML = `<b>${esc(file.name)}</b><span>${sizeText(file.size)} · 만들 때 원고로 변환합니다</span>`;
+    const title = $('#f-title');
+    if (!title.value.trim() || title.value === titleFromFile) {
+      titleFromFile = file.name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim();
+      title.value = titleFromFile;
+    }
+  } else {
+    $('#drop-ico').innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    $('#drop-txt').innerHTML = '<b>파일을 끌어다 놓거나 눌러서 고르세요</b><span>TXT · MD · PDF · DOCX</span>';
+    if ($('#f-title').value === titleFromFile) $('#f-title').value = '';
+    titleFromFile = '';
+    $('#f-file').value = '';
+  }
+}
+
+$('#f-file').addEventListener('change', (e) => setFile(e.target.files[0]));
+$('#drop-clear').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); setFile(null); });
+['dragenter', 'dragover'].forEach((t) => $('#drop').addEventListener(t, (e) => { e.preventDefault(); $('#drop').classList.add('over'); }));
+['dragleave', 'drop'].forEach((t) => $('#drop').addEventListener(t, (e) => { e.preventDefault(); $('#drop').classList.remove('over'); }));
+$('#drop').addEventListener('drop', (e) => { if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]); });
+
+function readBase64(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(',')[1] || '');
+    r.onerror = () => reject(new Error('파일을 읽지 못했습니다.'));
+    r.readAsDataURL(file);
+  });
+}
+
+function openDialog() {
+  $('#new-form').reset();
+  setFile(null);
+  $('#new-dialog').showModal();
+  $('#f-title').focus();
+}
+$('#open-new').addEventListener('click', openDialog);
+
+$('#new-form').addEventListener('submit', async (e) => {
+  if (e.submitter && e.submitter.value === 'cancel') return;
+  e.preventDefault();
+  const btn = $('#create-btn');
+  const label = btn.innerHTML;
+  btn.disabled = true;
+  busy = true;
+  if (sourceFile) btn.innerHTML = '<span class="spin"></span>원고 변환 중…';
+  try {
+    const data = Object.fromEntries(new FormData(e.target));
+    if (sourceFile) data.source = { name: sourceFile.name, data: await readBase64(sourceFile) };
+    const res = await fetch('/__new-book', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(out.error || '책을 만들지 못했습니다.');
+    location.href = out.url;
+  } catch (err) {
+    toast(err.message || String(err), true);
+    btn.disabled = false;
+    btn.innerHTML = label;
+    busy = false;
+  }
+});
+
+$('#search').addEventListener('input', applyFilter);
+
+render();
+if (sessionStorage.getItem('lib-toast')) {
+  toast(sessionStorage.getItem('lib-toast'));
+  sessionStorage.removeItem('lib-toast');
+}
+
+const es = new EventSource('/__live');
+es.addEventListener('reload', () => { if (!busy && !document.querySelector('dialog[open]') && !openMenu) location.reload(); });
+</script>
+</body>
+</html>

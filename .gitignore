@@ -1,0 +1,10 @@
+node_modules/
+_trash/
+**/.history/
+_backup/
+_probe.mjs
+_probe_file.txt
+Thumbs.db
+.DS_Store
+*.log
+.cursor/
