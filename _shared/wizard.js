@@ -9,6 +9,7 @@
     structureDraft: null,
     structureDirty: false,
     structureConfirmed: false,
+    themeId: 'practical',
     meta: { title: '', subtitle: '', author: '' }
   };
 
@@ -57,6 +58,12 @@
   const structureError = document.querySelector('#structure-error');
   const structureMessage = document.querySelector('#structure-message');
 
+  const themeCards = [...document.querySelectorAll('[data-theme]')];
+  const themePreview = document.querySelector('#theme-preview');
+  const themeBack = document.querySelector('#theme-back');
+  const themeNext = document.querySelector('#theme-next');
+  const themeMessage = document.querySelector('#theme-message');
+
   const inputIntro = document.querySelector('#step-input .intro > p:last-child');
   if (inputIntro) inputIntro.textContent = '파일을 선택하거나 글을 붙여 넣으세요. 원고 구조만 분석하며, 이 단계에서는 책 파일을 만들지 않습니다.';
 
@@ -70,7 +77,8 @@
       method: '제작 방식',
       input: '원고 입력',
       meta: '책 기본정보',
-      structure: '원고 구조 확인'
+      structure: '원고 구조 확인',
+      theme: '디자인 선택'
     };
     stepLabel.textContent = labels[name] || '새 책 만들기';
     if (name === 'meta') titleInput.focus();
@@ -703,6 +711,7 @@
     state.parseResult = null;
     state.parseState = 'idle';
     clearStructureSession();
+    state.themeId = 'practical';
     state.meta = { title: '', subtitle: '', author: '' };
     location.href = '/';
   }
@@ -779,8 +788,8 @@
       return;
     }
 
-    metaBlocked.textContent = '빈 책의 디자인 선택은 다음 단계에서 연결됩니다. 아직 책은 생성되지 않았어요.';
-    metaBlocked.hidden = false;
+    metaBlocked.hidden = true;
+    showStep('theme');
   });
 
   structureTree.addEventListener('click', (event) => {
@@ -831,14 +840,53 @@
     }
     state.structureConfirmed = true;
     state.structureDirty = false;
-    structureNotice('구조를 확정했습니다. 아직 책 파일은 만들지 않았고, 디자인 선택은 다음 단계에서 연결됩니다.');
+    structureNotice('');
     renderStructure();
+    showStep('theme');
+  });
+
+  function selectTheme(themeId) {
+    if (!['practical', 'minimal'].includes(themeId)) return;
+    state.themeId = themeId;
+    themeCards.forEach((card) => {
+      const selected = card.dataset.theme === themeId;
+      card.classList.toggle('selected', selected);
+      card.setAttribute('aria-checked', String(selected));
+    });
+    themePreview.dataset.theme = themeId;
+    themeMessage.hidden = true;
+    themeMessage.textContent = '';
+  }
+
+  themeCards.forEach((card) => {
+    card.addEventListener('click', () => selectTheme(card.dataset.theme));
+  });
+
+  themeBack.addEventListener('click', () => {
+    themeMessage.hidden = true;
+    if (state.method === 'import') {
+      if (state.structureConfirmed &&
+          !confirm('구조 확정을 풀고 원고 구조로 돌아갈까요?')) return;
+      state.structureConfirmed = false;
+      renderStructure();
+      showStep('structure');
+      return;
+    }
+    showStep('meta');
+  });
+
+  themeNext.addEventListener('click', () => {
+    const name = state.themeId === 'minimal' ? 'Minimal' : 'Practical';
+    themeMessage.textContent =
+      name + ' 디자인을 선택했습니다. 아직 책이나 CSS 파일은 만들지 않았어요. 실제 생성은 다음 단계에서 진행됩니다.';
+    themeMessage.hidden = false;
   });
 
   document.querySelectorAll('[data-cancel]').forEach((button) => {
     button.addEventListener('click', cancelWizard);
   });
 
+  selectTheme(state.themeId);
   syncInputState();
   syncMeta();
   showStep('method');
