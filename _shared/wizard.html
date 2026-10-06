@@ -191,6 +191,67 @@
       </footer>
     </section>
 
+
+    <section class="wizard-card step-panel" id="step-theme" data-step="theme" hidden>
+      <div class="intro">
+        <p class="eyebrow">STEP 5</p>
+        <h1>책 디자인을 골라 주세요</h1>
+        <p>내용과 구조는 그대로 두고, 책의 시각적인 방향만 선택합니다. 실제 책 CSS 적용은 생성 이후 단계에서 처리합니다.</p>
+      </div>
+
+      <div class="theme-grid" role="radiogroup" aria-label="책 디자인">
+        <button class="theme-card selected" type="button" role="radio" aria-checked="true" data-theme="practical">
+          <span class="theme-card-head">
+            <strong>Practical</strong>
+            <span class="theme-check" aria-hidden="true">✓</span>
+          </span>
+          <span class="theme-desc">정보 구조와 강조가 분명한 실전 가이드형 디자인</span>
+          <span class="theme-mini practical-mini" aria-hidden="true">
+            <span class="mini-label">CHAPTER 01</span>
+            <span class="mini-title"></span>
+            <span class="mini-rule"></span>
+            <span class="mini-lines"></span>
+          </span>
+        </button>
+
+        <button class="theme-card" type="button" role="radio" aria-checked="false" data-theme="minimal">
+          <span class="theme-card-head">
+            <strong>Minimal</strong>
+            <span class="theme-check" aria-hidden="true">✓</span>
+          </span>
+          <span class="theme-desc">장식은 덜고 여백과 타이포에 집중한 차분한 디자인</span>
+          <span class="theme-mini minimal-mini" aria-hidden="true">
+            <span class="mini-label">01</span>
+            <span class="mini-title"></span>
+            <span class="mini-rule"></span>
+            <span class="mini-lines"></span>
+          </span>
+        </button>
+      </div>
+
+      <div class="theme-preview" id="theme-preview" data-theme="practical">
+        <div class="preview-page">
+          <span class="preview-kicker">CHAPTER 01</span>
+          <h2>좋은 포트폴리오는 무엇을 보여줘야 할까</h2>
+          <p>결과만 나열하는 대신, 문제를 정의하고 판단한 과정을 독자가 따라올 수 있게 보여 줍니다.</p>
+          <div class="preview-note">
+            <b>CHECK</b>
+            <span>같은 내용과 같은 구조를 두 디자인으로 비교합니다.</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="message info" id="theme-message" aria-live="polite" hidden></p>
+
+      <footer class="wizard-actions">
+        <div class="action-left">
+          <button class="btn" id="theme-back" type="button">뒤로</button>
+          <button class="btn ghost" data-cancel type="button">취소</button>
+        </div>
+        <button class="btn primary" id="theme-next" type="button">이 디자인으로 만들기</button>
+      </footer>
+    </section>
+
   </main>
 
   <script src="/_shared/wizard.js" defer></script>
