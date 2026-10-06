@@ -62,10 +62,14 @@
       button.setAttribute('aria-selected', String(on));
     });
     Object.entries(panels).forEach(([name, panel]) => {
-      panel.hidden = name === 'manuscript' ? next !== 'manuscript' && next !== 'cover' : name !== next;
+      const bookVisible = next === 'manuscript' || next === 'cover' || next === 'preview';
+      panel.hidden = name === 'manuscript' ? !bookVisible : name !== next;
     });
     stage.classList.toggle('show-cover', next === 'cover');
+    stage.classList.toggle('show-preview', next === 'preview');
+    setPreviewChrome(next === 'preview');
     if (next === 'cover') showCoverPage();
+    if (next === 'preview') syncPreviewStatus();
   }
 
   if (!file) {
@@ -88,7 +92,8 @@
       document.title = title + ' · My Chapter';
     }
     syncSave();
-    setTimeout(() => { fillCoverForm(); refreshCoverImage(); }, 0);
+    setPreviewChrome(tab === 'preview');
+    setTimeout(() => { fillCoverForm(); refreshCoverImage(); syncPreviewStatus(); }, 0);
   });
 
   frame.src = urlFor(file);
@@ -382,15 +387,99 @@
 
   syncCoverSave();
 
+  const previewStatus = document.querySelector('#preview-status');
+  const previewModes = [...document.querySelectorAll('[data-preview-mode]')];
+  const pdfStatus = document.querySelector('#pdf-status');
+  const modeLabel = { single: 'Single', spread: 'Spread', thumb: 'Grid' };
+
+  function ensurePreviewStyle(doc) {
+    if (doc.getElementById('mc-preview-style')) return;
+    const style = doc.createElement('style');
+    style.id = 'mc-preview-style';
+    style.textContent = [
+      'body.mc-preview .pbv-edit-btn,',
+      'body.mc-preview .pbv-save-btn,',
+      'body.mc-preview .pbv-edit-status,',
+      'body.mc-preview .pbv-library-btn,',
+      'body.mc-preview .pbv-blockbar,',
+      'body.mc-preview .pbv-blockmenu,',
+      'body.mc-preview .bt-tool-btn,',
+      'body.mc-preview .pbv-pdf-btn,',
+      'body.mc-preview .bt-panel,',
+      'body.mc-preview .bt-dlg { display: none !important; }',
+      'body.mc-preview image-slot { pointer-events: none; }'
+    ].join('\n');
+    doc.head.appendChild(style);
+  }
+
+  function setPreviewChrome(on) {
+    const doc = editorDoc();
+    if (!doc || !doc.body) return;
+    ensurePreviewStyle(doc);
+    doc.body.classList.toggle('mc-preview', on);
+    if (on) {
+      doc.querySelectorAll('[contenteditable="true"]').forEach((el) => {
+        el.dataset.mcEditable = '1';
+        el.contentEditable = 'false';
+      });
+    } else {
+      doc.querySelectorAll('[data-mc-editable]').forEach((el) => {
+        el.contentEditable = 'true';
+        delete el.dataset.mcEditable;
+      });
+    }
+  }
+
+  function viewerMode() {
+    const body = editorDoc()?.body;
+    if (!body) return '';
+    if (body.classList.contains('pbv-mode-thumb')) return 'thumb';
+    if (body.classList.contains('pbv-mode-spread')) return 'spread';
+    if (body.classList.contains('pbv-mode-single')) return 'single';
+    return '';
+  }
+
+  function syncPreviewStatus() {
+    const doc = editorDoc();
+    const mode = viewerMode();
+    const current = doc?.querySelector('[data-pbv-current]')?.textContent?.trim() || '';
+    const total = doc?.querySelector('[data-pbv-total]')?.textContent?.trim() || '';
+    const pages = doc?.querySelectorAll('.pagedjs_page').length || 0;
+    previewModes.forEach((button) => {
+      button.setAttribute('aria-selected', String(button.dataset.previewMode === mode));
+    });
+    if (!pages || !current || !total) {
+      previewStatus.textContent = '쪽을 준비하고 있어요';
+      return;
+    }
+    previewStatus.textContent = (modeLabel[mode] || 'Single') + ' · ' + current + ' / ' + total;
+  }
+
+  previewModes.forEach((button) => {
+    button.addEventListener('click', () => {
+      editorDoc()?.querySelector('[data-mode="' + button.dataset.previewMode + '"]')?.click();
+      setTimeout(syncPreviewStatus, 50);
+    });
+  });
+  setInterval(() => { if (tab === 'preview') syncPreviewStatus(); }, 400);
+
+  function setPdfStatus(state, text) {
+    pdfStatus.dataset.state = state;
+    pdfStatus.textContent = text;
+  }
+
   pdfBtn.addEventListener('click', async () => {
     if (pdfBusy) return;
+    if (unsaved()) {
+      setPdfStatus('error', '저장하지 않은 수정이 있습니다. 저장한 뒤 PDF를 만들어 주세요.');
+      return;
+    }
     pdfBusy = true;
     pdfBtn.disabled = true;
-    const label = pdfBtn.textContent;
-    pdfBtn.textContent = 'PDF 만드는 중';
+    setPdfStatus('loading', 'PDF를 만들고 있어요');
     try {
       const res = await fetch('/__pdf?file=' + encodeURIComponent(file));
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) throw new Error((await res.text()) || 'PDF를 만들지 못했습니다.');
       const a = document.createElement('a');
       a.href = URL.createObjectURL(await res.blob());
       a.download = (titleEl.textContent || 'book') + '.pdf';
@@ -398,13 +487,12 @@
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+      setPdfStatus('done', '완료');
     } catch (err) {
-      statusEl.dataset.state = 'unsaved';
-      statusEl.textContent = err.message || 'PDF를 만들지 못했습니다.';
+      setPdfStatus('error', err.message || 'PDF를 만들지 못했습니다.');
     } finally {
       pdfBusy = false;
       pdfBtn.disabled = false;
-      pdfBtn.textContent = label;
     }
   });
 })();

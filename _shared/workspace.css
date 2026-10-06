@@ -59,9 +59,19 @@ button, a { font: inherit; color: inherit; }
 .ws-status[data-state="saved"] { color: var(--ink-2); }
 .ws-actions {
   display: flex;
+  align-items: center;
   gap: 8px;
   margin-left: auto;
 }
+.pdf-status {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 13px;
+  font-weight: 650;
+}
+.pdf-status[data-state="loading"] { color: var(--ink-2); }
+.pdf-status[data-state="done"] { color: var(--ink-2); }
+.pdf-status[data-state="error"] { color: var(--danger); }
 .ws-btn {
   border: 1px solid var(--rule);
   border-radius: 8px;
@@ -207,6 +217,31 @@ button, a { font: inherit; color: inherit; }
   display: grid;
   grid-template-columns: minmax(300px, 440px) minmax(0, 1fr);
 }
+.ws-stage.show-preview {
+  display: flex;
+  flex-direction: column;
+}
+.ws-preview {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: none;
+  padding: 10px 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--rule);
+}
+.preview-modes { display: flex; gap: 8px; }
+.preview-modes .ws-btn[aria-selected="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.preview-status {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 650;
+}
+.ws-stage.show-preview .ws-frame { flex: 1; min-height: 0; }
 .ws-cover {
   overflow: auto;
   padding: 28px 24px 40px;
