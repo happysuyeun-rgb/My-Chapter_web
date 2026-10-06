@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>새 책 만들기 · My Chapter</title>
+  <link rel="stylesheet" href="/_shared/wizard.css">
+</head>
+<body>
+  <main class="wizard-shell" aria-labelledby="wizard-title">
+    <header class="wizard-head">
+      <a class="brand" href="/" aria-label="My Chapter 서재로">My Chapter</a>
+      <span class="step">새 책 만들기</span>
+    </header>
+
+    <section class="wizard-card">
+      <div class="intro">
+        <p class="eyebrow">STEP 1</p>
+        <h1 id="wizard-title">어떻게 시작할까요?</h1>
+        <p>빈 책에서 시작하거나, 가지고 있는 원고를 불러올 수 있어요.</p>
+      </div>
+
+      <div class="method-grid" role="radiogroup" aria-label="책 만드는 방법">
+        <button class="method-card" type="button" role="radio" aria-checked="false" data-method="empty">
+          <span class="method-icon" aria-hidden="true">＋</span>
+          <span class="method-copy">
+            <strong>빈 책으로 시작</strong>
+            <span>제목부터 직접 입력해 새 책을 준비합니다.</span>
+          </span>
+          <span class="check" aria-hidden="true">✓</span>
+        </button>
+
+        <button class="method-card" type="button" role="radio" aria-checked="false" data-method="import">
+          <span class="method-icon" aria-hidden="true">⇧</span>
+          <span class="method-copy">
+            <strong>원고로 만들기</strong>
+            <span>TXT · MD · PDF · DOCX 원고를 불러올 준비를 합니다.</span>
+          </span>
+          <span class="check" aria-hidden="true">✓</span>
+        </button>
+      </div>
+
+      <footer class="wizard-actions">
+        <button class="btn" id="cancel" type="button">취소</button>
+        <button class="btn primary" id="continue" type="button" disabled>계속</button>
+      </footer>
+    </section>
+  </main>
+
+  <script src="/_shared/wizard.js" defer></script>
+</body>
+</html>
