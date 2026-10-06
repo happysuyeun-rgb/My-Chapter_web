@@ -54,9 +54,34 @@
         </div>
       </div>
     </section>
-    <section class="ws-placeholder" id="panel-cover" role="tabpanel" aria-labelledby="tab-cover" hidden>
+    <section class="ws-cover" id="panel-cover" role="tabpanel" aria-labelledby="tab-cover" hidden>
+      <p class="design-kicker">COVER</p>
       <h2>표지</h2>
-      <p>표지 편집은 다음 단계에서 연결됩니다. 이 화면에서는 표지 이미지나 문구를 바꾸지 않습니다.</p>
+      <p class="cover-lead">표지 그림과 제목, 부제, 저자를 바꿉니다. 본문 구조와 디자인은 그대로입니다.</p>
+      <div class="cover-shot" id="cover-shot">
+        <img id="cover-image" alt="표지 이미지" hidden>
+        <p id="cover-empty">표지 이미지가 없습니다.</p>
+      </div>
+      <div class="cover-file-row">
+        <label class="ws-btn" for="cover-file">이미지 올리기</label>
+        <input id="cover-file" type="file" accept="image/png,image/jpeg,image/webp,image/avif" hidden>
+        <button class="ws-btn" id="cover-clear" type="button">이미지 빼기</button>
+      </div>
+      <form id="cover-form">
+        <label class="cover-field">제목
+          <input id="cover-title" name="title" autocomplete="off" required>
+        </label>
+        <label class="cover-field">부제
+          <input id="cover-subtitle" name="subtitle" autocomplete="off">
+        </label>
+        <label class="cover-field">저자
+          <input id="cover-author" name="author" autocomplete="off">
+        </label>
+        <div class="cover-swatches" id="cover-colors" role="radiogroup" aria-label="표지 바탕색"></div>
+        <p class="cover-status" id="cover-status" data-state="saved">저장됨</p>
+        <p class="message error" id="cover-error" role="alert" hidden></p>
+        <button class="ws-btn primary" id="cover-save" type="submit">표지 문구 저장</button>
+      </form>
     </section>
     <section class="ws-placeholder" id="panel-preview" role="tabpanel" aria-labelledby="tab-preview" hidden>
       <h2>미리보기</h2>

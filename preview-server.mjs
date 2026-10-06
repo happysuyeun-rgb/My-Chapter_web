@@ -43,6 +43,12 @@ const books = createBooks(ws, {
 });
 
 const fail = (status, message) => Object.assign(new Error(message), { status });
+const ORIGINAL_BOOK = "내 포트폴리오, AI로 직접 만들기";
+function protectOriginal(htmlPath) {
+  if (path.basename(path.dirname(htmlPath)) === ORIGINAL_BOOK) {
+    throw fail(400, "기준 책의 표지는 바꾸지 않습니다.");
+  }
+}
 
 // ───────── 원본 저장 ─────────
 // 원본을 바꾸는 모든 경로는 여기를 거칩니다. 바꾸기 직전 상태를 .history에 남기고,
@@ -175,7 +181,7 @@ const routes = {
     const body = await readJson(req);
     const htmlPath = bookFrom(body.file);
     const dir = path.dirname(htmlPath);
-    if (path.basename(dir) === "내 포트폴리오, AI로 직접 만들기") {
+    if (path.basename(dir) === ORIGINAL_BOOK) {
       throw fail(400, "기준 책에는 디자인을 적용하지 않습니다.");
     }
     const cssPath = path.join(dir, "book.css");
@@ -201,7 +207,9 @@ const routes = {
 
   "POST /__book/info": async (req, res) => {
     const body = await readJson(req);
-    const out = books.updateInfo(bookFrom(body.file), body);
+    const htmlPath = bookFrom(body.file);
+    protectOriginal(htmlPath);
+    const out = books.updateInfo(htmlPath, body);
     console.log(`[book] 정보 변경: ${out.file}`);
     sendJson(res, 200, out);
   },
@@ -209,13 +217,17 @@ const routes = {
   "POST /__book/meta": async (req, res) => {
     const body = await readJson(req);
     const htmlPath = bookFrom(body.file);
+    protectOriginal(htmlPath);
     suppressReloadUntil = Date.now() + 1500;
     sendJson(res, 200, books.setInfo(htmlPath, body));
   },
 
   "POST /__book/cover": async (req, res) => {
     const body = await readJson(req);
-    sendJson(res, 200, books.setCover(bookFrom(body.file), body.data || null));
+    const htmlPath = bookFrom(body.file);
+    protectOriginal(htmlPath);
+    if (!Object.prototype.hasOwnProperty.call(body, "data")) throw fail(400, "표지 이미지가 없습니다.");
+    sendJson(res, 200, books.setCover(htmlPath, body.data || null));
   },
 
   "POST /__book/duplicate": async (req, res) => {
@@ -356,6 +368,7 @@ const routes = {
 
   "POST /__state": async (req, res, url) => {
     const htmlPath = bookFrom(url.searchParams.get("file"));
+    protectOriginal(htmlPath);
     const data = await readJson(req);
     ws.write(path.join(path.dirname(htmlPath), STATE_FILE), JSON.stringify(data));
     res.writeHead(204);

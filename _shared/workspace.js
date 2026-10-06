@@ -48,6 +48,8 @@
     statusEl.textContent = status || (dirty ? '저장 안 한 수정' : '저장됨');
   }
 
+  const stage = document.querySelector('.ws-stage');
+
   function showTab(next) {
     if (!panels[next] || next === tab) return;
     if (tab === 'manuscript' && next !== 'manuscript' && unsaved()) {
@@ -60,8 +62,10 @@
       button.setAttribute('aria-selected', String(on));
     });
     Object.entries(panels).forEach(([name, panel]) => {
-      panel.hidden = name !== next;
+      panel.hidden = name === 'manuscript' ? next !== 'manuscript' && next !== 'cover' : name !== next;
     });
+    stage.classList.toggle('show-cover', next === 'cover');
+    if (next === 'cover') showCoverPage();
   }
 
   if (!file) {
@@ -84,6 +88,7 @@
       document.title = title + ' · My Chapter';
     }
     syncSave();
+    setTimeout(() => { fillCoverForm(); refreshCoverImage(); }, 0);
   });
 
   frame.src = urlFor(file);
@@ -170,6 +175,212 @@
   });
   designApply?.addEventListener('click', applyChosenTheme);
   loadTheme();
+
+  const COVER_COLORS = ['#1C1B19', '#1F2A44', '#2D3B2F', '#5A2E2A', '#3B2F4A', '#F1EEE7'];
+  const coverTitle = document.querySelector('#cover-title');
+  const coverSubtitle = document.querySelector('#cover-subtitle');
+  const coverAuthor = document.querySelector('#cover-author');
+  const coverStatus = document.querySelector('#cover-status');
+  const coverError = document.querySelector('#cover-error');
+  const coverSave = document.querySelector('#cover-save');
+  const coverImage = document.querySelector('#cover-image');
+  const coverEmpty = document.querySelector('#cover-empty');
+  const coverClear = document.querySelector('#cover-clear');
+  const coverColors = document.querySelector('#cover-colors');
+  let savedCopy = { title: '', subtitle: '', author: '' };
+  let coverBusy = false;
+
+  coverColors.innerHTML = ['', ...COVER_COLORS].map((color) =>
+    `<button class="cover-swatch${color ? '' : ' none'}" type="button" role="radio" aria-checked="false" data-cover-color="${color}" title="${color || '기본'}"${color ? ` style="background:${color}"` : ''}></button>`
+  ).join('');
+
+  function setCoverStatus(state, text) {
+    coverStatus.dataset.state = state;
+    coverStatus.textContent = text;
+  }
+
+  function currentCopy() {
+    return {
+      title: coverTitle.value.trim(),
+      subtitle: coverSubtitle.value.trim(),
+      author: coverAuthor.value.trim()
+    };
+  }
+
+  function copyDirty() {
+    const now = currentCopy();
+    return now.title !== savedCopy.title || now.subtitle !== savedCopy.subtitle || now.author !== savedCopy.author;
+  }
+
+  function syncCoverSave() {
+    coverSave.disabled = coverBusy || !copyDirty() || !currentCopy().title;
+  }
+
+  function fillCoverForm() {
+    const doc = editorDoc();
+    if (!doc || copyDirty()) return;
+    const textOf = (selector) => [...doc.querySelectorAll(selector)].map((el) => el.textContent.trim()).find(Boolean) || '';
+    const title = textOf('.cover h1') || doc.title?.trim() || '';
+    const subtitle = textOf('.cover .kicker') || textOf('.tp-sub');
+    const author = doc.querySelector('meta[name="author"]')?.content?.trim() || '';
+    coverTitle.value = title;
+    coverSubtitle.value = subtitle;
+    coverAuthor.value = author;
+    savedCopy = { title, subtitle, author };
+    const style = doc.querySelector('#book-cover-color')?.textContent || '';
+    const found = style.match(/background:\s*(#[0-9A-Fa-f]{6})/);
+    const color = found ? found[1].toUpperCase() : '';
+    coverColors.querySelectorAll('[data-cover-color]').forEach((button) => {
+      button.setAttribute('aria-checked', String(button.dataset.coverColor.toUpperCase() === color));
+    });
+    syncCoverSave();
+  }
+
+  function refreshCoverImage() {
+    coverImage.onload = () => {
+      coverImage.hidden = false;
+      coverEmpty.hidden = true;
+      coverClear.disabled = false;
+    };
+    coverImage.onerror = () => {
+      coverImage.hidden = true;
+      coverEmpty.hidden = false;
+      coverClear.disabled = true;
+    };
+    coverImage.src = '/__cover?file=' + encodeURIComponent(file) + '&v=' + Date.now();
+  }
+
+  function showCoverPage() {
+    const scroller = editorDoc()?.querySelector('.pbv-scroller');
+    if (scroller) scroller.scrollTop = 0;
+    fillCoverForm();
+    refreshCoverImage();
+  }
+
+  function reloadBook() {
+    try { frame.contentWindow.location.reload(); }
+    catch { frame.src = urlFor(file); }
+  }
+
+  function showCoverError(err) {
+    setCoverStatus('error', '오류');
+    coverError.hidden = false;
+    coverError.textContent = err.message || String(err);
+  }
+
+  async function postCover(url, body) {
+    coverBusy = true;
+    coverError.hidden = true;
+    setCoverStatus('unsaved', '저장 중');
+    syncCoverSave();
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || '표지를 저장하지 못했습니다.');
+      setCoverStatus('saved', '저장됨');
+      return out;
+    } catch (err) {
+      showCoverError(err);
+      throw err;
+    } finally {
+      coverBusy = false;
+      syncCoverSave();
+    }
+  }
+
+  function downscaleCover(picked) {
+    const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/avif'];
+    return new Promise((resolve, reject) => {
+      if (!allowed.includes(picked.type)) {
+        reject(new Error('PNG, JPEG, WebP 이미지만 쓸 수 있어요.'));
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, 1600 / img.naturalHeight);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(img.src);
+        resolve(canvas.toDataURL('image/webp', 0.86));
+      };
+      img.onerror = () => reject(new Error('이미지를 읽지 못했습니다.'));
+      img.src = URL.createObjectURL(picked);
+    });
+  }
+
+  document.querySelector('#cover-file').addEventListener('change', async (event) => {
+    const picked = event.target.files && event.target.files[0];
+    event.target.value = '';
+    if (!picked) return;
+    try {
+      const data = await downscaleCover(picked);
+      await postCover('/__book/cover', { file, data });
+      refreshCoverImage();
+      reloadBook();
+    } catch (err) {
+      if (coverError.hidden) showCoverError(err);
+    }
+  });
+
+  coverClear.addEventListener('click', async () => {
+    try {
+      await postCover('/__book/cover', { file, data: null });
+      refreshCoverImage();
+      reloadBook();
+    } catch { /* 오류는 표지 상태에 표시됩니다. */ }
+  });
+
+  coverColors.addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-cover-color]');
+    if (!button || coverBusy) return;
+    const color = button.dataset.coverColor;
+    try {
+      await postCover('/__book/meta', { file, coverColor: color });
+      coverColors.querySelectorAll('[data-cover-color]').forEach((item) => {
+        item.setAttribute('aria-checked', String(item === button));
+      });
+      reloadBook();
+    } catch { /* 오류는 표지 상태에 표시됩니다. */ }
+  });
+
+  [coverTitle, coverSubtitle, coverAuthor].forEach((input) => {
+    input.addEventListener('input', () => {
+      coverError.hidden = true;
+      if (copyDirty()) setCoverStatus('unsaved', '저장 안 한 수정');
+      else setCoverStatus('saved', '저장됨');
+      syncCoverSave();
+    });
+  });
+
+  document.querySelector('#cover-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const copy = currentCopy();
+    if (!copy.title) {
+      showCoverError(new Error('책 제목을 입력해 주세요.'));
+      return;
+    }
+    const author = copy.author || '저자';
+    try {
+      await postCover('/__book/info', {
+        file,
+        title: copy.title,
+        subtitle: copy.subtitle,
+        author
+      });
+      savedCopy = { title: copy.title, subtitle: copy.subtitle, author };
+      coverAuthor.value = author;
+      syncCoverSave();
+      reloadBook();
+    } catch { /* 오류는 표지 상태에 표시됩니다. */ }
+  });
+
+  syncCoverSave();
 
   pdfBtn.addEventListener('click', async () => {
     if (pdfBusy) return;

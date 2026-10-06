@@ -1,5 +1,6 @@
 // 서재의 책 목록·만들기·이름 변경·복제·휴지통, 서재 전용 정보(book.json), 표지 이미지.
 
+import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { decodeEntities, escapeHtml, safeName, stripTags } from "./util.mjs";
@@ -308,7 +309,16 @@ export function createBooks(ws, { history, lintSummary } = {}) {
       if (!/^data:image\/(png|jpeg|webp|avif);base64,/.test(dataUrl)) throw Object.assign(new Error("PNG, JPEG, WebP 이미지만 쓸 수 있어요."), { status: 400 });
       state["cover-image"] = { u: dataUrl, s: 1, x: 0, y: 0 };
     } else delete state["cover-image"];
-    ws.write(statePath, JSON.stringify(state));
+    const next = JSON.stringify(state);
+    const tmp = statePath + ".cover-tmp";
+    try {
+      ws.write(tmp, next);
+      fs.copyFileSync(tmp, statePath);
+    } catch (err) {
+      throw err;
+    } finally {
+      if (ws.exists(tmp)) { try { ws.remove(tmp); } catch { /* 임시 파일만 지웁니다. */ } }
+    }
     return { hasCover: !!dataUrl };
   }
 
