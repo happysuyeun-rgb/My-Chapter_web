@@ -4,7 +4,8 @@
   "private": true,
   "description": "My Chapter — manuscript to structured ebook, preview, and PDF",
   "scripts": {
-    "preview": "node preview-server.mjs"
+    "preview": "node preview-server.mjs",
+    "check:prephase6": "node scripts/prephase6-check.mjs"
   },
   "author": "이서아",
   "dependencies": {
