@@ -109,6 +109,12 @@ const routes = {
     res.end(libraryPage());
   },
 
+  "GET /__wizard": (req, res) => {
+    const html = fs.readFileSync(path.join(APP_ROOT, "_shared", "wizard.html"), "utf8");
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(html);
+  },
+
   "GET /__cover": (req, res, url) => {
     const img = books.coverImage(path.dirname(bookFrom(url.searchParams.get("file"))));
     if (!img) { res.writeHead(404); res.end(); return; }
