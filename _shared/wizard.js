@@ -842,7 +842,7 @@
 
   structureConfirm.addEventListener('click', () => {
     if (!structureValid()) {
-      structureNotice('장과 제목을 확인해 주세요. 최소 한 개의 장이 필요합니다.', true);
+      structureNotice('본문 단위와 제목을 확인해 주세요. 최소 한 개의 본문 단위가 필요합니다.', true);
       return;
     }
     state.structureConfirmed = true;
