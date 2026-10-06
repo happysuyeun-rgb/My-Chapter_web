@@ -791,7 +791,7 @@
       if (!out.url && !out.file) throw new Error('만든 책 경로를 받지 못했습니다.');
 
       allowLeave = true;
-      location.href = out.url || ('/' + out.file);
+      location.href = out.file ? ('/__workspace?file=' + encodeURIComponent(out.file)) : (out.url || '/');
     } catch (err) {
       generating = false;
       setGenerateView({

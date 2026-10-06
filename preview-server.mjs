@@ -116,6 +116,15 @@ const routes = {
     res.end(html);
   },
 
+  "GET /__workspace": (req, res, url) => {
+    const file = url.searchParams.get("file") || "";
+    bookFrom(file);
+    const data = JSON.stringify({ file }).replace(/</g, "\\u003c");
+    const html = fs.readFileSync(path.join(APP_ROOT, "_shared", "workspace.html"), "utf8").replace("__WORKSPACE__", () => data);
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(html);
+  },
+
   "POST /__parse": async (req, res) => {
     const body = await readJson(req);
     let file;

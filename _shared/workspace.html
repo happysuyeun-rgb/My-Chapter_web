@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>작업 공간 · My Chapter</title>
+  <link rel="stylesheet" href="/_shared/workspace.css">
+</head>
+<body>
+  <header class="ws-head">
+    <a class="ws-back" id="ws-library" href="/">← 내 서재</a>
+    <h1 class="ws-title" id="ws-title">책을 열고 있어요</h1>
+    <p class="ws-status" id="ws-status" data-state="loading">원고 여는 중</p>
+    <div class="ws-actions">
+      <button class="ws-btn" id="ws-save" type="button" disabled>저장</button>
+      <button class="ws-btn primary" id="ws-pdf" type="button">PDF</button>
+    </div>
+  </header>
+
+  <nav class="ws-tabs" role="tablist" aria-label="책 작업">
+    <button class="ws-tab" id="tab-manuscript" type="button" role="tab" aria-selected="true" aria-controls="panel-manuscript" data-tab="manuscript">원고</button>
+    <button class="ws-tab" id="tab-design" type="button" role="tab" aria-selected="false" aria-controls="panel-design" data-tab="design">디자인</button>
+    <button class="ws-tab" id="tab-cover" type="button" role="tab" aria-selected="false" aria-controls="panel-cover" data-tab="cover">표지</button>
+    <button class="ws-tab" id="tab-preview" type="button" role="tab" aria-selected="false" aria-controls="panel-preview" data-tab="preview">미리보기</button>
+  </nav>
+
+  <div class="ws-stage">
+    <iframe class="ws-frame" id="panel-manuscript" title="원고" src="about:blank"></iframe>
+    <section class="ws-placeholder" id="panel-design" role="tabpanel" aria-labelledby="tab-design" hidden>
+      <h2>디자인</h2>
+      <p>테마 적용은 다음 단계에서 연결됩니다. 이 화면에서는 디자인, 글자 크기, 행간, 여백을 바꾸지 않습니다.</p>
+    </section>
+    <section class="ws-placeholder" id="panel-cover" role="tabpanel" aria-labelledby="tab-cover" hidden>
+      <h2>표지</h2>
+      <p>표지 편집은 다음 단계에서 연결됩니다. 이 화면에서는 표지 이미지나 문구를 바꾸지 않습니다.</p>
+    </section>
+    <section class="ws-placeholder" id="panel-preview" role="tabpanel" aria-labelledby="tab-preview" hidden>
+      <h2>미리보기</h2>
+      <p>별도 미리보기 화면은 다음 단계에서 연결됩니다. 지금은 원고 탭의 기존 미리보기를 사용합니다.</p>
+    </section>
+  </div>
+
+  <script>const WORKSPACE = __WORKSPACE__;</script>
+  <script src="/_shared/workspace.js" defer></script>
+</body>
+</html>

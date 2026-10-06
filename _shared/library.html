@@ -359,6 +359,7 @@ const BOOKS = LIB.books;
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const urlFor = (rel) => '/' + rel.split('/').map(encodeURIComponent).join('/');
+const workspaceHref = (file) => '/__workspace?file=' + encodeURIComponent(file);
 
 function when(ms) {
   const diff = (Date.now() - ms) / 1000;
@@ -390,7 +391,7 @@ function statsLine(b) {
 
 function card(b, i) {
   const title = b.title || b.folder;
-  const href = esc(urlFor(b.file));
+  const href = esc(workspaceHref(b.file));
   const cover = b.hasCover
     ? `<img src="/__cover?file=${encodeURIComponent(b.file)}&v=${Date.now()}" alt="">`
     : '';
@@ -769,7 +770,7 @@ $('#new-form').addEventListener('submit', async (e) => {
     const res = await fetch('/__new-book', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
     const out = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(out.error || '책을 만들지 못했습니다.');
-    location.href = out.url;
+    location.href = out.file ? workspaceHref(out.file) : out.url;
   } catch (err) {
     toast(err.message || String(err), true);
     btn.disabled = false;
