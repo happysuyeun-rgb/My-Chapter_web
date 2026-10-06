@@ -17,6 +17,7 @@ import { applyBlockOp } from "./server/blocks.mjs";
 import { syncTocTitles, structureOp, outlineOf } from "./server/toc.mjs";
 import { lintBook, summaryOf } from "./server/lint.mjs";
 import { injectPdfOptions, buildWebZip, buildEpub, pdfQuery, expandIds } from "./server/export.mjs";
+import { parseManuscript } from "./manuscript-import.mjs";
 
 const PORT = Number(process.env.PORT) || 5500;
 const ws = createWorkspace(process.env.EBOOK_WORKSPACE || APP_ROOT);
@@ -113,6 +114,37 @@ const routes = {
     const html = fs.readFileSync(path.join(APP_ROOT, "_shared", "wizard.html"), "utf8");
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
     res.end(html);
+  },
+
+  "POST /__parse": async (req, res) => {
+    const body = await readJson(req);
+    let file;
+
+    if (body.text !== undefined) {
+      const text = String(body.text || "");
+      if (!text.trim()) throw fail(400, "파일에서 본문 글을 찾지 못했습니다.");
+      file = { name: "원고.md", data: Buffer.from(text, "utf8") };
+    } else {
+      const name = String(body.name || "");
+      const data = String(body.data || "");
+      if (!name || !data) throw fail(400, "원고 파일을 선택해 주세요.");
+      file = { name, data: Buffer.from(data, "base64") };
+    }
+
+    try {
+      const parsed = await parseManuscript(file, String(body.title || "").trim());
+      const units = parsed.units.map((u) => ({
+        kind: u.kind,
+        num: u.num,
+        no: u.no,
+        title: u.title,
+        body: u.body || [],
+      }));
+      sendJson(res, 200, { units, stats: parsed.stats });
+    } catch (err) {
+      if (!err.status) err.status = 400;
+      throw err;
+    }
   },
 
   "GET /__cover": (req, res, url) => {
