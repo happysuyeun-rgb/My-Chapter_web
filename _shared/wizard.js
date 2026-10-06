@@ -4,8 +4,13 @@
   const state = {
     method: null,
     source: null,
+    parseResult: null,
+    parseState: 'idle',
     meta: { title: '', subtitle: '', author: '' }
   };
+
+  let parseTimer = null;
+  let parseSequence = 0;
 
   const panels = [...document.querySelectorAll('[data-step]')];
   const methodCards = [...document.querySelectorAll('[data-method]')];
@@ -32,12 +37,14 @@
   const metaNext = document.querySelector('#meta-next');
   const metaBlocked = document.querySelector('#meta-blocked');
 
+  // Phase 3: S05 now parses in memory only. No book/source files are created here.
+  const inputIntro = document.querySelector('#step-input .intro > p:last-child');
+  if (inputIntro) inputIntro.textContent = '파일을 선택하거나 글을 붙여 넣으세요. 원고 구조만 분석하며, 이 단계에서는 책 파일을 만들지 않습니다.';
+
   function showStep(name) {
     panels.forEach((panel) => { panel.hidden = panel.dataset.step !== name; });
     stepLabel.textContent = name === 'method' ? '제작 방식' : name === 'input' ? '원고 입력' : '책 기본정보';
-    if (name === 'meta') {
-      titleInput.focus();
-    }
+    if (name === 'meta') titleInput.focus();
   }
 
   function clearError() {
@@ -56,7 +63,21 @@
     return (bytes / 1024 / 1024).toFixed(1) + ' MB';
   }
 
+  function statsText(stats = {}) {
+    const bits = [];
+    if (stats.parts) bits.push('파트 ' + stats.parts);
+    if (stats.chapters) bits.push('장 ' + stats.chapters);
+    if (stats.appendices) bits.push('부록 ' + stats.appendices);
+    if (Number.isFinite(stats.paragraphs)) bits.push('문단 ' + stats.paragraphs);
+    return bits.join(' · ');
+  }
+
   function sourceLabel() {
+    if (state.parseState === 'loading') return '원고 읽는 중…';
+    if (state.parseState === 'success') {
+      const detail = statsText(state.parseResult?.stats);
+      return '원고 분석 완료' + (detail ? ' · ' + detail : '');
+    }
     if (!state.source) return '아직 사용할 원고를 선택하지 않았습니다.';
     if (state.source.kind === 'file') return '현재 사용할 원고: ' + state.source.file.name;
     return '현재 사용할 원고: 붙여넣은 텍스트';
@@ -64,7 +85,7 @@
 
   function syncInputState() {
     inputChoice.textContent = sourceLabel();
-    inputNext.disabled = !state.source;
+    inputNext.disabled = !state.parseResult || state.parseState !== 'success';
     const file = state.source?.kind === 'file' ? state.source.file : null;
     pickedFile.hidden = !file;
     if (file) {
@@ -80,8 +101,20 @@
     fileInput.value = '';
   }
 
+  function invalidateParse() {
+    parseSequence++;
+    clearTimeout(parseTimer);
+    state.parseResult = null;
+    state.parseState = state.source ? 'idle' : 'idle';
+    syncInputState();
+  }
+
   function discardImportSource() {
     state.source = null;
+    state.parseResult = null;
+    state.parseState = 'idle';
+    parseSequence++;
+    clearTimeout(parseTimer);
     resetFileControl();
     textInput.value = '';
     syncInputState();
@@ -90,9 +123,7 @@
 
   function selectMethod(method) {
     if (!['empty', 'import'].includes(method)) return;
-    if (state.method === 'import' && method === 'empty') {
-      discardImportSource();
-    }
+    if (state.method === 'import' && method === 'empty') discardImportSource();
     state.method = method;
     methodCards.forEach((card) => {
       const on = card.dataset.method === method;
@@ -104,13 +135,66 @@
 
   function validateFile(file) {
     const ext = (file.name.split('.').pop() || '').toLowerCase();
-    if (!SUPPORTED_EXT.has(ext)) {
-      return 'TXT, MD, PDF, DOCX 파일만 넣을 수 있어요.';
-    }
-    if (!file.size) {
-      return '비어 있는 파일은 사용할 수 없어요.';
-    }
+    if (!SUPPORTED_EXT.has(ext)) return 'TXT, MD, PDF, DOCX 파일만 넣을 수 있어요.';
+    if (!file.size) return '비어 있는 파일은 사용할 수 없어요.';
     return '';
+  }
+
+  function readBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+      reader.onerror = () => reject(new Error('파일을 읽지 못했습니다.'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function parseCurrentSource() {
+    const source = state.source;
+    if (!source) return;
+
+    const seq = ++parseSequence;
+    state.parseResult = null;
+    state.parseState = 'loading';
+    clearError();
+    syncInputState();
+
+    try {
+      let body;
+      if (source.kind === 'file') {
+        body = { name: source.file.name, data: await readBase64(source.file), title: state.meta.title };
+      } else {
+        body = { text: source.text, title: state.meta.title };
+      }
+
+      if (seq !== parseSequence || source !== state.source) return;
+
+      const res = await fetch('/__parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || '원고를 읽지 못했습니다.');
+
+      if (seq !== parseSequence || source !== state.source) return;
+      state.parseResult = out;
+      state.parseState = 'success';
+      syncInputState();
+    } catch (err) {
+      if (seq !== parseSequence || source !== state.source) return;
+      state.parseResult = null;
+      state.parseState = 'error';
+      syncInputState();
+      showError(err.message || String(err));
+    }
+  }
+
+  function scheduleParse(delay = 0) {
+    clearTimeout(parseTimer);
+    invalidateParse();
+    if (!state.source) return;
+    parseTimer = setTimeout(parseCurrentSource, delay);
   }
 
   function useFile(file) {
@@ -118,8 +202,8 @@
     const error = validateFile(file);
     if (error) {
       state.source = null;
+      invalidateParse();
       resetFileControl();
-      syncInputState();
       showError(error);
       return;
     }
@@ -127,19 +211,21 @@
     state.source = { kind: 'file', file };
     textInput.value = '';
     syncInputState();
+    scheduleParse(0);
   }
 
   function useText(value) {
     clearError();
     if (!value.trim()) {
       if (state.source?.kind === 'text') state.source = null;
-      syncInputState();
+      invalidateParse();
       return;
     }
 
     state.source = { kind: 'text', text: value };
     resetFileControl();
     syncInputState();
+    scheduleParse(500);
   }
 
   function syncMeta() {
@@ -153,8 +239,12 @@
   }
 
   function cancelWizard() {
+    parseSequence++;
+    clearTimeout(parseTimer);
     state.method = null;
     state.source = null;
+    state.parseResult = null;
+    state.parseState = 'idle';
     state.meta = { title: '', subtitle: '', author: '' };
     location.href = '/';
   }
@@ -195,7 +285,7 @@
   removeFile.addEventListener('click', () => {
     if (state.source?.kind === 'file') state.source = null;
     resetFileControl();
-    syncInputState();
+    invalidateParse();
     clearError();
   });
 
@@ -204,7 +294,7 @@
   inputBack.addEventListener('click', () => showStep('method'));
 
   inputNext.addEventListener('click', () => {
-    if (!state.source) return;
+    if (!state.parseResult || state.parseState !== 'success') return;
     showStep('meta');
   });
 
