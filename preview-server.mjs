@@ -18,6 +18,7 @@ import { syncTocTitles, structureOp, outlineOf } from "./server/toc.mjs";
 import { lintBook, summaryOf } from "./server/lint.mjs";
 import { injectPdfOptions, buildWebZip, buildEpub, pdfQuery, expandIds } from "./server/export.mjs";
 import { parseManuscript } from "./manuscript-import.mjs";
+import { applyThemeCss, readTheme } from "./server/theme.mjs";
 
 const PORT = Number(process.env.PORT) || 5500;
 const ws = createWorkspace(process.env.EBOOK_WORKSPACE || APP_ROOT);
@@ -161,6 +162,35 @@ const routes = {
     if (!img) { res.writeHead(404); res.end(); return; }
     res.writeHead(200, { "Content-Type": img.type, "Cache-Control": "no-store" });
     res.end(img.data);
+  },
+
+  "GET /__theme": (req, res, url) => {
+    const htmlPath = bookFrom(url.searchParams.get("file"));
+    const cssPath = path.join(path.dirname(htmlPath), "book.css");
+    if (!ws.exists(cssPath)) throw fail(404, "책 CSS를 찾지 못했습니다.");
+    sendJson(res, 200, { theme: readTheme(ws.read(cssPath)) });
+  },
+
+  "POST /__theme": async (req, res) => {
+    const body = await readJson(req);
+    const htmlPath = bookFrom(body.file);
+    const dir = path.dirname(htmlPath);
+    if (path.basename(dir) === "내 포트폴리오, AI로 직접 만들기") {
+      throw fail(400, "기준 책에는 디자인을 적용하지 않습니다.");
+    }
+    const cssPath = path.join(dir, "book.css");
+    if (!ws.exists(cssPath)) throw fail(404, "책 CSS를 찾지 못했습니다.");
+    const prev = ws.read(cssPath);
+    const next = applyThemeCss(prev, String(body.theme || ""));
+    const tmp = cssPath + ".theme-tmp";
+    try {
+      ws.write(tmp, next);
+      fs.renameSync(tmp, cssPath);
+    } catch (err) {
+      if (ws.exists(tmp)) { try { ws.remove(tmp); } catch { /* 임시 파일만 지웁니다. */ } }
+      throw err;
+    }
+    sendJson(res, 200, { theme: readTheme(ws.read(cssPath)) });
   },
 
   "POST /__new-book": async (req, res) => {

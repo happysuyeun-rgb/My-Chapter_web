@@ -4,6 +4,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { decodeEntities, escapeHtml, safeName, stripTags } from "./util.mjs";
 import { importManuscript, renderUnits } from "../manuscript-import.mjs";
+import { THEMES, applyThemeCss } from "./theme.mjs";
 
 export const STATE_FILE = ".image-slots.state.json";
 export const BOOK_JSON = "book.json";
@@ -88,9 +89,11 @@ export function createBooks(ws, { history, lintSummary } = {}) {
     return folder;
   }
 
-  async function create({ title, subtitle, author, source, units } = {}) {
+  async function create({ title, subtitle, author, source, units, themeId } = {}) {
     title = String(title || "").trim();
     if (!title) throw Object.assign(new Error("책 제목을 입력해 주세요."), { status: 400 });
+    const theme = themeId == null || themeId === "" ? "practical" : String(themeId);
+    if (!THEMES.includes(theme)) throw Object.assign(new Error("고를 수 없는 디자인입니다."), { status: 400 });
     let imported = null;
     let sourceFile = null;
     if (source && source.data) {
@@ -126,6 +129,9 @@ export function createBooks(ws, { history, lintSummary } = {}) {
         ws.write(htmlPath, html.slice(0, start) + imported.html + "\n" + html.slice(end));
         if (sourceFile) ws.write(path.join(dest, "source", sourceFile.name), sourceFile.data);
       }
+      const cssPath = path.join(dest, "book.css");
+      if (!ws.exists(cssPath)) throw Object.assign(new Error("책 디자인을 적용할 CSS가 없습니다."), { status: 500 });
+      ws.write(cssPath, applyThemeCss(ws.read(cssPath), theme));
       writeInfo(dest, { status: "draft", tags: [], createdAt: now.toISOString(), id: crypto.randomUUID() });
       return { file: ws.rel(htmlPath), stats: imported?.stats };
     } catch (err) {

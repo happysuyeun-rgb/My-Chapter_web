@@ -103,6 +103,74 @@
     if (!confirm('저장하지 않은 수정이 있습니다. 서재로 나갈까요?')) event.preventDefault();
   });
 
+  const designNote = document.querySelector('#design-note');
+  const designError = document.querySelector('#design-error');
+  const designApply = document.querySelector('#design-apply');
+  const themeSample = document.querySelector('#theme-sample');
+  const themeChoices = [...document.querySelectorAll('[data-theme-choice]')];
+  let appliedTheme = 'practical';
+  let chosenTheme = 'practical';
+  let themeBusy = false;
+
+  function themeLabel(id) {
+    return id === 'minimal' ? 'Minimal' : 'Practical';
+  }
+
+  function showThemeChoice(id) {
+    chosenTheme = id === 'minimal' ? 'minimal' : 'practical';
+    themeChoices.forEach((button) => {
+      const on = button.dataset.themeChoice === chosenTheme;
+      button.setAttribute('aria-checked', String(on));
+    });
+    if (themeSample) themeSample.dataset.theme = chosenTheme;
+    if (designApply) designApply.disabled = themeBusy || chosenTheme === appliedTheme;
+    if (designNote) {
+      designNote.textContent = '현재 디자인: ' + themeLabel(appliedTheme) +
+        (chosenTheme === appliedTheme ? '' : ' · 선택: ' + themeLabel(chosenTheme));
+    }
+  }
+
+  async function loadTheme() {
+    try {
+      const res = await fetch('/__theme?file=' + encodeURIComponent(file));
+      const out = await res.json().catch(() => ({}));
+      appliedTheme = out.theme === 'minimal' ? 'minimal' : 'practical';
+    } catch {
+      appliedTheme = 'practical';
+    }
+    showThemeChoice(appliedTheme);
+  }
+
+  async function applyChosenTheme() {
+    if (themeBusy || chosenTheme === appliedTheme) return;
+    themeBusy = true;
+    designError.hidden = true;
+    designApply.disabled = true;
+    try {
+      const res = await fetch('/__theme', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file, theme: chosenTheme })
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || '디자인을 적용하지 못했습니다.');
+      appliedTheme = out.theme === 'minimal' ? 'minimal' : 'practical';
+      frame.src = urlFor(file);
+    } catch (err) {
+      designError.hidden = false;
+      designError.textContent = err.message || String(err);
+    } finally {
+      themeBusy = false;
+      showThemeChoice(chosenTheme);
+    }
+  }
+
+  themeChoices.forEach((button) => {
+    button.addEventListener('click', () => showThemeChoice(button.dataset.themeChoice));
+  });
+  designApply?.addEventListener('click', applyChosenTheme);
+  loadTheme();
+
   pdfBtn.addEventListener('click', async () => {
     if (pdfBusy) return;
     pdfBusy = true;

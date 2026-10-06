@@ -26,9 +26,33 @@
 
   <div class="ws-stage">
     <iframe class="ws-frame" id="panel-manuscript" title="원고" src="about:blank"></iframe>
-    <section class="ws-placeholder" id="panel-design" role="tabpanel" aria-labelledby="tab-design" hidden>
-      <h2>디자인</h2>
-      <p>테마 적용은 다음 단계에서 연결됩니다. 이 화면에서는 디자인, 글자 크기, 행간, 여백을 바꾸지 않습니다.</p>
+    <section class="ws-design" id="panel-design" role="tabpanel" aria-labelledby="tab-design" hidden>
+      <div class="design-copy">
+        <p class="design-kicker">DESIGN</p>
+        <h2>디자인</h2>
+        <p>같은 원고에 Practical 또는 Minimal을 적용합니다. 문장과 구조는 바뀌지 않습니다.</p>
+        <div class="design-choices" role="radiogroup" aria-label="책 디자인">
+          <button class="design-card" type="button" role="radio" aria-checked="false" data-theme-choice="practical">
+            <strong>Practical</strong>
+            <span>정보 구조와 강조가 분명한 실전 가이드</span>
+          </button>
+          <button class="design-card" type="button" role="radio" aria-checked="false" data-theme-choice="minimal">
+            <strong>Minimal</strong>
+            <span>장식을 줄이고 여백과 글자에 집중한 에디토리얼</span>
+          </button>
+        </div>
+        <p class="design-note" id="design-note">현재 디자인: Practical</p>
+        <p class="message error" id="design-error" role="alert" hidden></p>
+        <button class="ws-btn primary" id="design-apply" type="button">이 디자인 적용</button>
+      </div>
+      <div class="theme-sample" id="theme-sample" data-theme="practical" aria-hidden="true">
+        <div class="sample-page">
+          <span class="sample-kicker">CHAPTER 01</span>
+          <h3>좋은 책은 구조를 먼저 보여 준다</h3>
+          <p>같은 문장과 같은 순서를 유지한 채, 색과 여백과 글자 무게만 달라집니다.</p>
+          <div class="sample-note"><b>CHECK</b><span>본문 HTML은 그대로입니다.</span></div>
+        </div>
+      </div>
     </section>
     <section class="ws-placeholder" id="panel-cover" role="tabpanel" aria-labelledby="tab-cover" hidden>
       <h2>표지</h2>

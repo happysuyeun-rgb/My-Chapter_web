@@ -756,7 +756,8 @@
     showStep('generate');
     setGenerateView({
       status: '책을 만들고 있어요',
-      detail: state.method === 'import' ? '원고 구조를 적용하고 있습니다' : '책 틀을 복사하고 정보를 넣고 있습니다',
+      detail: (state.method === 'import' ? '원고 구조를 적용하고 ' : '책 틀을 복사하고 ') +
+        (state.themeId === 'minimal' ? 'Minimal 디자인을 넣고 있습니다' : 'Practical 디자인을 넣고 있습니다'),
       error: '',
       busy: true
     });
@@ -769,7 +770,8 @@
       const body = {
         title,
         subtitle: state.meta.subtitle.trim(),
-        author: state.meta.author.trim()
+        author: state.meta.author.trim(),
+        themeId: state.themeId
       };
 
       if (state.method === 'import') {
