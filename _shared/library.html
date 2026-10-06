@@ -445,7 +445,7 @@ function render() {
   $('#shelf').innerHTML = sorted().map((i) => card(BOOKS[i], i)).join('') +
     `<button class="new-tile" type="button" id="new-tile"><div class="plus">+</div><span>새 책 만들기</span></button>` +
     `<p class="empty-search" id="no-result" hidden>조건에 맞는 책이 없습니다.</p>`;
-  $('#new-tile').addEventListener('click', openDialog);
+  $('#new-tile').addEventListener('click', startWizard);
   document.querySelectorAll('[data-pdf]').forEach((btn) => btn.addEventListener('click', () => downloadPdf(btn, BOOKS[+btn.dataset.pdf])));
   applyFilter();
 }
@@ -743,13 +743,17 @@ function readBase64(file) {
   });
 }
 
+function startWizard() {
+  location.href = '/__wizard';
+}
+
 function openDialog() {
   $('#new-form').reset();
   setFile(null);
   $('#new-dialog').showModal();
   $('#f-title').focus();
 }
-$('#open-new').addEventListener('click', openDialog);
+$('#open-new').addEventListener('click', startWizard);
 
 $('#new-form').addEventListener('submit', async (e) => {
   if (e.submitter && e.submitter.value === 'cancel') return;
