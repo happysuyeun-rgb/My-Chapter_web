@@ -132,6 +132,65 @@
         <button class="btn primary" id="meta-next" type="button" disabled>다음</button>
       </footer>
     </section>
+
+    <section class="wizard-card step-panel" id="step-structure" data-step="structure" hidden>
+      <div class="intro">
+        <p class="eyebrow">STEP 4</p>
+        <h1>원고 구조를 확인해 주세요</h1>
+        <p>파트·장·소제목의 이름과 순서를 정리합니다. 본문 문장은 이 화면에서 수정하지 않아요.</p>
+      </div>
+
+      <div class="structure-summary" id="structure-summary" aria-live="polite"></div>
+
+      <div class="structure-addbar" aria-label="구조 항목 추가">
+        <span>추가</span>
+        <button class="btn small" type="button" data-add-kind="part">+ 파트</button>
+        <button class="btn small" type="button" data-add-kind="chapter">+ 장</button>
+        <button class="btn small" type="button" data-add-kind="appendix">+ 부록</button>
+      </div>
+
+      <div class="structure-layout">
+        <div class="structure-tree-wrap">
+          <div class="panel-label">책 구조</div>
+          <div class="structure-tree" id="structure-tree" role="tree" aria-label="원고 구조"></div>
+        </div>
+
+        <aside class="structure-detail">
+          <div id="structure-empty-detail" class="structure-empty-detail">
+            왼쪽에서 항목을 선택하면 제목과 순서를 수정할 수 있어요.
+          </div>
+          <div id="structure-editor" hidden>
+            <div class="detail-head">
+              <span class="kind-badge" id="structure-type"></span>
+              <span class="detail-note">세션에서만 수정됩니다</span>
+            </div>
+            <div class="field">
+              <label class="field-label" for="structure-title">제목</label>
+              <input id="structure-title" autocomplete="off">
+            </div>
+            <div class="structure-controls">
+              <button class="btn small" id="structure-up" type="button">↑ 위로</button>
+              <button class="btn small" id="structure-down" type="button">↓ 아래로</button>
+              <button class="btn small" id="structure-add-section" type="button">+ 소제목</button>
+              <button class="btn small danger" id="structure-delete" type="button">삭제</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <p class="message error" id="structure-error" role="alert" hidden></p>
+      <p class="message info" id="structure-message" aria-live="polite" hidden></p>
+
+      <footer class="wizard-actions">
+        <div class="action-left structure-actions-left">
+          <button class="btn" id="structure-back" type="button">뒤로</button>
+          <button class="btn ghost" id="structure-reselect" type="button">원고 다시 선택</button>
+          <button class="btn ghost" data-cancel type="button">취소</button>
+        </div>
+        <button class="btn primary" id="structure-confirm" type="button">이 구조로 책 만들기</button>
+      </footer>
+    </section>
+
   </main>
 
   <script src="/_shared/wizard.js" defer></script>
