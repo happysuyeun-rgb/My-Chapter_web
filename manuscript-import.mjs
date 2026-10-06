@@ -423,13 +423,19 @@ export async function manuscriptText({ name, data }) {
   throw new Error("TXT, MD, PDF, DOCX 파일만 넣을 수 있어요.");
 }
 
-export async function importManuscript(file, title) {
+export async function parseManuscript(file, title = "") {
   const blocks = parseText(await manuscriptText(file));
   if (!blocks.some((b) => b.t !== "h")) throw new Error("파일에서 본문 글을 찾지 못했습니다.");
   // PDF의 첫 장 앞부분은 대개 표지·판권 페이지라 본문으로 옮기지 않습니다.
   const isPdf = path.extname(file.name || "").toLowerCase() === ".pdf";
   const dropLead = isPdf && blocks.some((b) => SECTION_KINDS.has(b.kind));
-  const out = renderBook(structure(blocks, title, { dropLead }));
+  const units = structure(blocks, title, { dropLead });
+  const out = renderBook(units);
   out.stats.paragraphs = blocks.filter((b) => b.t === "p").length;
-  return out;
+  return { units, html: out.html, stats: out.stats };
+}
+
+export async function importManuscript(file, title) {
+  const { html, stats } = await parseManuscript(file, title);
+  return { html, stats };
 }
