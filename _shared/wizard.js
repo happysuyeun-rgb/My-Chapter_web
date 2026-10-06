@@ -16,6 +16,7 @@
   let parseTimer = null;
   let parseSequence = 0;
   let structureSelection = null;
+  let allowLeave = false;
 
   const panels = [...document.querySelectorAll('[data-step]')];
   const methodCards = [...document.querySelectorAll('[data-method]')];
@@ -302,7 +303,7 @@
     return JSON.parse(JSON.stringify(state.parseResult?.units || []));
   }
 
-  function chapterLike(unit) {
+  function contentUnit(unit) {
     return !!unit && unit.kind !== 'part';
   }
 
@@ -320,7 +321,10 @@
     }
     return {
       parts: units.filter((unit) => unit.kind === 'part').length,
-      chapters: units.filter(chapterLike).length,
+      chapters: units.filter((unit) => unit.kind === 'chapter').length,
+      appendices: units.filter((unit) => unit.kind === 'ap').length,
+      frontBack: units.filter((unit) => unit.kind === 'pro' || unit.kind === 'epi').length,
+      contentUnits: units.filter(contentUnit).length,
       sections,
       paragraphs
     };
@@ -350,7 +354,7 @@
       structureSelection = null;
     }
     if (!structureSelection && state.structureDraft.length) {
-      const first = state.structureDraft.find(chapterLike) || state.structureDraft[0];
+      const first = state.structureDraft.find(contentUnit) || state.structureDraft[0];
       structureSelection = { type: 'unit', unit: first };
     }
   }
@@ -429,7 +433,7 @@
 
   function structureValid() {
     const units = state.structureDraft || [];
-    if (!units.filter(chapterLike).length) return false;
+    if (!units.filter(contentUnit).length) return false;
     for (const unit of units) {
       if (!String(unit.title || '').trim()) return false;
       for (const block of sectionBlocks(unit)) {
@@ -453,6 +457,8 @@
     structureSummary.innerHTML =
       '<span>파트 ' + stats.parts + '</span>' +
       '<span>장 ' + stats.chapters + '</span>' +
+      '<span>부록 ' + stats.appendices + '</span>' +
+      (stats.frontBack ? '<span>앞뒤글 ' + stats.frontBack + '</span>' : '') +
       '<span>소제목 ' + stats.sections + '</span>' +
       '<span>문단 ' + stats.paragraphs + '</span>';
 
@@ -505,8 +511,8 @@
       structureUp.disabled = !selectionCanMove(-1);
       structureDown.disabled = !selectionCanMove(1);
       structureAddSection.hidden = isSection ? false : unit.kind === 'part';
-      const chapterCount = units.filter(chapterLike).length;
-      structureDelete.disabled = !isSection && chapterLike(unit) && chapterCount <= 1;
+      const contentUnitCount = units.filter(contentUnit).length;
+      structureDelete.disabled = !isSection && contentUnit(unit) && contentUnitCount <= 1;
     }
 
     structureConfirm.disabled = !structureValid() || state.structureConfirmed;
@@ -676,8 +682,8 @@
       structureSelection = { type: 'unit', unit };
     } else {
       const unit = structureSelection.unit;
-      if (chapterLike(unit) && units.filter(chapterLike).length <= 1) {
-        structureNotice('마지막 장은 삭제할 수 없어요.', true);
+      if (contentUnit(unit) && units.filter(contentUnit).length <= 1) {
+        structureNotice('책에는 최소 한 개의 본문 단위가 필요해요.', true);
         return;
       }
       const label = unit.kind === 'part'
@@ -704,6 +710,7 @@
   }
 
   function cancelWizard() {
+    allowLeave = true;
     parseSequence++;
     clearTimeout(parseTimer);
     state.method = null;
@@ -880,6 +887,23 @@
     themeMessage.textContent =
       name + ' 디자인을 선택했습니다. 아직 책이나 CSS 파일은 만들지 않았어요. 실제 생성은 다음 단계에서 진행됩니다.';
     themeMessage.hidden = false;
+  });
+
+  function hasUnsavedWizardWork() {
+    return !!(
+      state.source ||
+      state.structureDraft ||
+      state.meta.title.trim() ||
+      state.meta.subtitle.trim() ||
+      state.meta.author.trim() ||
+      state.themeId !== 'practical'
+    );
+  }
+
+  window.addEventListener('beforeunload', (event) => {
+    if (allowLeave || !hasUnsavedWizardWork()) return;
+    event.preventDefault();
+    event.returnValue = '';
   });
 
   document.querySelectorAll('[data-cancel]').forEach((button) => {
