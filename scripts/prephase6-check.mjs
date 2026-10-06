@@ -23,7 +23,7 @@ try {
   fail("wizard.js syntax — " + error.message);
 }
 
-const ids = [...wizardHtml.matchAll(/\\bid="([^"]+)"/g)].map((m) => m[1]);
+const ids = [...wizardHtml.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]);
 expect(new Set(ids).size === ids.length, "wizard HTML has no duplicate ids");
 
 for (const step of ["method", "input", "meta", "structure", "theme"]) {
@@ -41,7 +41,7 @@ const parseStart = previewServer.indexOf('"POST /__parse"');
 const parseEnd = previewServer.indexOf('"GET /__cover"', parseStart);
 const parseRoute = parseStart >= 0 && parseEnd > parseStart ? previewServer.slice(parseStart, parseEnd) : "";
 expect(!!parseRoute, "parse-only server route exists");
-expect(!/ws\\.write\\(|books\\.create\\(/.test(parseRoute), "parse-only route has no disk/book creation calls");
+expect(!/ws\.write\(|books\.create\(/.test(parseRoute), "parse-only route has no disk/book creation calls");
 expect(importer.includes("export async function parseManuscript"), "parseManuscript export exists");
 expect(importer.includes("export async function importManuscript"), "legacy importManuscript remains available");
 
@@ -55,4 +55,4 @@ expect(
   "protected 168-page book.css hash"
 );
 
-if (!process.exitCode) console.log("\\nPre-Phase-6 safety gate: PASS");
+if (!process.exitCode) console.log("\nPre-Phase-6 safety gate: PASS");
