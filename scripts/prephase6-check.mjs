@@ -26,12 +26,14 @@ try {
 const ids = [...wizardHtml.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]);
 expect(new Set(ids).size === ids.length, "wizard HTML has no duplicate ids");
 
-for (const step of ["method", "input", "meta", "structure", "theme"]) {
+for (const step of ["method", "input", "meta", "structure", "theme", "generate"]) {
   expect(wizardHtml.includes(`data-step="${step}"`), `wizard includes ${step} step`);
 }
 
 expect(wizardJs.includes("fetch('/__parse'"), "wizard uses parse-only endpoint");
-expect(!wizardJs.includes("/__new-book"), "wizard does not create books before Phase 6");
+expect(wizardJs.includes("fetch('/__new-book'"), "wizard creates books only at S09");
+expect(wizardJs.includes("structureDraft"), "import generation uses edited structureDraft");
+expect(wizardJs.includes("generating"), "wizard guards duplicate generate submits");
 expect(!wizardJs.includes("/__structure"), "S07 does not use opened-book structure API");
 expect(wizardJs.includes("beforeunload"), "wizard protects in-memory work on refresh/navigation");
 expect(wizardJs.includes("themeId: 'practical'"), "Practical remains the default theme");
@@ -44,6 +46,7 @@ expect(!!parseRoute, "parse-only server route exists");
 expect(!/ws\.write\(|books\.create\(/.test(parseRoute), "parse-only route has no disk/book creation calls");
 expect(importer.includes("export async function parseManuscript"), "parseManuscript export exists");
 expect(importer.includes("export async function importManuscript"), "legacy importManuscript remains available");
+expect(importer.includes("export function renderUnits"), "renderUnits export reuses existing renderer");
 
 const protectedBook = "books/내 포트폴리오, AI로 직접 만들기";
 expect(

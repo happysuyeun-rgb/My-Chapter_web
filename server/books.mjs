@@ -3,7 +3,7 @@
 import path from "node:path";
 import crypto from "node:crypto";
 import { decodeEntities, escapeHtml, safeName, stripTags } from "./util.mjs";
-import { importManuscript } from "../manuscript-import.mjs";
+import { importManuscript, renderUnits } from "../manuscript-import.mjs";
 
 export const STATE_FILE = ".image-slots.state.json";
 export const BOOK_JSON = "book.json";
@@ -88,7 +88,7 @@ export function createBooks(ws, { history, lintSummary } = {}) {
     return folder;
   }
 
-  async function create({ title, subtitle, author, source }) {
+  async function create({ title, subtitle, author, source, units } = {}) {
     title = String(title || "").trim();
     if (!title) throw Object.assign(new Error("책 제목을 입력해 주세요."), { status: 400 });
     let imported = null;
@@ -96,34 +96,44 @@ export function createBooks(ws, { history, lintSummary } = {}) {
     if (source && source.data) {
       const name = safeName(path.basename(String(source.name || "원고.txt")), "원고.txt");
       sourceFile = { name, data: Buffer.from(source.data, "base64") };
-      imported = await importManuscript(sourceFile, title);
     }
+    // units가 있으면 S07 수정 구조를 그대로 쓰고, 원본 source는 성공 시에만 보관합니다.
+    if (units != null) imported = renderUnits(units);
+    else if (sourceFile) imported = await importManuscript(sourceFile, title);
+
     const dest = path.join(ws.booksDir, uniqueFolder(safeName(title)));
-    ws.copyDir(ws.templateDir, dest);
-    const now = new Date();
-    const values = {
-      TITLE: escapeHtml(title),
-      SUBTITLE: escapeHtml(String(subtitle || "").trim()),
-      AUTHOR: escapeHtml(String(author || "").trim() || "저자"),
-      YEAR: String(now.getFullYear()),
-      DATE: `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`,
-      TITLE_CSS: title.replace(/\\/g, "\\\\").replace(/"/g, '\\"'),
-    };
-    for (const d of ws.list(dest)) {
-      if (!/\.(html|css)$/i.test(d.name)) continue;
-      const p = path.join(dest, d.name);
-      ws.write(p, ws.read(p).replace(/\{\{(\w+)\}\}/g, (m, k) => values[k] ?? m));
+    try {
+      ws.copyDir(ws.templateDir, dest);
+      const now = new Date();
+      const values = {
+        TITLE: escapeHtml(title),
+        SUBTITLE: escapeHtml(String(subtitle || "").trim()),
+        AUTHOR: escapeHtml(String(author || "").trim() || "저자"),
+        YEAR: String(now.getFullYear()),
+        DATE: `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`,
+        TITLE_CSS: title.replace(/\\/g, "\\\\").replace(/"/g, '\\"'),
+      };
+      for (const d of ws.list(dest)) {
+        if (!/\.(html|css)$/i.test(d.name)) continue;
+        const p = path.join(dest, d.name);
+        ws.write(p, ws.read(p).replace(/\{\{(\w+)\}\}/g, (m, k) => values[k] ?? m));
+      }
+      const htmlPath = path.join(dest, findHtml(dest));
+      if (imported) {
+        const html = ws.read(htmlPath);
+        const start = html.indexOf('<section class="toc"');
+        const end = html.lastIndexOf("</body>");
+        ws.write(htmlPath, html.slice(0, start) + imported.html + "\n" + html.slice(end));
+        if (sourceFile) ws.write(path.join(dest, "source", sourceFile.name), sourceFile.data);
+      }
+      writeInfo(dest, { status: "draft", tags: [], createdAt: now.toISOString(), id: crypto.randomUUID() });
+      return { file: ws.rel(htmlPath), stats: imported?.stats };
+    } catch (err) {
+      if (dest.startsWith(ws.booksDir + path.sep) && dest !== ws.booksDir && ws.exists(dest)) {
+        try { ws.remove(dest); } catch { /* 신규 폴더만 되돌립니다. */ }
+      }
+      throw err;
     }
-    const htmlPath = path.join(dest, findHtml(dest));
-    if (imported) {
-      const html = ws.read(htmlPath);
-      const start = html.indexOf('<section class="toc"');
-      const end = html.lastIndexOf("</body>");
-      ws.write(htmlPath, html.slice(0, start) + imported.html + "\n" + html.slice(end));
-      ws.write(path.join(dest, "source", sourceFile.name), sourceFile.data);
-    }
-    writeInfo(dest, { status: "draft", tags: [], createdAt: now.toISOString(), id: crypto.randomUUID() });
-    return { file: ws.rel(htmlPath), stats: imported?.stats };
   }
 
   // 표지·속표지·판권·head에 흩어진 제목/부제/저자를 함께 바꿉니다. 줄바꿈(<br>)이나 강조가 들어간

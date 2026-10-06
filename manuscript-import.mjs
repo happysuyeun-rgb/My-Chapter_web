@@ -415,6 +415,52 @@ function renderBook(units) {
   };
 }
 
+const UNIT_KINDS = new Set(["part", "chapter", "ap", "pro", "epi"]);
+
+function sanitizeBlock(block) {
+  if (!block || typeof block !== "object") return null;
+  if (block.t === "p") return { t: "p", text: String(block.text || "") };
+  if (block.t === "h") {
+    const level = Number(block.level);
+    return { t: "h", level: level >= 2 && level <= 6 ? level : 2, text: String(block.text || "") };
+  }
+  if (block.t === "ul" || block.t === "ol") {
+    const items = Array.isArray(block.items) ? block.items.map((item) => String(item ?? "")) : [];
+    return { t: block.t, items };
+  }
+  return null;
+}
+
+function sanitizeUnit(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const kind = UNIT_KINDS.has(raw.kind) ? raw.kind : "chapter";
+  const unit = {
+    kind,
+    title: String(raw.title || "").trim(),
+    body: Array.isArray(raw.body) ? raw.body.map(sanitizeBlock).filter(Boolean) : [],
+  };
+  if (kind === "chapter" && Number.isFinite(Number(raw.num))) unit.num = Number(raw.num);
+  return unit;
+}
+
+// S07에서 고친 구조를 다시 파싱하지 않고 같은 renderer로 book.html fragment를 만듭니다.
+export function renderUnits(rawUnits) {
+  if (!Array.isArray(rawUnits) || !rawUnits.length) {
+    throw Object.assign(new Error("책으로 만들 구조를 찾지 못했습니다."), { status: 400 });
+  }
+  const units = rawUnits.map(sanitizeUnit).filter(Boolean);
+  if (!units.length) {
+    throw Object.assign(new Error("책으로 만들 구조를 찾지 못했습니다."), { status: 400 });
+  }
+  if (!units.some((unit) => unit.kind !== "part")) {
+    throw Object.assign(new Error("책에는 최소 한 개의 본문 단위가 필요해요."), { status: 400 });
+  }
+  if (units.some((unit) => !unit.title)) {
+    throw Object.assign(new Error("제목은 비워 둘 수 없어요."), { status: 400 });
+  }
+  return renderBook(units);
+}
+
 export async function manuscriptText({ name, data }) {
   const ext = path.extname(name || "").toLowerCase();
   if (ext === ".pdf") return pdfToText(data);

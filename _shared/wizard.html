@@ -252,6 +252,32 @@
       </footer>
     </section>
 
+    <section class="wizard-card step-panel" id="step-generate" data-step="generate" hidden>
+      <div class="intro">
+        <p class="eyebrow">STEP 6</p>
+        <h1 id="generate-status">책을 만들고 있어요</h1>
+        <p id="generate-detail">원고 구조를 적용하고 있습니다</p>
+      </div>
+
+      <ol class="generate-steps" id="generate-steps">
+        <li>원고 확인</li>
+        <li>책 틀 복사</li>
+        <li>구조 넣기</li>
+        <li>정보 넣기</li>
+        <li>기본 디자인</li>
+      </ol>
+
+      <p class="message error" id="generate-error" role="alert" hidden></p>
+
+      <footer class="wizard-actions" id="generate-actions" hidden>
+        <div class="action-left">
+          <button class="btn" id="generate-back" type="button">뒤로</button>
+          <button class="btn ghost" data-cancel type="button">취소</button>
+        </div>
+        <button class="btn primary" id="generate-retry" type="button">다시 시도</button>
+      </footer>
+    </section>
+
   </main>
 
   <script src="/_shared/wizard.js" defer></script>

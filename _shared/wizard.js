@@ -17,6 +17,7 @@
   let parseSequence = 0;
   let structureSelection = null;
   let allowLeave = false;
+  let generating = false;
 
   const panels = [...document.querySelectorAll('[data-step]')];
   const methodCards = [...document.querySelectorAll('[data-method]')];
@@ -64,6 +65,14 @@
   const themeBack = document.querySelector('#theme-back');
   const themeNext = document.querySelector('#theme-next');
   const themeMessage = document.querySelector('#theme-message');
+  const generatePanel = document.querySelector('#step-generate');
+  const generateStatus = document.querySelector('#generate-status');
+  const generateDetail = document.querySelector('#generate-detail');
+  const generateSteps = document.querySelector('#generate-steps');
+  const generateError = document.querySelector('#generate-error');
+  const generateActions = document.querySelector('#generate-actions');
+  const generateBack = document.querySelector('#generate-back');
+  const generateRetry = document.querySelector('#generate-retry');
 
   const inputIntro = document.querySelector('#step-input .intro > p:last-child');
   if (inputIntro) inputIntro.textContent = '파일을 선택하거나 글을 붙여 넣으세요. 원고 구조만 분석하며, 이 단계에서는 책 파일을 만들지 않습니다.';
@@ -79,7 +88,8 @@
       input: '원고 입력',
       meta: '책 기본정보',
       structure: '원고 구조 확인',
-      theme: '디자인 선택'
+      theme: '디자인 선택',
+      generate: '책 만들기'
     };
     stepLabel.textContent = labels[name] || '새 책 만들기';
     if (name === 'meta') titleInput.focus();
@@ -709,7 +719,92 @@
     showStep('input');
   }
 
+  function utf8ToBase64(text) {
+    const bytes = new TextEncoder().encode(text);
+    let binary = '';
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    return btoa(binary);
+  }
+
+  function setGenerateView({ status, detail, error, busy }) {
+    generateStatus.textContent = status;
+    generateDetail.textContent = detail;
+    generateError.hidden = !error;
+    generateError.textContent = error || '';
+    generateActions.hidden = busy;
+    generatePanel.dataset.busy = busy ? 'true' : 'false';
+    themeNext.disabled = busy;
+    [...generateSteps.querySelectorAll('li')].forEach((item, index) => {
+      item.classList.toggle('active', busy && index === (state.method === 'import' ? 2 : 1));
+    });
+  }
+
+  async function sourcePayload() {
+    if (state.source?.kind === 'file') {
+      return { name: state.source.file.name, data: await readBase64(state.source.file) };
+    }
+    if (state.source?.kind === 'text') {
+      return { name: '원고.txt', data: utf8ToBase64(state.source.text) };
+    }
+    return null;
+  }
+
+  async function generateBook() {
+    if (generating) return;
+    generating = true;
+    themeMessage.hidden = true;
+    showStep('generate');
+    setGenerateView({
+      status: '책을 만들고 있어요',
+      detail: state.method === 'import' ? '원고 구조를 적용하고 있습니다' : '책 틀을 복사하고 정보를 넣고 있습니다',
+      error: '',
+      busy: true
+    });
+
+    try {
+      syncMeta();
+      const title = state.meta.title.trim();
+      if (!title) throw new Error('책 제목을 입력해 주세요.');
+
+      const body = {
+        title,
+        subtitle: state.meta.subtitle.trim(),
+        author: state.meta.author.trim()
+      };
+
+      if (state.method === 'import') {
+        if (!state.structureConfirmed || !state.structureDraft) {
+          throw new Error('확정된 원고 구조가 없어요.');
+        }
+        body.units = JSON.parse(JSON.stringify(state.structureDraft));
+        const source = await sourcePayload();
+        if (source) body.source = source;
+      }
+
+      const res = await fetch('/__new-book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || '책을 만들지 못했습니다.');
+      if (!out.url && !out.file) throw new Error('만든 책 경로를 받지 못했습니다.');
+
+      allowLeave = true;
+      location.href = out.url || ('/' + out.file);
+    } catch (err) {
+      generating = false;
+      setGenerateView({
+        status: '책을 만들지 못했어요',
+        detail: '입력한 내용과 구조는 그대로 있습니다. 다시 시도할 수 있어요.',
+        error: err.message || String(err),
+        busy: false
+      });
+    }
+  }
+
   function cancelWizard() {
+    if (generating) return;
     allowLeave = true;
     parseSequence++;
     clearTimeout(parseTimer);
@@ -882,11 +977,11 @@
     showStep('meta');
   });
 
-  themeNext.addEventListener('click', () => {
-    const name = state.themeId === 'minimal' ? 'Minimal' : 'Practical';
-    themeMessage.textContent =
-      name + ' 디자인을 선택했습니다. 아직 책이나 CSS 파일은 만들지 않았어요. 실제 생성은 다음 단계에서 진행됩니다.';
-    themeMessage.hidden = false;
+  themeNext.addEventListener('click', generateBook);
+  generateRetry.addEventListener('click', generateBook);
+  generateBack.addEventListener('click', () => {
+    if (generating) return;
+    showStep('theme');
   });
 
   function hasUnsavedWizardWork() {
