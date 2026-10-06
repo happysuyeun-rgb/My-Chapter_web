@@ -10,10 +10,10 @@
   <main class="wizard-shell" aria-labelledby="wizard-title">
     <header class="wizard-head">
       <a class="brand" href="/" aria-label="My Chapter 서재로">My Chapter</a>
-      <span class="step">새 책 만들기</span>
+      <span class="step" id="step-label">제작 방식</span>
     </header>
 
-    <section class="wizard-card">
+    <section class="wizard-card step-panel" id="step-method" data-step="method">
       <div class="intro">
         <p class="eyebrow">STEP 1</p>
         <h1 id="wizard-title">어떻게 시작할까요?</h1>
@@ -41,8 +41,95 @@
       </div>
 
       <footer class="wizard-actions">
-        <button class="btn" id="cancel" type="button">취소</button>
-        <button class="btn primary" id="continue" type="button" disabled>계속</button>
+        <button class="btn" data-cancel type="button">취소</button>
+        <button class="btn primary" id="method-continue" type="button" disabled>계속</button>
+      </footer>
+    </section>
+
+    <section class="wizard-card step-panel" id="step-input" data-step="input" hidden>
+      <div class="intro">
+        <p class="eyebrow">STEP 2</p>
+        <h1>원고를 넣어 주세요</h1>
+        <p>파일을 선택하거나 글을 붙여 넣으세요. 이 단계에서는 아직 원고를 분석하거나 책 파일을 만들지 않습니다.</p>
+      </div>
+
+      <div class="format-chips" aria-label="지원 형식">
+        <span>TXT</span><span>MD</span><span>PDF</span><span>DOCX</span>
+      </div>
+
+      <div class="input-stack">
+        <div class="field">
+          <label class="field-label">원고 파일</label>
+          <label class="dropzone" id="dropzone" for="manuscript-file">
+            <input id="manuscript-file" type="file" accept=".txt,.md,.markdown,.pdf,.docx" hidden>
+            <span class="drop-icon" aria-hidden="true">⇧</span>
+            <span class="drop-copy">
+              <strong>파일을 끌어다 놓거나 눌러서 고르세요</strong>
+              <span>TXT · MD · PDF · DOCX</span>
+            </span>
+          </label>
+          <div class="picked-file" id="picked-file" hidden>
+            <div>
+              <strong id="picked-file-name"></strong>
+              <span id="picked-file-size"></span>
+            </div>
+            <button class="text-btn" id="remove-file" type="button">파일 빼기</button>
+          </div>
+        </div>
+
+        <div class="or"><span>또는</span></div>
+
+        <div class="field">
+          <label class="field-label" for="manuscript-text">원고 붙여넣기</label>
+          <textarea id="manuscript-text" rows="10" placeholder="여기에 평문이나 마크다운 원고를 붙여 넣으세요."></textarea>
+          <p class="hint">파일과 붙여넣기를 모두 사용하면 마지막으로 입력한 쪽을 사용합니다.</p>
+        </div>
+      </div>
+
+      <p class="selection-state" id="input-choice" aria-live="polite">아직 사용할 원고를 선택하지 않았습니다.</p>
+      <p class="message error" id="input-error" role="alert" hidden></p>
+
+      <footer class="wizard-actions">
+        <div class="action-left">
+          <button class="btn" id="input-back" type="button">뒤로</button>
+          <button class="btn ghost" data-cancel type="button">취소</button>
+        </div>
+        <button class="btn primary" id="input-next" type="button" disabled>다음</button>
+      </footer>
+    </section>
+
+    <section class="wizard-card step-panel" id="step-meta" data-step="meta" hidden>
+      <div class="intro">
+        <p class="eyebrow">STEP 3</p>
+        <h1>책 기본정보를 입력해 주세요</h1>
+        <p>제목은 필수이고, 부제와 저자는 나중에 다시 바꿀 수 있어요.</p>
+      </div>
+
+      <form class="meta-form" id="meta-form" novalidate>
+        <div class="field">
+          <label class="field-label" for="book-title">제목 <em>*</em></label>
+          <input id="book-title" name="title" autocomplete="off" placeholder="예: 나만의 첫 전자책" required>
+        </div>
+        <div class="field">
+          <label class="field-label" for="book-subtitle">부제 <span class="optional">(선택)</span></label>
+          <input id="book-subtitle" name="subtitle" autocomplete="off" placeholder="선택">
+        </div>
+        <div class="field">
+          <label class="field-label" for="book-author">저자 <span class="optional">(선택)</span></label>
+          <input id="book-author" name="author" autocomplete="off" placeholder="예: 이서아">
+        </div>
+      </form>
+
+      <p class="message info" id="meta-blocked" aria-live="polite" hidden>
+        입력값은 현재 마법사 메모리에만 보관됩니다. 다음 단계는 아직 연결하지 않았어요.
+      </p>
+
+      <footer class="wizard-actions">
+        <div class="action-left">
+          <button class="btn" id="meta-back" type="button">뒤로</button>
+          <button class="btn ghost" data-cancel type="button">취소</button>
+        </div>
+        <button class="btn primary" id="meta-next" type="button" disabled>다음</button>
       </footer>
     </section>
   </main>
