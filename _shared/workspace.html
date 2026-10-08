@@ -94,6 +94,21 @@
     </section>
   </div>
 
+  <section class="ws-done" id="panel-export-complete" hidden>
+    <p class="design-kicker">출력 완료</p>
+    <h2>전자책 PDF가 완성되었습니다</h2>
+    <p class="done-title" id="done-title"></p>
+    <p class="done-file" id="done-file"></p>
+    <p class="done-status" id="done-status">전자책 PDF 준비 완료</p>
+    <p class="message error" id="done-error" role="alert" hidden></p>
+    <div class="done-actions">
+      <button class="ws-btn primary" id="done-download" type="button">PDF 다운로드</button>
+      <button class="ws-btn" id="done-back" type="button">책으로 돌아가기</button>
+      <button class="ws-btn" id="done-again" type="button">다시 만들기</button>
+    </div>
+    <a class="done-library" id="done-library" href="/">내 서재</a>
+  </section>
+
   <script>const WORKSPACE = __WORKSPACE__;</script>
   <script src="/_shared/workspace.js" defer></script>
 </body>

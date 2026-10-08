@@ -314,6 +314,56 @@ button, a { font: inherit; color: inherit; }
 .cover-status[data-state="error"] { color: var(--danger); }
 #cover-save { justify-self: start; }
 
+body.ws-export-complete .ws-head,
+body.ws-export-complete .ws-tabs,
+body.ws-export-complete .ws-stage { display: none; }
+
+.ws-done {
+  flex: 1;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--paper);
+}
+.ws-done h2 {
+  margin: 0;
+  font-size: 32px;
+  letter-spacing: -.03em;
+}
+.done-title {
+  margin: 16px 0 0;
+  font-size: 18px;
+  font-weight: 750;
+}
+.done-file {
+  margin: 8px 0 0;
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 650;
+}
+.done-status {
+  margin: 10px 0 0;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.done-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 28px;
+}
+.done-library {
+  margin-top: 22px;
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.done-library:hover { color: var(--ink); }
+
 @media (max-width: 760px) {
   .ws-head { flex-wrap: wrap; }
   .ws-title { flex: 1 0 140px; }

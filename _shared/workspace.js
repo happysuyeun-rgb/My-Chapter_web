@@ -16,6 +16,7 @@
 
   let tab = 'manuscript';
   let pdfBusy = false;
+  let lastPdf = null;
 
   const urlFor = (rel) => '/' + String(rel).split('/').map(encodeURIComponent).join('/');
 
@@ -108,10 +109,13 @@
     syncSave();
   });
 
-  libraryLink.addEventListener('click', (event) => {
+  function leaveToLibrary(event) {
     if (!unsaved()) return;
     if (!confirm('저장하지 않은 수정이 있습니다. 서재로 나갈까요?')) event.preventDefault();
-  });
+  }
+
+  libraryLink.addEventListener('click', leaveToLibrary);
+  document.querySelector('#done-library').addEventListener('click', leaveToLibrary);
 
   const designNote = document.querySelector('#design-note');
   const designError = document.querySelector('#design-error');
@@ -468,31 +472,94 @@
     pdfStatus.textContent = text;
   }
 
-  pdfBtn.addEventListener('click', async () => {
+  const donePanel = document.querySelector('#panel-export-complete');
+  const doneTitle = document.querySelector('#done-title');
+  const doneFile = document.querySelector('#done-file');
+  const doneStatus = document.querySelector('#done-status');
+  const doneError = document.querySelector('#done-error');
+  const doneDownload = document.querySelector('#done-download');
+  const doneBack = document.querySelector('#done-back');
+  const doneAgain = document.querySelector('#done-again');
+
+  function pdfFilename() {
+    return (titleEl.textContent || 'book') + '.pdf';
+  }
+
+  function setDoneError(message) {
+    doneError.hidden = !message;
+    doneError.textContent = message || '';
+  }
+
+  function hideExportComplete() {
+    document.body.classList.remove('ws-export-complete');
+    donePanel.hidden = true;
+  }
+
+  function showExportComplete() {
+    const title = titleEl.textContent || '';
+    const name = lastPdf?.filename || pdfFilename();
+    doneTitle.textContent = title;
+    doneFile.textContent = name;
+    doneStatus.textContent = '전자책 PDF 준비 완료';
+    setDoneError('');
+    donePanel.hidden = false;
+    document.body.classList.add('ws-export-complete');
+  }
+
+  function downloadLastPdf() {
+    if (!lastPdf?.url) {
+      setDoneError('내려받을 PDF가 없습니다.');
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = lastPdf.url;
+    a.download = lastPdf.filename || pdfFilename();
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  async function makeEbookPdf() {
     if (pdfBusy) return;
     if (unsaved()) {
+      hideExportComplete();
       setPdfStatus('error', '저장하지 않은 수정이 있습니다. 저장한 뒤 PDF를 만들어 주세요.');
       return;
     }
+    hideExportComplete();
     pdfBusy = true;
     pdfBtn.disabled = true;
+    doneAgain.disabled = true;
     setPdfStatus('loading', 'PDF를 만들고 있어요');
     try {
       const res = await fetch('/__pdf?file=' + encodeURIComponent(file));
       if (!res.ok) throw new Error((await res.text()) || 'PDF를 만들지 못했습니다.');
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(await res.blob());
-      a.download = (titleEl.textContent || 'book') + '.pdf';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+      const blob = await res.blob();
+      if (lastPdf?.url) URL.revokeObjectURL(lastPdf.url);
+      lastPdf = {
+        blob,
+        url: URL.createObjectURL(blob),
+        filename: pdfFilename(),
+        title: titleEl.textContent || ''
+      };
       setPdfStatus('done', '완료');
+      showExportComplete();
     } catch (err) {
+      if (lastPdf?.url) {
+        URL.revokeObjectURL(lastPdf.url);
+        lastPdf = null;
+      }
+      hideExportComplete();
       setPdfStatus('error', err.message || 'PDF를 만들지 못했습니다.');
     } finally {
       pdfBusy = false;
       pdfBtn.disabled = false;
+      doneAgain.disabled = false;
     }
-  });
+  }
+
+  pdfBtn.addEventListener('click', () => { makeEbookPdf(); });
+  doneDownload.addEventListener('click', () => { downloadLastPdf(); });
+  doneBack.addEventListener('click', () => { hideExportComplete(); });
+  doneAgain.addEventListener('click', () => { makeEbookPdf(); });
 })();
