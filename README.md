@@ -13,6 +13,16 @@ npm run preview
 
 브라우저에서 `http://127.0.0.1:5500/` 을 연다.
 
+## Checks
+
+```bash
+npm run check
+```
+
+`npm run check`는 기존 안전 게이트, 핵심 JS/MJS 문법, 보호용 168쪽 기준책 해시, 요청 본문 크기 제한을 확인한다.
+
+JSON 요청 본문은 기본 32MB로 제한한다. 로컬 환경에서 조정이 필요한 경우 바이트 단위로 `MAX_JSON_BODY_BYTES` 환경변수를 사용한다.
+
 ## Layout
 
 | Path | Role |
@@ -24,4 +34,4 @@ npm run preview
 | `_docs/` | Product / Engine / QA 명세 |
 | `design_handoff_portfolio_ebook/` | Frozen reference. 제품 코드가 아님 |
 
-`books/**/source/` 와 생성된 PDF는 개인 원고·캐시다. 공개 저장소에 다시 올리지 않는다. 이미 history에 있는 파일 제거는 별도 작업이다.
+`books/**/source/` 와 생성된 PDF는 개인 원고·캐시다. 공개 저장소에 다시 올리지 않는다. 현재 브랜치에서 제거해도 Git 과거 이력에 남아 있을 수 있으므로, 외부 공개 전에는 저장소 비공개 전환과 history 정리를 별도로 수행해야 한다.

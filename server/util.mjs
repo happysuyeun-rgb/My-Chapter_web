@@ -14,10 +14,28 @@ export const safeName = (s, fallback = "새 책") =>
 export const stripTags = (html) => decodeEntities(String(html).replace(/<br\s*\/?>/gi, " ").replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim();
 export const pad2 = (n) => String(n).padStart(2, "0");
 
-export async function readJson(req) {
+const configuredMaxJsonBodyBytes = Number(process.env.MAX_JSON_BODY_BYTES);
+export const MAX_JSON_BODY_BYTES =
+  Number.isFinite(configuredMaxJsonBodyBytes) && configuredMaxJsonBodyBytes > 0
+    ? Math.floor(configuredMaxJsonBodyBytes)
+    : 32 * 1024 * 1024;
+
+const payloadTooLarge = (maxBytes) =>
+  Object.assign(new Error(`요청이 너무 큽니다. 최대 ${Math.floor(maxBytes / 1048576)}MB까지 처리할 수 있습니다.`), { status: 413 });
+
+export async function readJson(req, { maxBytes = MAX_JSON_BODY_BYTES } = {}) {
+  const declared = Number(req.headers && req.headers["content-length"]);
+  if (Number.isFinite(declared) && declared > maxBytes) throw payloadTooLarge(maxBytes);
+
   const chunks = [];
-  for await (const c of req) chunks.push(c);
-  return JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
+  let total = 0;
+  for await (const c of req) {
+    const chunk = Buffer.isBuffer(c) ? c : Buffer.from(c);
+    total += chunk.length;
+    if (total > maxBytes) throw payloadTooLarge(maxBytes);
+    chunks.push(chunk);
+  }
+  return JSON.parse(Buffer.concat(chunks, total).toString("utf8") || "{}");
 }
 
 export function sendJson(res, status, obj) {
