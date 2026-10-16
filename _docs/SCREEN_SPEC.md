@@ -565,13 +565,12 @@ S15 ERROR → S10
 
 ---
 
-## 24. Phase 15 Route Gap
+## 24. Phase 15 Route Status
 
 Current branch at this document revision:
 
 - `GET /__auth` = implemented
 - Auth client/session UI = implemented
-- `GET /` still serves Library until Entry Routing implementation
 - `GET /` = Landing implemented
 - `GET /library` = Library implemented
 - safe `returnTo` implemented
