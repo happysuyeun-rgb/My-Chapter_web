@@ -101,9 +101,12 @@ Book Pass
    ✅ DOCUMENTED
    ↓
 3. Representative Demo Scenario
+   ✅ DOCUMENTED
+   ↓
+4. Local Demo 실행 / 캡처 / PDF 확보
    ← NEXT
    ↓
-4. 사용자 3~5명 검증
+5. 사용자 3~5명 검증
    ↓
 5. 실제 계정/Cloud 필요가 검증되면 Phase 15B
    ↓
@@ -176,6 +179,7 @@ _docs/PAYMENT_IMPLEMENTATION_PLAN.md v1.0
 
 ~~~text
 Portfolio Case Study ✅
-→ Representative Demo ← NEXT
+→ Representative Demo ✅
+→ Local Demo 실행 / 캡처 / PDF 확보 ← NEXT
 → 사용자 3~5명 검증
 ~~~
