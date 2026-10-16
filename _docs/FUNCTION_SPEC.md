@@ -1,6 +1,6 @@
-# My Chapter Function Specification
+# 차곡 Function Specification
 
-- Product: My Chapter
+- Product: 차곡
 - Stage: Development Specification — Function
 - Version: 1.0
 - Date: 2026-10-03
