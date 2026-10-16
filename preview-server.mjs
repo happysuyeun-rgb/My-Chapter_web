@@ -66,6 +66,10 @@ function checkVersion(src, version) {
 }
 
 // ───────── 서재 ─────────
+function landingPage() {
+  return fs.readFileSync(path.join(APP_ROOT, "_shared", "landing.html"), "utf8");
+}
+
 function libraryPage() {
   const data = JSON.stringify({ books: books.list(), trash: books.listTrash() }).replace(/</g, "\\u003c");
   return fs.readFileSync(path.join(APP_ROOT, "_shared", "library.html"), "utf8").replace("__LIBRARY__", () => data);
@@ -114,11 +118,22 @@ const bookFrom = (file) => {
 const routes = {
   "GET /": (req, res) => {
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(landingPage());
+  },
+
+  "GET /library": (req, res) => {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
     res.end(libraryPage());
   },
 
   "GET /__wizard": (req, res) => {
     const html = fs.readFileSync(path.join(APP_ROOT, "_shared", "wizard.html"), "utf8");
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(html);
+  },
+
+  "GET /__auth": (req, res) => {
+    const html = fs.readFileSync(path.join(APP_ROOT, "_shared", "auth.html"), "utf8");
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
     res.end(html);
   },

@@ -1,11 +1,12 @@
-# My Chapter Function Specification
+# 차곡 Function Specification
 
-- Product: My Chapter
+- Product: 차곡
 - Stage: Development Specification — Function
-- Version: 1.0
-- Date: 2026-10-03
-- Basis: `MY_CHAPTER_PRODUCT_SPEC.md` v1.3, `_docs/M0.5_ENGINE_AUDIT.md`, `_docs/M0.5_CONTENT_AUDIT.md`
-- Pair: `_docs/SCREEN_SPEC.md`
+- Version: **1.1**
+- Date: 2026-10-16
+- Status: **CURRENT / IMPLEMENTATION BASELINE**
+- Basis: `MY_CHAPTER_PRODUCT_SPEC.md` v1.4, `_docs/IA.md`, `_docs/TASK_FLOW.md`, Phase 13~15 implementation
+- Pair: `_docs/FUNCTION_DEFINITION.md`, `_docs/SCREEN_SPEC.md`
 
 이 문서는 **사용자가 어떤 기능을 사용할 수 있는가**만 정한다. API·DB·엔진 내부·구현 순서는 다음 단계다.
 
@@ -19,11 +20,13 @@ MVP에서 사용자가 할 수 있는 일을 Function ID로 고정한다. 화면
 
 ## 2. Scope
 
-**상세 명세 (MVP):** Library, New Book, Import, Metadata, Structure, Theme, Generation, Workspace, Editor, Design, Cover, Preview, Ebook PDF, Export Complete.
+**상세 명세 (Current / MVP):** Landing, Auth Foundation, Library, New Book, Import, Wizard Recovery, Metadata, Structure, Theme, Generation, Workspace, Editor, Autosave/Recovery, Design, Cover, Preview, Ebook PDF, Export Complete.
 
-**개요만 (Later):** Landing, Auth, AI Cover, Pricing. History / Inspection / Print / EPUB / Web ZIP은 엔진 KEEP, 제품에서는 HIDE 또는 Later.
+**Later:** AI Cover, Pricing/Payment. History / Inspection / Print / EPUB / Web ZIP은 엔진 KEEP, 제품에서는 HIDE 또는 Later.
 
-작성하지 않음: API 상세, DB/Supabase, Engine 내부, CSS Token 상세, Route 변경안, Implementation Plan.
+**Phase 15 경계:** Auth session과 Entry Routing은 현재 범위다. Book ownership, DB books, Supabase Storage, RLS/API authorization은 Phase 16 범위다.
+
+작성하지 않음: API 내부 구현, Phase 16 DB/RLS 상세, Engine 내부 재설계, CSS Token 상세, Deployment Architecture.
 
 ---
 
@@ -42,7 +45,11 @@ MVP에서 사용자가 할 수 있는 일을 Function ID로 고정한다. 화면
 - Import는 기본 구조만 만든다. 고급 Component는 Editor에서 확장
 - S07 확정 전 destructive write 금지. 원본 원고를 파괴하지 않음
 - 생성 진행률은 가짜 Percentage를 만들지 않음
-- Auto Save = Later
+- Wizard Draft Recovery = Phase 13 IMPLEMENTED
+- Editor Auto Save / Recovery = Phase 14 IMPLEMENTED
+- Auth session foundation = Phase 15 IMPLEMENTED, 전용 Chagok Web 연결/Runtime QA pending
+- Entry Routing target = `/` Landing, `/library` Library, `/__auth` Auth
+- Auth ≠ Book ownership. Ownership/security boundary는 Phase 16
 - AI는 필수 아님. AI Cover = Later
 
 ---
@@ -64,18 +71,143 @@ F-<AREA>-<NN>
 | `F-GEN` | Book generation |
 | `F-WS` | Workspace shell |
 | `F-EDITOR` | Manuscript editor |
-| `F-DESIGN` | Design tab |
+| `F-DESIGN` | Fine-grained design controls (reserved / Later) |
 | `F-COVER` | Cover |
 | `F-PREVIEW` | Preview |
 | `F-EXPORT` | Export |
 | `F-DONE` | Export complete |
-| `F-LAND` / `F-AUTH` / `F-AICOVER` / `F-PAY` | Later |
+| `F-LAND` | Landing |
+| `F-AUTH` | Auth / session / return routing |
+| `F-AICOVER` / `F-PAY` | Later |
 
 Existing = 현재 엔진에 있음. New = 제품 흐름에 새로 필요. WRAP = 기존을 감싸거나 노출 위치만 바꿈.
 
 ---
 
-## 5. Library Functions
+## 5. Landing / Auth Functions
+
+### F-LAND-01 Landing
+
+- **기능명:** 차곡 Landing
+- **목적:** 제품 가치를 설명하고 로그인 / 새 책 만들기 / 내 서재 진입점을 제공한다.
+- **관련 Screen:** S01
+- **사용자:** 비로그인 / 로그인 사용자
+- **Trigger:** `GET /`
+- **Preconditions:** 없음
+- **Input:** 현재 Auth session
+- **Main Flow:** session 상태에 따라 CTA만 바꾸며 Landing 자체는 유지한다.
+- **Success Result:** 비로그인은 로그인/새 책 만들기, 로그인 사용자는 내 서재/새 책 만들기 CTA를 본다.
+- **Failure Result:** session 확인 실패 시 공개 Landing은 유지하고 인증 상태만 비로그인처럼 안전하게 처리한다.
+- **Validation:** 없음
+- **Persistence Timing:** 없음
+- **Existing Engine Dependency:** New UI. Core book engine과 분리
+- **Side Effect:** 없음
+- **Edge Cases:** 로그인 사용자를 `/`에서 자동으로 Library로 강제 redirect하지 않는다.
+- **MVP / Later:** **Phase 15 Current**
+- **Acceptance Summary:** `/`가 Library가 아니라 Landing이고, session에 맞는 CTA가 보인다.
+
+### F-AUTH-01 회원가입
+
+- **기능명:** 이메일 회원가입
+- **목적:** 차곡 계정 session의 시작점을 만든다.
+- **관련 Screen:** S02
+- **사용자:** 비로그인 사용자
+- **Trigger:** 회원가입 제출
+- **Preconditions:** Chagok Web Supabase 연결
+- **Input:** email, password
+- **Main Flow:** `signUp` → 성공 session 또는 이메일 확인 상태 처리
+- **Success Result:** 인증 성공 후 안전한 `returnTo` 또는 `/library`
+- **Failure Result:** Auth 화면 유지 + 오류 메시지
+- **Validation:** Supabase Auth 규칙 + 비어 있는 값 거부
+- **Persistence Timing:** Supabase Auth session
+- **Existing Engine Dependency:** Phase 15 — `_shared/auth.js`
+- **Side Effect:** 책 파일/DB ownership 변경 없음
+- **Edge Cases:** Phase 15에서는 계정 생성이 곧 Book ownership 생성이 아니다.
+- **MVP / Later:** **Phase 15 Current**
+- **Acceptance Summary:** 신규 계정을 만들 수 있고 기존 책 엔진은 변하지 않는다.
+
+### F-AUTH-02 로그인
+
+- **기능명:** 로그인
+- **목적:** 기존 계정 session을 생성한다.
+- **관련 Screen:** S02
+- **사용자:** 비로그인 사용자
+- **Trigger:** 로그인 제출
+- **Preconditions:** Chagok Web Supabase 연결
+- **Input:** email, password
+- **Main Flow:** `signInWithPassword`
+- **Success Result:** session 생성 후 F-AUTH-05 route 복귀
+- **Failure Result:** Auth 화면 유지 + 오류 메시지
+- **Validation:** 인증 실패를 성공처럼 처리하지 않음
+- **Persistence Timing:** Supabase browser session
+- **Existing Engine Dependency:** Phase 15
+- **Side Effect:** 없음
+- **Edge Cases:** 앱용 MyChapter Supabase project를 사용하면 안 됨.
+- **MVP / Later:** **Phase 15 Current**
+- **Acceptance Summary:** 로그인 후 session이 생성된다.
+
+### F-AUTH-03 Session 유지
+
+- **기능명:** Session persistence
+- **목적:** 새로고침 후에도 로그인 상태를 복원한다.
+- **관련 Screen:** S01, S02, S03
+- **사용자:** 로그인 사용자
+- **Trigger:** 페이지 진입 / 새로고침
+- **Preconditions:** 유효한 session
+- **Input:** Supabase browser session
+- **Main Flow:** `getSession()`, `persistSession: true`, `autoRefreshToken: true`
+- **Success Result:** Landing CTA와 Library account UI가 로그인 상태로 표시
+- **Failure Result:** 비로그인 상태로 안전하게 표시
+- **Validation:** storage key = `chagok-auth-v1`
+- **Persistence Timing:** browser auth storage
+- **Existing Engine Dependency:** Phase 15
+- **Side Effect:** 없음
+- **Edge Cases:** Editor/Wizard recovery legacy localStorage key와 Auth storage key를 혼동하지 않는다.
+- **MVP / Later:** **Phase 15 Current**
+- **Acceptance Summary:** 새로고침 후 이메일/세션이 유지된다.
+
+### F-AUTH-04 로그아웃
+
+- **기능명:** 로그아웃
+- **목적:** Auth session을 종료한다.
+- **관련 Screen:** S03
+- **사용자:** 로그인 사용자
+- **Trigger:** 로그아웃
+- **Preconditions:** session 있음
+- **Input:** 없음
+- **Main Flow:** `signOut` → session 제거 → `/`
+- **Success Result:** Landing 비로그인 상태
+- **Failure Result:** 오류 표시, 현재 책 파일은 변경하지 않음
+- **Persistence Timing:** Auth session 제거
+- **Existing Engine Dependency:** Phase 15
+- **Side Effect:** local books 삭제/이동 금지
+- **Edge Cases:** Logout은 local book cleanup 명령이 아니다.
+- **MVP / Later:** **Phase 15 Current**
+- **Acceptance Summary:** 로그아웃하면 Landing으로 이동하고 session이 사라진다.
+
+### F-AUTH-05 returnTo
+
+- **기능명:** Auth 복귀 경로
+- **목적:** 인증 때문에 끊긴 사용자 과업을 원래 목적지에서 이어 간다.
+- **관련 Screen:** S01 → S02 → S03/S04/S10
+- **사용자:** 인증이 필요한 진입을 선택한 사용자
+- **Trigger:** Auth 성공
+- **Preconditions:** `returnTo` query optional
+- **Input:** 내부 path
+- **Main Flow:** 유효한 내부 경로면 이동. 없거나 잘못된 값이면 `/library`.
+- **Success Result:** 예: `/__wizard`, `/library`, 내부 `/__workspace?... `
+- **Failure Result:** 외부/프로토콜 상대 URL은 거부하고 `/library` fallback
+- **Validation:** `/`로 시작하는 내부 경로만 허용. `http://`, `https://`, `//` 거부
+- **Persistence Timing:** 없음
+- **Existing Engine Dependency:** Phase 15 Entry Routing
+- **Side Effect:** 없음
+- **Edge Cases:** Open Redirect 금지
+- **MVP / Later:** **Phase 15 Current**
+- **Acceptance Summary:** 로그인 후 원래 내부 작업으로 안전하게 복귀한다.
+
+---
+
+## 6. Library Functions
 
 ### F-LIB-01 Book 목록
 
@@ -279,7 +411,7 @@ Existing = 현재 엔진에 있음. New = 제품 흐름에 새로 필요. WRAP =
 
 ---
 
-## 6. New Book / Import Functions
+## 7. New Book / Import Functions
 
 ### F-NEW-01 제작 방식 선택
 
@@ -320,6 +452,66 @@ Existing = 현재 엔진에 있음. New = 제품 흐름에 새로 필요. WRAP =
 - **Edge Cases:** Import를 고쳤다가 empty로 바꾸면 올린 파일은 버려지고 원본 디스크 파일은 건드리지 않는다.
 - **MVP / Later:** MVP
 - **Acceptance Summary:** 빈 책은 Template 골격으로 열린다.
+
+### F-NEW-03 Wizard Draft 저장
+
+- **기능명:** 새 책 작성 Draft 저장
+- **목적:** Wizard 진행 상태를 새로고침/탭 종료 뒤에도 이어갈 수 있게 한다.
+- **관련 Screen:** S04~S08
+- **사용자:** 새 책 제작 사용자
+- **Trigger:** Wizard state 변경
+- **Preconditions:** 생성 완료 전
+- **Input:** method, pastedText, meta, parseResult, structureDraft, confirmation, theme, step
+- **Main Flow:** 400ms debounce로 localStorage에 versioned draft 저장
+- **Success Result:** 동일 브라우저에서 draft 복구 가능
+- **Failure Result:** quota/corrupt storage 오류가 Wizard 자체를 중단시키지 않음
+- **Validation:** TTL 7일, schema version 1
+- **Persistence Timing:** localStorage
+- **Existing Engine Dependency:** **Phase 13 Implemented**
+- **Side Effect:** File object/base64는 저장하지 않음
+- **Edge Cases:** 생성 성공/새로 시작 시 draft clear, 생성 실패 시 보존
+- **MVP / Later:** **MVP / Current**
+- **Acceptance Summary:** 새로고침 뒤에도 작성 중 Wizard를 이어갈 수 있다.
+
+### F-NEW-04 Wizard Draft 복구
+
+- **기능명:** Wizard 이어서 하기
+- **목적:** 유효한 draft가 있으면 이전 작업을 복원한다.
+- **관련 Screen:** S04~S08
+- **사용자:** 기존 draft가 있는 사용자
+- **Trigger:** Wizard 진입
+- **Preconditions:** 유효하고 만료되지 않은 draft
+- **Input:** `mychapter:wizard-draft:v1` legacy recovery state
+- **Main Flow:** “작성 중이던 책이 있습니다.” → 이어서 하기 / 새로 시작
+- **Success Result:** 저장된 step/state 복원
+- **Failure Result:** corrupt/expired draft 무시
+- **Validation:** version/TTL 검사
+- **Persistence Timing:** restore 자체는 write 없음
+- **Existing Engine Dependency:** **Phase 13 Implemented**
+- **Side Effect:** 새로 시작 선택 시 draft 삭제
+- **Edge Cases:** legacy key는 리브랜딩 때문에 단순 rename/delete 금지. migration/fallback 없이 바꾸면 기존 draft를 잃는다.
+- **MVP / Later:** **MVP / Current**
+- **Acceptance Summary:** 사용자가 복구 또는 새로 시작을 명시적으로 선택한다.
+
+### F-NEW-05 업로드 파일 재선택 복구
+
+- **기능명:** 업로드 원고 fingerprint 복구
+- **목적:** 브라우저가 File object를 저장하지 못해도 같은 원고를 다시 선택하면 구조 작업을 이어간다.
+- **관련 Screen:** S05~S08
+- **사용자:** 파일 Import 사용자
+- **Trigger:** recovery 후 파일 재선택
+- **Preconditions:** draft에 source fingerprint 존재
+- **Input:** name, size, type, lastModified
+- **Main Flow:** fingerprint 동일 → parseResult/structureDraft 유지. 다름 → 기존 구조 clear 후 재분석
+- **Success Result:** 같은 파일은 Theme 단계 등 이전 진행을 보존
+- **Failure Result:** 다른 파일이면 “다른 파일이라 다시 분석합니다…” 처리
+- **Validation:** fingerprint exact match
+- **Persistence Timing:** draft 갱신
+- **Existing Engine Dependency:** **Phase 13 Implemented**
+- **Side Effect:** 사용자 원본 파일 수정 없음
+- **Edge Cases:** File object 자체는 localStorage에 저장하지 않음
+- **MVP / Later:** **MVP / Current**
+- **Acceptance Summary:** 같은 파일 재선택은 복구되고 다른 파일은 안전하게 재분석된다.
 
 ### F-IMPORT-01 파일 업로드
 
@@ -463,7 +655,7 @@ Existing = 현재 엔진에 있음. New = 제품 흐름에 새로 필요. WRAP =
 
 ---
 
-## 7. Metadata Functions
+## 8. Metadata Functions
 
 ### F-META-01 제목
 
@@ -547,7 +739,7 @@ Existing = 현재 엔진에 있음. New = 제품 흐름에 새로 필요. WRAP =
 
 ---
 
-## 8. Structure Functions
+## 9. Structure Functions
 
 S07 전용. AI 필수 아님. 확정 전 `book.html` 금지.
 
@@ -699,7 +891,7 @@ S07 전용. AI 필수 아님. 확정 전 `book.html` 금지.
 
 ---
 
-## 9. Theme Functions
+## 10. Theme Functions
 
 S08과 S11은 같은 Theme System.
 
@@ -785,7 +977,7 @@ S08과 S11은 같은 Theme System.
 
 ---
 
-## 10. Generation Functions
+## 11. Generation Functions
 
 가짜 % 금지. 실제 단계만.
 
@@ -825,7 +1017,7 @@ S08과 S11은 같은 Theme System.
 - **Failure Result:** 해당 단계에서 멈춤 + 오류
 - **Validation:** 없음
 - **Persistence Timing:** 없음
-- **Existing Engine Dependency:** New UI. 현재 Job UI 없음
+- **Existing Engine Dependency:** Phase 6 Implemented — generation UI wrapping existing create engine
 - **Side Effect:** 없음
 - **Edge Cases:** PDF 파싱이 길면 “원고 읽는 중”이 유지된다.
 - **MVP / Later:** MVP
@@ -893,7 +1085,7 @@ S08과 S11은 같은 Theme System.
 
 ---
 
-## 11. Workspace / Editor Functions
+## 12. Workspace / Editor Functions
 
 ### F-WS-01 Workspace Shell
 
@@ -945,7 +1137,7 @@ S08과 S11은 같은 Theme System.
 - **Preconditions:** 없음
 - **Input:** 없음
 - **Main Flow:** 미저장이면 확인. 기존 Editor 가드와 동일
-- **Success Result:** S03
+- **Success Result:** S03 Library (`/library`)
 - **Failure Result:** 취소 시 잔류
 - **Validation:** 없음
 - **Persistence Timing:** 저장을 고르면 F-EDITOR-03
@@ -953,7 +1145,7 @@ S08과 S11은 같은 Theme System.
 - **Side Effect:** 없음
 - **Edge Cases:** 없음
 - **MVP / Later:** MVP
-- **Acceptance Summary:** 미저장이면 물어보고, 저장한 책은 유지된다.
+- **Acceptance Summary:** 미저장이면 물어보고, 저장한 책은 유지되며 `/library`로 돌아간다.
 
 ### F-EDITOR-01 편집 모드
 
@@ -1057,16 +1249,67 @@ S08과 S11은 같은 Theme System.
 
 ### F-EDITOR-09 Auto Save
 
-- **기능명:** Auto Save
-- **목적:** 주기 저장
+- **기능명:** Editor Auto Save
+- **목적:** 사용자가 수동 저장을 누르지 않아도 변경된 eid를 안전하게 저장한다.
 - **관련 Screen:** S10
-- **MVP / Later:** **Later**
-- **Existing Engine Dependency:** Overlay 준비 후. 지금은 없음
-- **Acceptance Summary:** MVP에 없음. 수동 저장만.
+- **사용자:** 편집 중인 사용자
+- **Trigger:** dirty 변경 후 1500ms
+- **Preconditions:** 편집 mode, dirty change 존재, conflict pause 아님
+- **Input:** 변경된 eid별 html + base version
+- **Main Flow:** 한 번에 하나의 `/__edit` 요청만 전송. 저장 중 추가 수정은 pending으로 남겨 다음 autosave에서 처리
+- **Success Result:** 저장 성공한 revision만 clean 처리
+- **Failure Result:** network failure는 dirty/recovery 보존, 자동 retry 최대 1회
+- **Validation:** submitted snapshot 이후 발생한 새 수정은 성공 응답으로 잘못 clean하지 않음
+- **Persistence Timing:** 1500ms debounce
+- **Existing Engine Dependency:** **Phase 14 Implemented**
+- **Side Effect:** 기존 history snapshot 규칙 사용
+- **Edge Cases:** manual Save는 즉시 flush하며 Ctrl/Cmd+S 유지
+- **MVP / Later:** **MVP / Current**
+- **Acceptance Summary:** 타이핑 중 저장 race로 최신 수정이 사라지지 않는다.
+
+### F-EDITOR-10 Local Recovery
+
+- **기능명:** Editor Recovery
+- **목적:** 저장 전 변경을 브라우저 종료/새로고침 후 복구한다.
+- **관련 Screen:** S10
+- **사용자:** 편집 사용자
+- **Trigger:** dirty 변경 후 400ms, pagehide
+- **Preconditions:** dirty change 존재
+- **Input:** `{version:1,file,baseVersion,savedAt,changes[]}`
+- **Main Flow:** `mychapter:editor-recovery:v1:<encoded file>`에 저장하고 재진입 시 baseVersion이 맞으면 복구 prompt
+- **Success Result:** 복구 선택 → 편집 상태 복원 → dirty → autosave
+- **Failure Result:** stale recovery는 자동 적용하지 않음
+- **Validation:** file/baseVersion 검사
+- **Persistence Timing:** recovery write 400ms debounce
+- **Existing Engine Dependency:** **Phase 14 Implemented**
+- **Side Effect:** 서버 book.html 직접 변경 아님
+- **Edge Cases:** legacy key는 단순 rename/delete 금지. migration/fallback 필요
+- **MVP / Later:** **MVP / Current**
+- **Acceptance Summary:** 비정상 종료 뒤 미저장 변경을 안전하게 선택 복구할 수 있다.
+
+### F-EDITOR-11 Conflict Safety
+
+- **기능명:** Autosave conflict guard
+- **목적:** 서버 버전 충돌 시 자동 저장이 사용자의 최신 변경을 덮어쓰지 않게 한다.
+- **관련 Screen:** S10
+- **사용자:** 편집 사용자
+- **Trigger:** `/__edit` 409
+- **Preconditions:** autosave/manual save 요청
+- **Input:** conflict response
+- **Main Flow:** autosave pause, dirty/recovery 유지, 한 번만 경고, reload 전 auto/manual 재전송 차단
+- **Success Result:** 사용자 판단 전 변경 보존
+- **Failure Result:** 없음 — 안전 정지
+- **Validation:** 409만 conflict flow로 처리
+- **Persistence Timing:** recovery 유지
+- **Existing Engine Dependency:** **Phase 14 Implemented**
+- **Side Effect:** 없음
+- **Edge Cases:** block/structure op 전 dirty flush 실패 시 해당 op도 중단
+- **MVP / Later:** **MVP / Current**
+- **Acceptance Summary:** 충돌 상황에서 자동 재전송으로 덮어쓰지 않는다.
 
 ---
 
-## 12. Cover Functions
+## 13. Cover Functions
 
 ### F-COVER-01 기존 표지 표시
 
@@ -1154,7 +1397,7 @@ S08과 S11은 같은 Theme System.
 
 ---
 
-## 13. Preview Functions
+## 14. Preview Functions
 
 ### F-PREVIEW-01 Single
 
@@ -1200,7 +1443,7 @@ S08과 S11은 같은 Theme System.
 
 ---
 
-## 14. Export Functions
+## 15. Export Functions
 
 ### F-EXPORT-01 전자책 PDF
 
@@ -1283,25 +1526,24 @@ S08과 S11은 같은 Theme System.
 
 ---
 
-## 15. Later Functions
+## 16. Later Functions
 
 개요만.
 
 | ID | 기능 | Screen | 메모 |
 |---|---|---|---|
-| F-LAND-01 | 랜딩 소개 | S01 | 마케팅. 엔진 아님 |
-| F-AUTH-01 | 로그인/세션 | S02 | M1 기본값 아님 |
-| F-AICOVER-01 | AI 표지 | S13 | S12와 분리 |
-| F-PAY-01 | 요금/결제 | S17 | |
-| F-EDITOR-09 | Auto Save | S10 | |
+| F-AICOVER-01 | AI 표지 | S13 | S12 수동 표지를 대체하지 않음 |
+| F-PAY-01 | Pricing / Payment | S17 | Ownership / usage state 이후 |
 | F-HIST-01 | History UI | — | KEEP / HIDE |
 | F-LINT-01 | Inspection UI | — | KEEP / HIDE |
 | F-EXPORT-04..07 | 고급보내기 | S15 | KEEP / HIDE |
-| F-EDITOR-10 | blocks 타입 확장 | S10 | 점진. 28종 한 번에 금지 |
+| F-EDITOR-12 | blocks 타입 확장 | S10 | 점진. 28종 한 번에 금지 |
+
+Phase 16의 Ownership / DB / Storage / API authorization은 “Later product feature”가 아니라 **다음 인프라 Phase**로 별도 명세한다.
 
 ---
 
-## 16. Function Traceability Matrix
+## 17. Function Traceability Matrix
 
 | Function ID | Function | Screen | MVP/Later | Existing/New |
 |---|---|---|---|---|
@@ -1317,6 +1559,9 @@ S08과 S11은 같은 Theme System.
 | F-LIB-10 | 상태 | S03 | MVP | Existing |
 | F-NEW-01 | 제작 방식 | S04 | MVP | New |
 | F-NEW-02 | 빈 책 경로 | S04 | MVP | WRAP |
+| F-NEW-03 | Wizard Draft 저장 | S04~S08 | MVP | Phase 13 |
+| F-NEW-04 | Wizard Draft 복구 | S04~S08 | MVP | Phase 13 |
+| F-NEW-05 | 파일 재선택 복구 | S05~S08 | MVP | Phase 13 |
 | F-IMPORT-01 | 파일 업로드 | S05 | MVP | WRAP |
 | F-IMPORT-02 | 붙여넣기 | S05 | MVP | New |
 | F-IMPORT-03 | Format 검증 | S05 | MVP | Existing |
@@ -1352,7 +1597,9 @@ S08과 S11은 같은 Theme System.
 | F-EDITOR-03 | 저장 상태 | S10 | MVP | Existing / WRAP |
 | F-EDITOR-04 | 블록 | S10 | MVP | Existing |
 | F-EDITOR-08 | 미저장 가드 | S10 | MVP | Existing |
-| F-EDITOR-09 | Auto Save | S10 | Later | New |
+| F-EDITOR-09 | Auto Save | S10 | MVP | Phase 14 |
+| F-EDITOR-10 | Local Recovery | S10 | MVP | Phase 14 |
+| F-EDITOR-11 | Conflict Safety | S10 | MVP | Phase 14 |
 | F-COVER-01 | 표지 표시 | S12, S14 | MVP | Existing |
 | F-COVER-02 | 표지 이미지 | S12 | MVP | Existing |
 | F-COVER-03 | 표지 카피 | S12 | MVP | Existing / WRAP |
@@ -1370,8 +1617,12 @@ S08과 S11은 같은 Theme System.
 | F-EXPORT-07 | Web ZIP | — | Later / HIDE | Existing |
 | F-DONE-01 | 출력 완료 | S16 | MVP | New |
 | F-DONE-02 | Book으로 | S16→S10 | MVP | New |
-| F-LAND-01 | Landing | S01 | Later | New |
-| F-AUTH-01 | Auth | S02 | Later | New |
+| F-LAND-01 | Landing | S01 | Phase 15 | Implemented |
+| F-AUTH-01 | 회원가입 | S02 | Phase 15 | Implemented / infra pending |
+| F-AUTH-02 | 로그인 | S02 | Phase 15 | Implemented / infra pending |
+| F-AUTH-03 | Session 유지 | S01~S03 | Phase 15 | Implemented / infra pending |
+| F-AUTH-04 | 로그아웃 | S03→S01 | Phase 15 | Implemented / runtime QA pending |
+| F-AUTH-05 | returnTo | S01→S02→Target | Phase 15 | Implemented / runtime QA pending |
 | F-AICOVER-01 | AI Cover | S13 | Later | New |
 | F-PAY-01 | Pricing | S17 | Later | New |
 | F-HIST-01 | History | — | Later / HIDE | Existing |

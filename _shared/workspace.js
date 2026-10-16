@@ -84,13 +84,13 @@
     let path = '';
     try { path = frame.contentWindow.location.pathname; } catch { return; }
     if (path === '/' || path === '/index.html') {
-      location.href = '/';
+      location.href = '/library';
       return;
     }
     const title = editorDoc()?.title?.trim();
     if (title) {
       titleEl.textContent = title;
-      document.title = title + ' · My Chapter';
+      document.title = title + ' · 차곡';
     }
     syncSave();
     setPreviewChrome(tab === 'preview');
@@ -305,7 +305,7 @@
     const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/avif'];
     return new Promise((resolve, reject) => {
       if (!allowed.includes(picked.type)) {
-        reject(new Error('PNG, JPEG, WebP 이미지만 쓸 수 있어요.'));
+        reject(new Error('PNG, JPEG, WebP, AVIF 이미지만 쓸 수 있어요.'));
         return;
       }
       const img = new Image();

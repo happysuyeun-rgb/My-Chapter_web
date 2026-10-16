@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>로그인 · 차곡</title>
+<style>
+  :root { --ink:#1c1b19; --ink2:#625f58; --paper:#faf8f4; --line:#ded8cc; --accent:#2f55d4; --soft:#eef2ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px; background:var(--paper); color:var(--ink); font-family:Pretendard,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .card { width:min(430px,100%); padding:34px; background:#fff; border:1px solid var(--line); border-radius:18px; box-shadow:0 24px 60px -36px rgba(0,0,0,.45); }
+  .brand { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:28px; }
+  .brand b { font-size:18px; letter-spacing:-.03em; }
+  .brand a { color:var(--ink2); text-decoration:none; font-size:13px; }
+  h1 { margin:0 0 8px; font-size:30px; letter-spacing:-.04em; }
+  .lead { margin:0 0 24px; color:var(--ink2); font-size:14px; line-height:1.6; }
+  .tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:4px; border-radius:10px; background:#f2efe8; margin-bottom:22px; }
+  .tabs button { border:0; border-radius:8px; padding:9px 10px; background:transparent; color:var(--ink2); font-weight:700; cursor:pointer; }
+  .tabs button.on { background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  label { display:block; margin:0 0 14px; font-size:12px; font-weight:700; color:var(--ink2); }
+  input { display:block; width:100%; height:44px; margin-top:6px; padding:0 12px; border:1px solid var(--line); border-radius:9px; background:#fff; color:var(--ink); font:inherit; outline:none; }
+  input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--soft); }
+  .primary { width:100%; height:44px; margin-top:6px; border:0; border-radius:9px; background:var(--accent); color:#fff; font:700 14px/1 inherit; cursor:pointer; }
+  .primary[disabled] { opacity:.55; cursor:wait; }
+  .message { min-height:22px; margin:15px 0 0; font-size:13px; line-height:1.55; color:var(--ink2); }
+  .message.error { color:#9b2c22; }
+  .notice { margin-top:22px; padding:12px 14px; border-radius:10px; background:#f7f4ee; color:var(--ink2); font-size:12px; line-height:1.55; }
+  .local-actions { display:grid; gap:10px; margin-top:8px; }
+  .local-actions a { display:flex; align-items:center; justify-content:center; min-height:44px; border-radius:9px; border:1px solid var(--line); text-decoration:none; font-weight:700; background:#fff; color:var(--ink); }
+  .local-actions a.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+</style>
+</head>
+<body>
+<main class="card" id="auth-card">
+  <div class="brand"><b>차곡</b><a href="/">홈으로</a></div>
+  <div id="auth-configured">
+    <h1 id="title">로그인</h1>
+    <p class="lead" id="lead">계정으로 로그인하면 이후 내 책을 계정과 연결할 수 있습니다.</p>
+    <div class="tabs" role="tablist" aria-label="계정">
+      <button class="on" id="tab-login" type="button">로그인</button>
+      <button id="tab-signup" type="button">회원가입</button>
+    </div>
+    <form id="auth-form">
+      <label>이메일
+        <input id="email" type="email" autocomplete="email" required placeholder="you@example.com">
+      </label>
+      <label>비밀번호
+        <input id="password" type="password" minlength="6" autocomplete="current-password" required placeholder="6자 이상">
+      </label>
+      <button class="primary" id="submit" type="submit">로그인</button>
+    </form>
+    <p class="message" id="message" role="status"></p>
+    <div class="notice">Phase 15에서는 로그인 세션만 연결합니다. 기존 로컬 책은 아직 특정 계정 소유로 제한하지 않으며, 소유권과 클라우드 저장은 다음 단계에서 연결합니다.</div>
+  </div>
+  <div id="auth-local" hidden>
+    <h1>지금은 로컬로 사용할 수 있어요</h1>
+    <p class="lead">계정 연결(Supabase)이 아직 준비되지 않았습니다. 로그인 없이 새 책을 만들고 서재를 이용할 수 있습니다.</p>
+    <div class="local-actions">
+      <a class="primary" href="/__wizard">새 책 만들기</a>
+      <a href="/library">내 서재</a>
+      <a href="/">홈으로</a>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/_shared/auth.js"></script>
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+
+  if (!window.ChagokAuth || !ChagokAuth.isConfigured()) {
+    $('#auth-configured').hidden = true;
+    $('#auth-local').hidden = false;
+    document.title = '로컬 사용 · 차곡';
+    return;
+  }
+
+  let mode = 'login';
+  const form = $('#auth-form');
+  const email = $('#email');
+  const password = $('#password');
+  const submit = $('#submit');
+  const message = $('#message');
+  const returnTo = ChagokAuth.getReturnTo();
+
+  function setMessage(text, error = false) {
+    message.textContent = text || '';
+    message.classList.toggle('error', !!error);
+  }
+
+  function setMode(next) {
+    mode = next;
+    const signup = mode === 'signup';
+    $('#tab-login').classList.toggle('on', !signup);
+    $('#tab-signup').classList.toggle('on', signup);
+    $('#title').textContent = signup ? '회원가입' : '로그인';
+    $('#lead').textContent = signup
+      ? '이메일과 비밀번호로 차곡 계정을 만듭니다.'
+      : '계정으로 로그인하면 이후 내 책을 계정과 연결할 수 있습니다.';
+    submit.textContent = signup ? '계정 만들기' : '로그인';
+    password.autocomplete = signup ? 'new-password' : 'current-password';
+    setMessage('');
+  }
+
+  $('#tab-login').addEventListener('click', () => setMode('login'));
+  $('#tab-signup').addEventListener('click', () => setMode('signup'));
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    submit.disabled = true;
+    setMessage(mode === 'signup' ? '계정을 만드는 중…' : '로그인 중…');
+    try {
+      if (mode === 'signup') {
+        const data = await ChagokAuth.signUp(email.value, password.value);
+        if (data.session) {
+          location.href = returnTo;
+          return;
+        }
+        setMessage('가입 요청이 완료되었습니다. 확인 이메일이 필요한 설정이라면 메일의 안내를 완료한 뒤 로그인해 주세요.');
+      } else {
+        await ChagokAuth.signIn(email.value, password.value);
+        location.href = returnTo;
+      }
+    } catch (err) {
+      setMessage(err && err.message ? err.message : String(err), true);
+    } finally {
+      submit.disabled = false;
+    }
+  });
+
+  ChagokAuth.getSession().then((session) => {
+    if (session) location.href = returnTo;
+  }).catch((err) => setMessage(err.message || String(err), true));
+})();
+</script>
+</body>
+</html>

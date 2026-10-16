@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>내 서재</title>
+<title>차곡 · 내 서재</title>
 <style>
   @font-face { font-family: "Pretendard"; src: url("/_shared/fonts/PretendardVariable.woff2") format("woff2"); font-weight: 45 920; }
   @font-face { font-family: "JBM"; src: url("/_shared/fonts/JetBrainsMono-700.woff2") format("woff2"); font-weight: 700; }
@@ -258,6 +258,9 @@
 
   .spin { width: 12px; height: 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  .auth-area { display:flex; align-items:center; gap:8px; }
+  .auth-email { max-width:190px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink-2); font-size:12px; }
+  @media (max-width:760px) { .auth-email { display:none; } }
 </style>
 </head>
 <body>
@@ -269,6 +272,12 @@
     <input id="search" type="search" placeholder="제목·저자 검색" autocomplete="off">
   </label>
   <button class="btn accent" id="open-new" type="button">+ 새 책 만들기</button>
+  <div class="auth-area">
+    <a class="btn small" id="auth-login" href="/__auth?returnTo=/library">로그인</a>
+    <span class="btn small" id="auth-login-ready" hidden aria-disabled="true" style="opacity:.55;cursor:default">로그인 준비 중</span>
+    <span class="auth-email" id="auth-email" hidden></span>
+    <button class="btn small" id="auth-logout" type="button" hidden>로그아웃</button>
+  </div>
 </header>
 
 <main>
@@ -352,6 +361,8 @@
 
 <div class="toast" id="toast" role="status"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/_shared/auth.js"></script>
 <script>
 const LIB = __LIBRARY__;
 const BOOKS = LIB.books;
@@ -789,6 +800,55 @@ if (sessionStorage.getItem('lib-toast')) {
 
 const es = new EventSource('/__live');
 es.addEventListener('reload', () => { if (!busy && !document.querySelector('dialog[open]') && !openMenu) location.reload(); });
+</script>
+<script>
+(() => {
+  const login = document.querySelector('#auth-login');
+  const loginReady = document.querySelector('#auth-login-ready');
+  const email = document.querySelector('#auth-email');
+  const logout = document.querySelector('#auth-logout');
+
+  function paint(session) {
+    const userEmail = session && session.user && session.user.email;
+    login.hidden = !!userEmail;
+    email.hidden = !userEmail;
+    logout.hidden = !userEmail;
+    email.textContent = userEmail || '';
+  }
+
+  if (!window.ChagokAuth || !ChagokAuth.isConfigured()) {
+    login.hidden = true;
+    if (loginReady) loginReady.hidden = false;
+    email.hidden = true;
+    logout.hidden = true;
+    return;
+  }
+  if (loginReady) loginReady.hidden = true;
+
+  ChagokAuth.getSession().then(paint).catch((err) => {
+    console.warn('auth session load failed', err);
+    paint(null);
+  });
+
+  try {
+    ChagokAuth.onAuthStateChange(({ session }) => paint(session));
+  } catch (err) {
+    console.warn('auth subscription failed', err);
+  }
+
+  logout.addEventListener('click', async () => {
+    logout.disabled = true;
+    try {
+      await ChagokAuth.signOut();
+      location.href = '/';
+    } catch (err) {
+      console.warn('logout failed', err);
+      alert(err.message || err);
+    } finally {
+      logout.disabled = false;
+    }
+  });
+})();
 </script>
 </body>
 </html>

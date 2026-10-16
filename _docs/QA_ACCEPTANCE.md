@@ -1,11 +1,12 @@
-# My Chapter QA & Acceptance Specification
+# 차곡 QA & Acceptance Specification
 
-- Product: My Chapter
+- Product: 차곡
 - Stage: Development Specification — QA / Acceptance
-- Version: 1.0
-- Date: 2026-10-03
-- Basis: Product Spec v1.3, FUNCTION_SPEC, SCREEN_SPEC, ENGINE_CONTRACT, DATA_SPEC, API_SPEC, M0.5-A/B
-- Pair: 기존 명세만 참조. 이 문서가 Architecture를 바꾸지 않는다.
+- Version: **1.1**
+- Date: 2026-10-16
+- Status: **CURRENT / IMPLEMENTATION BASELINE**
+- Basis: Product Spec v1.4, FUNCTION_SPEC v1.1, SCREEN_SPEC v1.1, ENGINE_CONTRACT v1.1, DATA_SPEC v1.1, API_SPEC v1.1, M0.5-A/B, Phase 13~15
+- Pair: 현재 상세 명세와 활성 Phase 문서를 참조한다. 이 문서가 Architecture를 바꾸지 않는다.
 
 MVP를 구현한 뒤 **완료되었다고 판단하는 검수 기준**이다. 테스트 코드·자동화·구현은 이 문서의 범위가 아니다.
 
@@ -23,7 +24,8 @@ QA가 요구하지 않는 것:
 - Paged.js / Viewer / PDF / Editor 교체
 - 168쪽 설계본 Migration
 - Structured Book JSON
-- React / Vite / Supabase
+- React / Vite Core 전환
+- Supabase DB / Storage / Ownership을 Phase 15 QA에서 강제
 - WCAG 전체 인증
 - Preview와 PDF의 픽셀 동일
 - 임의 ms 성능 목표
@@ -34,9 +36,9 @@ QA가 요구하지 않는 것:
 
 | 구분 | 의미 | 출시 조건 |
 |---|---|---|
-| CURRENT Regression | 지금 엔진이 이미 하는 일. Product WRAP 후에도 동일해야 함 | 포함 |
-| TARGET_MVP Acceptance | 아직 없는 제품 흐름 (S04–S09, S11, S16 등) | 포함 |
-| LATER | Landing, Auth, AI Cover, Pricing, Auto Save, History UI, Print/EPUB/ZIP | 제외 |
+| CURRENT Regression | 기존 엔진 + 이미 구현된 Phase 1~14 기능 | 포함 |
+| PHASE15 Acceptance | Landing / Auth / Entry Routing / session | Phase 15 merge gate |
+| LATER | AI Cover, Pricing/Payment, History UI, Print/EPUB/ZIP 제품 노출 | 제외 |
 
 **검증 책 (읽기 전용):** `books/내 포트폴리오, AI로 직접 만들기`
 
@@ -103,7 +105,9 @@ QA-<AREA>-<NN>
 7. **Data Loss** (QA-LOSS-01…07) 통과
 8. 핵심 CURRENT Regression: 목록·열기·저장·블록·Viewer 세 모드·History snapshot (제품 UI HIDE여도 엔진)
 
-Gate에 넣지 않음: S01/S02/S13/S17, Auto Save, History 제품 UI, Print/EPUB/ZIP, AI Cover, Safari 보장, 픽셀 PDF 동일, 가짜 % 외의 시각 polish.
+Gate에 넣지 않음: S13/S17, History 제품 UI, Print/EPUB/ZIP 제품 노출, AI Cover, Safari 보장, 픽셀 PDF 동일, 가짜 % 외의 시각 polish.
+
+**현재 추가 Gate:** Phase 13 Wizard Recovery와 Phase 14 Editor Autosave/Recovery는 회귀 필수. Phase 15A는 Landing/Auth UI/Entry Routing + Local/Guest fallback QA까지 통과해야 한다. Phase 15B Runtime Auth QA는 Supabase 연결 후 HOLD 해제.
 
 ---
 
@@ -114,7 +118,7 @@ Gate에 넣지 않음: S01/S02/S13/S17, Auto Save, History 제품 UI, Print/EPUB
 - **Test Name:** 원고 → 구조 → 디자인 → 표지 → PDF
 - **Related Screen:** S03 → S04 → S05 → S06 → S07 → S08 → S09 → S10 → S11 → S12 → S14 → S15 → S16
 - **Related Function ID:** F-LIB-03, F-NEW-01, F-IMPORT-01, F-IMPORT-04, F-META-01, F-STRUCT-01, F-STRUCT-06, F-THEME-02, F-GEN-01, F-GEN-03, F-WS-01, F-THEME-04, F-COVER-02, F-PREVIEW-01, F-EXPORT-01, F-DONE-01
-- **Related API:** (없음 S04) → API-IMPORT-02 TARGET → 세션 → API-STRUCT-02 TARGET → 세션 → API-BOOK-03 WRAP (S09만) → API-BOOK-11 → API-THEME-01 TARGET 또는 CSS write → API-STATE-01 → Viewer JS → API-EXPORT-01
+- **Related API:** client state → API-IMPORT-02 `/__parse` → client structure state → API-BOOK-03 (S09만) → API-BOOK-11 → API-THEME-01..02 → API-STATE-01 → Viewer JS → API-EXPORT-01
 - **Priority:** P0
 - **Preconditions:** 서버 기동. 기존 168쪽 책 존재. 테스트용 TXT/MD 원고 1개. Chrome 사용 가능
 - **Test Data:** 장 2개 이상·소제목 있는 짧은 원고. 제목 `QA E2E 테스트`. 테마 Minimal. 표지 PNG 1장
@@ -136,7 +140,7 @@ Gate에 넣지 않음: S01/S02/S13/S17, Auto Save, History 제품 UI, Print/EPUB
 - **Failure Condition:** S05–S08에서 `books/` 신규 폴더. S05에서 API-BOOK-03 호출. 생성 실패인데 목록에 유령 카드. PDF 실패를 S16 SUCCESS로 표시. 원본 설계본 수정
 - **Regression Risk:** `/__new-book`을 마법사 초기에 재사용하면 제품 규칙 파괴
 - **Manual / Automatable:** Manual (흐름) + 폴더/파일 존재는 Automatable
-- **MVP / Later:** MVP — TARGET_MVP Acceptance
+- **MVP / Later:** MVP — CURRENT
 
 단계별 계약:
 
@@ -150,7 +154,7 @@ Gate에 넣지 않음: S01/S02/S13/S17, Auto Save, History 제품 UI, Print/EPUB
 | 테마 | S08 | F-THEME-01..03 | 없음 | CSS preview, HTML 불변 |
 | 생성 | S09 | F-GEN-01 | API-BOOK-03 | 첫 destructive write |
 | 편집 | S10 | F-EDITOR-02 | API-EDIT-01 | Editor KEEP |
-| 디자인 | S11 | F-THEME-04 | API-THEME-01 또는 CSS | Token Layer |
+| 디자인 | S11 | F-THEME-04 | API-THEME-02 | Token Layer |
 | 표지 | S12 | F-COVER-02 | API-STATE-01 | sidecar MUST USE |
 | 미리보기 | S14 | F-PREVIEW-01 | API-BOOK-11 | Viewer KEEP |
 | PDF | S15 | F-EXPORT-01 | API-EXPORT-01 | PDF KEEP, HTML 불변 |
@@ -170,7 +174,7 @@ Gate에 넣지 않음: S01/S02/S13/S17, Auto Save, History 제품 UI, Print/EPUB
 - **Failure Condition:** S04/S06에서 create. Import 파서 필수화
 - **Regression Risk:** `#new-dialog` 즉시 생성 잔존
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ---
 
@@ -224,7 +228,7 @@ CURRENT Regression + WRAP.
 - **Failure Condition:** 즉시 `/__new-book`
 - **Regression Risk:** 기존 `#new-dialog`가 Primary로 남음
 - **Manual / Automatable:** Automatable (폴더) + Manual (화면)
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-LIB-04 복제
 
@@ -342,7 +346,7 @@ CURRENT Regression + WRAP.
 
 ## 8. Creation Wizard QA
 
-TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
+CURRENT 제품 규칙. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 
 ### QA-NEW-01 방식 선택
 
@@ -358,7 +362,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** create 호출
 - **Regression Risk:** 한 장 대화상자
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-NEW-02 취소
 
@@ -374,7 +378,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** 빈 폴더/유령 카드
 - **Regression Risk:** create-then-delete
 - **Manual / Automatable:** Automatable (폴더)
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ---
 
@@ -394,7 +398,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** 즉시 책 생성. 고급 prompt 강요 실패
 - **Regression Risk:** create 묶음 Import
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-IMPORT-02 MD
 
@@ -410,7 +414,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** 즉시 책 생성
 - **Regression Risk:** create 묶음 Import
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-IMPORT-03 PDF (텍스트)
 
@@ -426,7 +430,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** PDF를 미지원으로 거부. 즉시 create
 - **Regression Risk:** 기획서 구버전(DOCX/TXT/MD만)으로 PDF 제거
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-IMPORT-04 DOCX
 
@@ -442,7 +446,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** 즉시 책 생성. 표/그림을 못 만들어 FAIL 처리
 - **Regression Risk:** create 묶음 Import
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-IMPORT-05 붙여넣기
 
@@ -458,7 +462,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** 파일 필수. 빈 텍스트 통과
 - **Regression Risk:** 없음 (현재 Gap)
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-IMPORT-06 미지원 형식
 
@@ -522,7 +526,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** API-BOOK-03
 - **Regression Risk:** CURRENT create 경로
 - **Manual / Automatable:** Automatable
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ---
 
@@ -542,7 +546,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** 빈 제목으로 create
 - **Regression Risk:** 기존 400 메시지
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-META-02 부제 선택
 
@@ -590,7 +594,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** HTML/json 생성
 - **Regression Risk:** 없음
 - **Manual / Automatable:** Automatable
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ---
 
@@ -612,7 +616,7 @@ S07은 세션. `structureOp`(API-STRUCT-01)가 아니다.
 - **Failure Condition:** 고급 상자 없다고 ERROR. 디스크 HTML
 - **Regression Risk:** S10 Editor를 S07에 재사용
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-STRUCT-02 제목 수정
 
@@ -692,7 +696,7 @@ S07은 세션. `structureOp`(API-STRUCT-01)가 아니다.
 - **Failure Condition:** create
 - **Regression Risk:** CTA 라벨이 생성으로 오인
 - **Manual / Automatable:** Automatable (폴더)
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-STRUCT-07 원고 다시 선택
 
@@ -708,7 +712,7 @@ S07은 세션. `structureOp`(API-STRUCT-01)가 아니다.
 - **Failure Condition:** 기존 책 생성/삭제
 - **Regression Risk:** 없음
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-STRUCT-08 S05–S08 통합 가드
 
@@ -724,7 +728,7 @@ S07은 세션. `structureOp`(API-STRUCT-01)가 아니다.
 - **Failure Condition:** 어떤 단계든 write
 - **Regression Risk:** CURRENT `/__new-book`
 - **Manual / Automatable:** Automatable
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ---
 
@@ -750,7 +754,7 @@ Theme = CSS Token Layer. HTML 의미 구조 DO NOT REPLACE.
 - **Failure Condition:** 세 번째 필수 테마. HTML 테마 파일
 - **Regression Risk:** 없음
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-THEME-02 선택과 본문
 
@@ -789,7 +793,7 @@ Theme = CSS Token Layer. HTML 의미 구조 DO NOT REPLACE.
 - **Test Name:** Theme 적용은 CSS만
 - **Related Screen:** S11 (또는 S09 생성 시)
 - **Related Function ID:** F-THEME-04
-- **Related API:** API-THEME-01 TARGET 또는 CSS write
+- **Related API:** API-THEME-02
 - **Priority:** P0
 - **Preconditions:** 열린 책 사본. `book.html` 해시
 - **Test Data:** slot id 목록, TOC href, chapter id
@@ -798,7 +802,7 @@ Theme = CSS Token Layer. HTML 의미 구조 DO NOT REPLACE.
 - **Failure Condition:** HTML 본문 변경 = P0
 - **Regression Risk:** 설계본 변환
 - **Manual / Automatable:** Automatable (해시/id)
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-THEME-05 재Pagination
 
@@ -868,14 +872,14 @@ S09만 실제 Book 생성. API-BOOK-03 WRAP.
 - **Failure Condition:** 원본 파서 결과만 쓰고 S07을 버림
 - **Regression Risk:** source를 재파싱하며 수정 손실
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-GEN-03 Theme 반영
 
 - **Test Name:** 선택 테마가 CSS에 있음
 - **Related Screen:** S09
 - **Related Function ID:** F-THEME-04, F-GEN-01
-- **Related API:** API-BOOK-03 ± API-THEME-01
+- **Related API:** API-BOOK-03 (`themeId`를 create 내부에서 적용)
 - **Priority:** P1
 - **Preconditions:** S08 Minimal
 - **Test Data:** 세션 themeId
@@ -916,7 +920,7 @@ S09만 실제 Book 생성. API-BOOK-03 WRAP.
 - **Failure Condition:** 세션 소실로 원고 재업로드 강제(만료 아닌데). 유령 폴더
 - **Regression Risk:** 없음
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ---
 
@@ -1310,7 +1314,7 @@ Preview와 PDF는 PARTIAL shared rules. 픽셀 동일 요구 없음.
 - **Failure Condition:** 실패 PDF를 SUCCESS
 - **Regression Risk:** 다운로드만 되고 실패를 삼킴
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP UI
+- **MVP / Later:** MVP — CURRENT UI
 
 ### QA-DONE-02 다시 다운로드
 
@@ -1362,9 +1366,167 @@ Preview와 PDF는 PARTIAL shared rules. 픽셀 동일 요구 없음.
 
 ---
 
-## 19. History Regression QA
+## 19. Wizard Recovery QA
 
-제품 UI HIDE 가능. 엔진 Route는 CURRENT. Auto Save = Later (이 절에서 요구하지 않음).
+### QA-NEW-R01 Draft 새로고침 복구
+
+- **Related Screen:** S04~S08
+- **Related Function:** F-NEW-03, F-NEW-04
+- **Priority:** P1
+- **Steps:** Wizard 중 메타/구조/Theme 진행 → 새로고침 → 다시 진입
+- **Expected:** “작성 중이던 책이 있습니다.” 표시. 이어서 하기 선택 시 이전 step/state 복구
+- **Failure:** draft 유실 또는 새 book folder 생성
+- **Automatable:** Manual + storage assertion
+
+### QA-NEW-R02 같은 파일 재선택
+
+- **Related Function:** F-NEW-05
+- **Priority:** P1
+- **Steps:** 파일 Import → 구조 수정 → 새로고침 → 같은 파일 재선택
+- **Expected:** fingerprint 일치, parseResult/structureDraft/confirmed 상태 보존
+- **Failure:** 구조 초기화 또는 다른 파일로 오인
+
+### QA-NEW-R03 다른 파일 재선택
+
+- **Priority:** P0
+- **Steps:** recovery 후 다른 fingerprint 파일 선택
+- **Expected:** 기존 parse/structure clear 후 재분석, “다른 파일이라 다시 분석합니다…” 처리
+- **Failure:** 이전 파일 구조를 새 파일에 적용
+
+### QA-NEW-R04 Draft 안전성
+
+- **Priority:** P0
+- **Expected:** File object/base64 미저장, TTL 7일, corrupt/expired draft 안전 제거, 생성 실패 시 draft 보존, 생성 성공/새로 시작 시 clear
+- **Failure:** localStorage 예외로 Wizard 중단 또는 사용자 파일 데이터 과도 저장
+
+---
+
+## 20. Editor Autosave / Recovery QA
+
+### QA-EDITOR-R01 Autosave
+
+- **Related Screen:** S10
+- **Related Function:** F-EDITOR-09
+- **Related API:** API-EDIT-01
+- **Priority:** P0
+- **Steps:** 문장 수정 후 별도 Save 없이 대기
+- **Expected:** 약 1500ms debounce 후 저장. 재오픈 시 최신 문장
+- **Failure:** 미저장 또는 매 키 입력마다 commit
+
+### QA-EDITOR-R02 Save race
+
+- **Priority:** P0
+- **Steps:** autosave 요청 진행 중 같은 eid를 다시 수정
+- **Expected:** 첫 응답이 두 번째 수정을 clean 처리하지 않음. pending 수정이 다음 save로 이어짐
+- **Failure:** 최신 수정 손실
+
+### QA-EDITOR-R03 Recovery match
+
+- **Related Function:** F-EDITOR-10
+- **Priority:** P0
+- **Steps:** dirty 생성 → recovery write → 저장 전 종료 → 동일 baseVersion으로 재진입
+- **Expected:** 복구 제안. 복구하기 → dirty 복원 → autosave
+- **Failure:** 자동 덮어쓰기 또는 recovery 유실
+
+### QA-EDITOR-R04 Stale recovery
+
+- **Priority:** P0
+- **Steps:** recovery 작성 후 server book version 변경 → 재진입
+- **Expected:** 자동 적용 금지. 현재 서버 내용 유지/복구 내용 버리기 선택
+- **Failure:** stale draft 자동 적용
+
+### QA-EDITOR-R05 409 Conflict
+
+- **Related Function:** F-EDITOR-11
+- **Priority:** P0
+- **Steps:** version 충돌 유도
+- **Expected:** autosave pause, dirty/recovery 보존, 경고 1회, reload 전 auto/manual 재전송 금지
+- **Failure:** 반복 재전송 또는 최신 내용 덮어쓰기
+
+### QA-EDITOR-R06 Block/Structure flush
+
+- **Priority:** P0
+- **Steps:** dirty 상태에서 block/structure operation
+- **Expected:** dirty flush 먼저. save 실패하면 operation 중단
+- **Failure:** save 실패 후 구조 operation 진행
+
+---
+
+## 21. Phase 15 Landing / Auth / Entry Routing QA
+
+> Phase 15A Local/Guest fallback은 Supabase 미연결(blank CONFIG) 상태에서 실행한다.
+> Phase 15B Runtime Auth QA는 전용 `Chagok Web` Supabase 연결 후 실행한다.
+> 기존 MyChapter 앱 Supabase project는 사용하지 않는다.
+
+### QA-AUTH-00 Local/Guest fallback (Phase 15A)
+
+- **Priority:** P0
+- **Expected:** CONFIG blank일 때 Landing 새 책 → `/__wizard`, Library 정상, `/__auth`는 Local 안내(오류 화면 아님), console uncaught 없음
+- **Failure:** Auth 미설정 때문에 Wizard/Library 진입 차단
+
+### QA-AUTH-01 Landing route
+
+- **Priority:** P1
+- **Expected:** `GET /` → S01 Landing
+- **Failure:** Library가 `/`에 계속 노출
+
+### QA-AUTH-02 Library route
+
+- **Priority:** P1
+- **Expected:** `GET /library` → 기존 S03 Library 기능 그대로
+- **Failure:** 목록/복제/휴지통/검색 회귀
+
+### QA-AUTH-03 회원가입 / 로그인
+
+- **Related Function:** F-AUTH-01, F-AUTH-02
+- **Priority:** P1
+- **Expected:** 신규 이메일 회원가입, 로그인 성공
+- **Failure:** 잘못된 Supabase project 접근 또는 Auth UI 성공 오판
+
+### QA-AUTH-04 Session persistence
+
+- **Related Function:** F-AUTH-03
+- **Priority:** P1
+- **Expected:** 새로고침 후 session 유지, Library에 이메일 표시
+- **Failure:** 매 새로고침 로그아웃
+
+### QA-AUTH-05 Logout
+
+- **Related Function:** F-AUTH-04
+- **Priority:** P1
+- **Expected:** signOut 후 `/` Landing. local books/recovery 삭제 없음
+- **Failure:** book/recovery cleanup 또는 Library 잔류
+
+### QA-AUTH-06 returnTo
+
+- **Related Function:** F-AUTH-05
+- **Priority:** P0
+- **Expected:** `/library`, `/__wizard`, 내부 `/__workspace?... ` 허용. 외부 `http://`, `https://`, `//` 거부 후 `/library` fallback
+- **Failure:** Open Redirect
+
+### QA-AUTH-07 Landing CTA by session
+
+- **Priority:** P1
+- **Expected:** 비로그인 = 로그인/새 책 만들기, 로그인 = 내 서재/새 책 만들기. 로그인 사용자를 자동 Library redirect하지 않음
+- **Failure:** CTA 상태 오류 또는 강제 redirect
+
+### QA-AUTH-08 Wrong Supabase project guard
+
+- **Priority:** P0
+- **Expected:** 차곡 Auth 코드/빌드에 앱용 project ref `rdrafwfdwfzgcfiqkgug` 없음. release check PASS
+- **Failure:** 앱용 project 접근
+
+### QA-AUTH-09 Existing engine regression
+
+- **Priority:** P0
+- **Expected:** Wizard / Editor / Autosave / Recovery / Preview / PDF / 보호 책 hash 모두 불변
+- **Failure:** Auth/route 변경이 book engine에 영향
+
+---
+
+## 22. History Regression QA
+
+제품 UI HIDE 가능. 엔진 Route는 CURRENT. Phase 14 Auto Save가 edit history를 과도하게 폭증시키지 않는지 회귀 확인한다.
 
 테스트 책은 사본.
 
@@ -1379,7 +1541,7 @@ Preview와 PDF는 PARTIAL shared rules. 픽셀 동일 요구 없음.
 - **Steps:** 저장. `.history/*__edit.html` 또는 `GET /__history`
 - **Expected Result:** 직전 HTML 스냅샷. reason=edit
 - **Failure Condition:** 스냅샷 없음 (commit 경로 제거)
-- **Regression Risk:** Auto Save 선도입
+- **Regression Risk:** Auto Save debounce/commit 변경
 - **Manual / Automatable:** Automatable
 - **MVP / Later:** MVP 엔진 — CURRENT / 제품 Later
 - **Test Name:** edit history
@@ -1422,7 +1584,7 @@ Preview와 PDF는 PARTIAL shared rules. 픽셀 동일 요구 없음.
 
 ---
 
-## 20. Existing 168-page Book Regression
+## 23. Existing 168-page Book Regression
 
 대상: `books/내 포트폴리오, AI로 직접 만들기`
 
@@ -1524,13 +1686,13 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 
 ---
 
-## 21. Data Loss Prevention
+## 24. Data Loss Prevention
 
 모두 P0. Gate 항목.
 
 ### QA-LOSS-01 확정 전 write 없음
 
-- Screen S04–S08. Function F-NEW/F-IMPORT/F-STRUCT/F-THEME. API TARGET only. Steps: 마법사 중 `books/` diff. Expected: 0 신규. Failure: create. CURRENT `/__new-book`을 S05에서 쓰면 FAIL. Automatable. MVP TARGET.
+- Screen S04–S08. Function F-NEW/F-IMPORT/F-STRUCT/F-THEME. API TARGET only. Steps: 마법사 중 `books/` diff. Expected: 0 신규. Failure: create. CURRENT `/__new-book`을 S05에서 쓰면 FAIL. Automatable. MVP CURRENT.
 
 ### QA-LOSS-02 기존 Book overwrite 없음
 
@@ -1558,7 +1720,7 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 
 ---
 
-## 22. Performance / Scale
+## 25. Performance / Scale
 
 임의 ms SLA 없음. **실행 불가 수준의 Freeze / Crash / Timeout / 무응답**이면 FAIL.
 
@@ -1628,7 +1790,7 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 
 ---
 
-## 23. Browser / Accessibility
+## 26. Browser / Accessibility
 
 제품 명세에 공식 브라우저 매트릭스가 없다. **새 보장 범위를 만들지 않는다.**
 
@@ -1708,7 +1870,7 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 
 ---
 
-## 24. Negative / Error Cases
+## 27. Negative / Error Cases
 
 현재 엔진 메시지를 우선한다. 새 Error Code를 발명하지 않음.
 
@@ -1786,7 +1948,7 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 - **Preconditions:** 사본
 - **Test Data:** gif / 비이미지
 - **Steps:** 업로드
-- **Expected Result:** `PNG, JPEG, WebP 이미지만` (또는 기존 ACCEPT). sidecar 오염 없음
+- **Expected Result:** `PNG, JPEG, WebP, AVIF 이미지만` 또는 실제 허용 형식에 맞는 동일 의미 안내. sidecar 오염 없음
 - **Failure Condition:** 깨진 sidecar로 전 슬롯 소실
 - **Regression Risk:** 전체 JSON 덮어쓰기
 - **Manual / Automatable:** Manual
@@ -1810,15 +1972,15 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 
 ---
 
-## 25. QA Traceability Matrix
+## 28. QA Traceability Matrix
 
 | QA ID | Screen | Function | API | Priority | MVP/Later | Manual/Auto |
 |---|---|---|---|---|---|---|
-| QA-E2E-01 | S03–S16 | F-LIB-03 … F-DONE-01 | API-IMPORT-02, API-BOOK-03, API-EDIT-01, API-STATE-01, API-EXPORT-01 | P0 | MVP TARGET | Manual+Auto |
-| QA-E2E-02 | S03–S10 | F-NEW-02, F-GEN-01 | API-BOOK-03 | P1 | MVP TARGET | Manual |
+| QA-E2E-01 | S03–S16 | F-LIB-03 … F-DONE-01 | API-IMPORT-02, API-BOOK-03, API-EDIT-01, API-STATE-01, API-EXPORT-01 | P0 | MVP CURRENT | Manual+Auto |
+| QA-E2E-02 | S03–S10 | F-NEW-02, F-GEN-01 | API-BOOK-03 | P1 | MVP CURRENT | Manual |
 | QA-LIB-01 | S03 | F-LIB-01 | API-BOOK-01, API-BOOK-02 | P0 | MVP CURRENT | Auto |
 | QA-LIB-02 | S03→S10 | F-LIB-02, F-WS-01 | API-BOOK-11 | P1 | MVP CURRENT | Manual |
-| QA-LIB-03 | S03→S04 | F-LIB-03 | 없음 | P0 | MVP TARGET | Manual+Auto |
+| QA-LIB-03 | S03→S04 | F-LIB-03 | 없음 | P0 | MVP CURRENT | Manual+Auto |
 | QA-LIB-04 | S03 | F-LIB-04 | API-BOOK-07 | P1 | MVP CURRENT | Auto |
 | QA-LIB-05 | S03 | F-LIB-05 | API-BOOK-08 | P1 | MVP CURRENT | Manual |
 | QA-LIB-06 | S03 | F-LIB-06 | API-BOOK-09 | P1 | MVP CURRENT | Manual |
@@ -1826,41 +1988,41 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 | QA-LIB-08 | S03 | F-LIB-08 | API-BOOK-01 | P2 | MVP CURRENT | Manual |
 | QA-LIB-09 | S03 | F-LIB-09 | API-BOOK-01 | P2 | MVP CURRENT | Manual |
 | QA-LIB-10 | S03 | F-LIB-10 | API-BOOK-05 | P2 | MVP CURRENT | Auto |
-| QA-NEW-01 | S04 | F-NEW-01, F-NEW-02 | 없음 | P1 | MVP TARGET | Manual |
-| QA-NEW-02 | S04–S08 | F-LIB-03 | 없음 | P0 | MVP TARGET | Auto |
-| QA-IMPORT-01 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP TARGET | Manual |
-| QA-IMPORT-02 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP TARGET | Manual |
-| QA-IMPORT-03 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP TARGET | Manual |
-| QA-IMPORT-04 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP TARGET | Manual |
-| QA-IMPORT-05 | S05 | F-IMPORT-02 | API-IMPORT-02 | P1 | MVP TARGET | Manual |
+| QA-NEW-01 | S04 | F-NEW-01, F-NEW-02 | 없음 | P1 | MVP CURRENT | Manual |
+| QA-NEW-02 | S04–S08 | F-LIB-03 | 없음 | P0 | MVP CURRENT | Auto |
+| QA-IMPORT-01 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP CURRENT | Manual |
+| QA-IMPORT-02 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP CURRENT | Manual |
+| QA-IMPORT-03 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP CURRENT | Manual |
+| QA-IMPORT-04 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP CURRENT | Manual |
+| QA-IMPORT-05 | S05 | F-IMPORT-02 | API-IMPORT-02 | P1 | MVP CURRENT | Manual |
 | QA-IMPORT-06 | S05 | F-IMPORT-03,07 | API-IMPORT-03 | P1 | MVP | Manual |
 | QA-IMPORT-07 | S05 | F-IMPORT-07 | API-IMPORT-02 | P1 | MVP | Manual |
 | QA-IMPORT-08 | S05 | F-IMPORT-07 | API-IMPORT-02 | P1 | MVP | Manual |
-| QA-IMPORT-09 | S05 | F-IMPORT-01,04,05 | API-IMPORT-02 | P0 | MVP TARGET | Auto |
-| QA-META-01 | S06 | F-META-01 | 세션 | P1 | MVP TARGET | Manual |
-| QA-META-02 | S06 | F-META-02 | 세션 | P2 | MVP TARGET | Manual |
+| QA-IMPORT-09 | S05 | F-IMPORT-01,04,05 | API-IMPORT-02 | P0 | MVP CURRENT | Auto |
+| QA-META-01 | S06 | F-META-01 | 세션 | P1 | MVP CURRENT | Manual |
+| QA-META-02 | S06 | F-META-02 | 세션 | P2 | MVP CURRENT | Manual |
 | QA-META-03 | S06 | F-META-03 | API-BOOK-03 | P1 | MVP | Manual |
-| QA-META-04 | S06 | F-META-01..04 | 없음 | P0 | MVP TARGET | Auto |
-| QA-STRUCT-01 | S07 | F-STRUCT-01 | API-STRUCT-02 | P1 | MVP TARGET | Manual |
-| QA-STRUCT-02 | S07 | F-STRUCT-02 | API-STRUCT-02 | P1 | MVP TARGET | Manual |
-| QA-STRUCT-03 | S07 | F-STRUCT-03 | API-STRUCT-02 | P1 | MVP TARGET | Manual |
-| QA-STRUCT-04 | S07 | F-STRUCT-04 | API-STRUCT-02 | P1 | MVP TARGET | Manual |
-| QA-STRUCT-05 | S07 | F-STRUCT-05 | API-STRUCT-02 | P1 | MVP TARGET | Manual |
-| QA-STRUCT-06 | S07→S08 | F-STRUCT-06 | 없음 | P0 | MVP TARGET | Auto |
-| QA-STRUCT-07 | S07→S05 | F-IMPORT-06 | 없음 | P1 | MVP TARGET | Manual |
-| QA-STRUCT-08 | S05–S08 | F-IMPORT-*, F-STRUCT-*, F-THEME-* | TARGET only | P0 | MVP TARGET | Auto |
-| QA-THEME-01 | S08, S11 | F-THEME-01 | 없음 | P1 | MVP TARGET | Manual |
-| QA-THEME-02 | S08 | F-THEME-02 | 없음 | P0 | MVP TARGET | Manual |
-| QA-THEME-03 | S08, S11 | F-THEME-03 | Viewer WRAP | P1 | MVP TARGET | Manual |
-| QA-THEME-04 | S11, S09 | F-THEME-04 | API-THEME-01 TARGET | P0 | MVP TARGET | Auto |
-| QA-THEME-05 | S11→S14 | F-THEME-04, F-PREVIEW-01 | API-BOOK-11 | P1 | MVP TARGET | Manual |
+| QA-META-04 | S06 | F-META-01..04 | 없음 | P0 | MVP CURRENT | Auto |
+| QA-STRUCT-01 | S07 | F-STRUCT-01 | API-STRUCT-02 | P1 | MVP CURRENT | Manual |
+| QA-STRUCT-02 | S07 | F-STRUCT-02 | API-STRUCT-02 | P1 | MVP CURRENT | Manual |
+| QA-STRUCT-03 | S07 | F-STRUCT-03 | API-STRUCT-02 | P1 | MVP CURRENT | Manual |
+| QA-STRUCT-04 | S07 | F-STRUCT-04 | API-STRUCT-02 | P1 | MVP CURRENT | Manual |
+| QA-STRUCT-05 | S07 | F-STRUCT-05 | API-STRUCT-02 | P1 | MVP CURRENT | Manual |
+| QA-STRUCT-06 | S07→S08 | F-STRUCT-06 | 없음 | P0 | MVP CURRENT | Auto |
+| QA-STRUCT-07 | S07→S05 | F-IMPORT-06 | 없음 | P1 | MVP CURRENT | Manual |
+| QA-STRUCT-08 | S05–S08 | F-IMPORT-*, F-STRUCT-*, F-THEME-* | TARGET only | P0 | MVP CURRENT | Auto |
+| QA-THEME-01 | S08, S11 | F-THEME-01 | 없음 | P1 | MVP CURRENT | Manual |
+| QA-THEME-02 | S08 | F-THEME-02 | 없음 | P0 | MVP CURRENT | Manual |
+| QA-THEME-03 | S08, S11 | F-THEME-03 | Viewer WRAP | P1 | MVP CURRENT | Manual |
+| QA-THEME-04 | S11, S09 | F-THEME-04 | S11=API-THEME-02 / S09=API-BOOK-03 themeId | P0 | MVP CURRENT | Auto |
+| QA-THEME-05 | S11→S14 | F-THEME-04, F-PREVIEW-01 | API-BOOK-11 | P1 | MVP CURRENT | Manual |
 | QA-THEME-06 | S11 | F-THEME-04 | CSS | P0 | MVP | Auto |
 | QA-GEN-01 | S09 | F-GEN-01, F-IMPORT-05 | API-BOOK-03 | P0 | MVP WRAP | Auto |
-| QA-GEN-02 | S09→S10 | F-STRUCT-02, F-GEN-01 | API-BOOK-03 | P1 | MVP TARGET | Manual |
-| QA-GEN-03 | S09 | F-THEME-04, F-GEN-01 | API-BOOK-03 | P1 | MVP TARGET | Manual |
-| QA-GEN-04 | S09 | F-GEN-04 | API-BOOK-03 | P0 | MVP TARGET | Manual |
-| QA-GEN-05 | S09 | F-GEN-05 | API-BOOK-03 | P1 | MVP TARGET | Manual |
-| QA-WS-01 | S10 | F-WS-01, F-WS-02 | API-BOOK-11 | P1 | MVP TARGET | Manual |
+| QA-GEN-02 | S09→S10 | F-STRUCT-02, F-GEN-01 | API-BOOK-03 | P1 | MVP CURRENT | Manual |
+| QA-GEN-03 | S09 | F-THEME-04, F-GEN-01 | API-BOOK-03 | P1 | MVP CURRENT | Manual |
+| QA-GEN-04 | S09 | F-GEN-04 | API-BOOK-03 | P0 | MVP CURRENT | Manual |
+| QA-GEN-05 | S09 | F-GEN-05 | API-BOOK-03 | P1 | MVP CURRENT | Manual |
+| QA-WS-01 | S10 | F-WS-01, F-WS-02 | API-BOOK-11 | P1 | MVP CURRENT | Manual |
 | QA-EDITOR-01 | S10 | F-EDITOR-01..03 | API-EDIT-01 | P0 | MVP CURRENT | Manual |
 | QA-EDITOR-02 | S10 | F-EDITOR-02 | API-EDIT-01 | P0 | MVP CURRENT | Auto |
 | QA-EDITOR-03 | S10 | F-EDITOR-02 | API-EDIT-01 | P0 | MVP CURRENT | Auto |
@@ -1883,10 +2045,10 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 | QA-EXPORT-03 | S15 | F-EXPORT-01 | API-EXPORT-01 | P1 | MVP CURRENT | Manual |
 | QA-EXPORT-04 | S14, S15 | F-PREVIEW-01, F-EXPORT-01 | API-BOOK-11, API-EXPORT-01 | P1 | MVP | Manual |
 | QA-EXPORT-05 | S15 | F-EXPORT-05..07 | API-EXPORT-01..03 | P1 | MVP HIDE | Auto |
-| QA-DONE-01 | S16 | F-DONE-01, F-EXPORT-02 | API-EXPORT-01 | P1 | MVP TARGET | Manual |
-| QA-DONE-02 | S16 | F-EXPORT-02 | 캐시/blob | P1 | MVP TARGET | Manual |
-| QA-DONE-03 | S16→S10 | F-DONE-02 | API-BOOK-11 | P1 | MVP TARGET | Manual |
-| QA-DONE-04 | S16 | F-EXPORT-03 | API-EXPORT-01 | P1 | MVP TARGET | Manual |
+| QA-DONE-01 | S16 | F-DONE-01, F-EXPORT-02 | API-EXPORT-01 | P1 | MVP CURRENT | Manual |
+| QA-DONE-02 | S16 | F-EXPORT-02 | 캐시/blob | P1 | MVP CURRENT | Manual |
+| QA-DONE-03 | S16→S10 | F-DONE-02 | API-BOOK-11 | P1 | MVP CURRENT | Manual |
+| QA-DONE-04 | S16 | F-EXPORT-03 | API-EXPORT-01 | P1 | MVP CURRENT | Manual |
 | QA-HIST-01 | 숨김 | F-HIST-01 | API-HISTORY-01, API-EDIT-01 | P1 | MVP 엔진 / Later UI | Auto |
 | QA-HIST-02 | 숨김 | F-HIST-01 | API-BLOCK-01, API-STRUCT-01 | P1 | MVP 엔진 | Auto |
 | QA-HIST-03 | 숨김 | F-HIST-01 | API-HISTORY-03 | P1 | MVP 엔진 | Manual |
@@ -1896,7 +2058,7 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 | QA-REGRESSION-03 | S14 | F-PREVIEW-04 | API-BOOK-11 | P0 | MVP CURRENT | Manual |
 | QA-REGRESSION-04 | S15 | F-EXPORT-01 | API-EXPORT-01 | P0 | MVP CURRENT | Manual+Auto |
 | QA-REGRESSION-05 | 전 구간 | — | — | P0 | MVP | Auto |
-| QA-LOSS-01 | S04–S08 | F-NEW/IMPORT/STRUCT/THEME | TARGET | P0 | MVP TARGET | Auto |
+| QA-LOSS-01 | S04–S08 | F-NEW/IMPORT/STRUCT/THEME | TARGET | P0 | MVP CURRENT | Auto |
 | QA-LOSS-02 | S09 | F-GEN-01 | API-BOOK-03 | P0 | MVP | Auto |
 | QA-LOSS-03 | S10 | F-EDITOR-02 | API-EDIT-01 | P0 | MVP CURRENT | Auto |
 | QA-LOSS-04 | S11 | F-THEME-04 | CSS | P0 | MVP | Auto |
@@ -1918,11 +2080,13 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 | QA-NEG-05 | S12 | F-COVER-02 | API-BOOK-06 | P2 | MVP CURRENT | Manual |
 | QA-NEG-06 | S03 | F-LIB-06 | API-BOOK-09 | P2 | MVP CURRENT | Auto |
 
-LATER (출시 제외, 케이스 없음): S01 F-LAND-01, S02 F-AUTH-01, S13 F-AICOVER-01, S17 F-PAY-01, F-EDITOR-09 Auto Save.
+CURRENT 추가 Gate: S01/F-LAND-01, S02/F-AUTH-01..05, F-NEW-03..05 Wizard Recovery, F-EDITOR-09..11 Autosave/Recovery.
+
+LATER (출시 제외): S13 F-AICOVER-01, S17 F-PAY-01, History 제품 UI, Print/EPUB/ZIP 제품 노출.
 
 ---
 
-## 26. Known Limitations
+## 29. Known Limitations
 
 QA가 실패로 보지 않는 현재 엔진/제품 한계. Architecture를 바꾸라는 뜻이 아니다.
 
@@ -1932,16 +2096,17 @@ QA가 실패로 보지 않는 현재 엔진/제품 한계. Architecture를 바�
 4. **Import는 기본 구조만.** prompt/checklist/figure/STEP/flow 미생성은 PASS.
 5. **blocks는 10종.** 설계본 28종 삽입 불가는 PASS. 기존 HTML 삭제가 아니면 FAIL 아님.
 6. **검증 도서에 sidecar/`book.json`이 없을 수 있다.** placeholder·상태 없음은 PASS.
-7. **Theme id Persistence는 미정.** 실체는 `book.css`. id 파일 없음은 CURRENT PASS.
-8. **S07/parse-only는 TARGET_MVP.** 구현 전에는 CURRENT `#new-book` 즉시 생성이 코드 사실이다. **제품 완료 판정은 TARGET을 기준으로 한다.**
+7. **Theme id는 book.json이 아니라 book.css 주석에 있음.** `GET/POST /__theme` 현재 계약.
+8. **S07/parse-only는 CURRENT.** `POST /__parse` + client structure state + S09 write.
 9. **`import` history reason은 create가 호출하지 않음.** 없어도 엔진 FAIL 아님.
 10. **Live Reload / watch는 sidecar·book.json을 무시.** 그림만 바꿔도 HTML reload 없음.
-11. **Auto Save 없음.** 수동 저장만. History 폭증 테스트를 MVP에 넣지 않음.
-12. **Print / EPUB / ZIP / Lint / History UI**는 HIDE. 삭제가 아니면 PASS.
+11. **Autosave/Recovery는 CURRENT.** debounce와 conflict-safe 동작을 회귀 기준으로 본다.
+12. **Auth는 Phase 15에서 session만.** Book ownership / server authorization이 없는 것은 현재 한계이며 Phase 16 범위.
+13. **Print / EPUB / ZIP / Lint / History UI**는 HIDE. 삭제가 아니면 PASS.
 
 ---
 
-## 27. Release Checklist
+## 30. Release Checklist
 
 구현 후 이 목록을 위에서 아래로 닫는다. 새 수치를 추가하지 않는다.
 
@@ -1954,7 +2119,9 @@ QA가 실패로 보지 않는 현재 엔진/제품 한계. Architecture를 바�
 - [ ] 붙여넣기·미지원·빈 본문·스캔 PDF (QA-IMPORT-05…08)
 - [ ] Practical / Minimal. HTML 의미 불변 (QA-THEME-02, QA-THEME-04)
 - [ ] Theme 후 Preview 재나눔 (QA-THEME-05)
-- [ ] Editor 저장·409·eid·블록·구조 (QA-EDITOR-01…05, QA-EDITOR-07)
+- [ ] Editor 저장·eid·블록·구조 기존 회귀
+- [ ] Wizard Draft Recovery / 같은 파일·다른 파일 / TTL (QA-NEW-R01…04)
+- [ ] Editor Autosave / save race / recovery / 409 conflict / flush (QA-EDITOR-R01…06)
 - [ ] Image slot id ↔ sidecar (QA-COVER-05)
 - [ ] Viewer Single / Spread / Grid (QA-PREVIEW-01…03, QA-REGRESSION-02)
 - [ ] 전자책 PDF. HTML 불변 (QA-EXPORT-01, QA-LOSS-07)
@@ -1963,7 +2130,13 @@ QA가 실패로 보지 않는 현재 엔진/제품 한계. Architecture를 바�
 - [ ] History 엔진 snapshot/restore (QA-HIST-01…03) — UI 숨김 허용
 - [ ] Print/EPUB/ZIP Route 삭제 아님 (QA-EXPORT-05)
 - [ ] Chrome 또는 Edge에서 핵심 흐름 (QA-BROWSER-01)
-- [ ] Data Loss 7항 (QA-LOSS-01…07)
+- [ ] Data Loss 기존 항목 + recovery/auth 안전 규칙
+- [x] Phase 15A: `/` Landing, `/library` Library
+- [x] Phase 15A: Local mode에서 새 책 → `/__wizard`, `/__auth` Local fallback
+- [ ] Phase 15B: 회원가입/로그인/session refresh/logout (HOLD)
+- [x] Phase 15A: returnTo 내부 경로 + external redirect 차단 (configured path 유지)
+- [x] Phase 15A: 앱용 MyChapter Supabase project ref 미사용 + blank CONFIG
+- [x] Phase 15A: Wizard/Editor/Preview/PDF 회귀 + 보호 책 hash 불변
 
 닫지 않아도 출시 가능:
 
@@ -1971,7 +2144,9 @@ QA가 실패로 보지 않는 현재 엔진/제품 한계. Architecture를 바�
 - A11Y P2
 - 검색/정렬 P2
 - History 제품 화면
-- Auto Save / AI Cover / Auth / Payment
+- AI Cover
+- Pricing / Payment
+- Phase 16 Ownership / DB / Storage / RLS
 
 이 문서로 Development Specification QA는 끝난다. Implementation Plan·테스트 코드·구현은 포함하지 않는다.
 
