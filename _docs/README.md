@@ -26,13 +26,15 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 10. _docs/PAYMENT_PRICING_UI_REQUIREMENTS.md
 11. _docs/PAYMENT_SCREEN_DESIGN.md
 12. _docs/PAYMENT_SCREEN_SPEC.md
-13. _docs/API_SPEC.md
-14. _docs/DATA_SPEC.md
-15. _docs/ENGINE_CONTRACT.md
-16. _docs/QA_ACCEPTANCE.md
-17. _docs/IMPLEMENTATION_PLAN.md
-18. active Phase document
-19. current audit / release evidence
+13. _docs/PAYMENT_DATA_SPEC.md
+14. _docs/PAYMENT_API_SPEC.md
+15. _docs/API_SPEC.md
+16. _docs/DATA_SPEC.md
+17. _docs/ENGINE_CONTRACT.md
+18. _docs/QA_ACCEPTANCE.md
+19. _docs/IMPLEMENTATION_PLAN.md
+20. active Phase document
+21. current audit / release evidence
 ```
 
 ---
@@ -47,6 +49,8 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 | `_docs/PAYMENT_PRICING_UI_REQUIREMENTS.md` | Pricing / Paywall / Checkout / 결제·복구·환불·삭제 상태 UI 요구사항 | v1.1 / TARGET |
 | `_docs/PAYMENT_SCREEN_DESIGN.md` | P01~P11 결제/가격 화면 배치·wireframe | v1.0 / TARGET |
 | `_docs/PAYMENT_SCREEN_SPEC.md` | P01~P11 상태·CTA·전이·QA 계약 | v1.0 / TARGET |
+| `_docs/PAYMENT_DATA_SPEC.md` | Book Pass Order / Payment / Entitlement / Refund 논리 데이터 계약 | v1.0 / TARGET |
+| `_docs/PAYMENT_API_SPEC.md` | Commerce price / order / verify / webhook / entitlement API 계약 | v1.0 / TARGET |
 | `_docs/IA.md` | Information Architecture | v1.0 / CURRENT |
 | `_docs/TASK_FLOW.md` | User task flow | v1.0 / CURRENT |
 | `_docs/FUNCTION_DEFINITION.md` | 기능 범위 정의 | v1.0 / CURRENT |
@@ -229,6 +233,8 @@ HOLD (다음 즉시 작업 아님):
 - Service Policy v1.1
 - Pricing Policy v1.1 — Free + Book Pass ₩14,900
 - Payment/Pricing UI Requirements v1.1
+- Payment Screen Design / Spec v1.0
+- Payment Data / API Spec v1.0
 
 ---
 
