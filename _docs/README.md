@@ -24,13 +24,15 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 8. _docs/SCREEN_DESIGN.md
 9. _docs/SCREEN_SPEC.md
 10. _docs/PAYMENT_PRICING_UI_REQUIREMENTS.md
-11. _docs/API_SPEC.md
-12. _docs/DATA_SPEC.md
-13. _docs/ENGINE_CONTRACT.md
-14. _docs/QA_ACCEPTANCE.md
-15. _docs/IMPLEMENTATION_PLAN.md
-16. active Phase document
-17. current audit / release evidence
+11. _docs/PAYMENT_SCREEN_DESIGN.md
+12. _docs/PAYMENT_SCREEN_SPEC.md
+13. _docs/API_SPEC.md
+14. _docs/DATA_SPEC.md
+15. _docs/ENGINE_CONTRACT.md
+16. _docs/QA_ACCEPTANCE.md
+17. _docs/IMPLEMENTATION_PLAN.md
+18. active Phase document
+19. current audit / release evidence
 ```
 
 ---
@@ -43,6 +45,8 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 | `_docs/SERVICE_POLICY.md` | 사용자-facing 서비스 범위 / 권리 / 저장 / 출력 / AI 정책 | v1.1 / CURRENT |
 | `_docs/PRICING_POLICY.md` | Free / Book Pass 가격·권리·과금 경계 | v1.1 / CURRENT |
 | `_docs/PAYMENT_PRICING_UI_REQUIREMENTS.md` | Pricing / Paywall / Checkout / 결제·복구·환불·삭제 상태 UI 요구사항 | v1.1 / TARGET |
+| `_docs/PAYMENT_SCREEN_DESIGN.md` | P01~P11 결제/가격 화면 배치·wireframe | v1.0 / TARGET |
+| `_docs/PAYMENT_SCREEN_SPEC.md` | P01~P11 상태·CTA·전이·QA 계약 | v1.0 / TARGET |
 | `_docs/IA.md` | Information Architecture | v1.0 / CURRENT |
 | `_docs/TASK_FLOW.md` | User task flow | v1.0 / CURRENT |
 | `_docs/FUNCTION_DEFINITION.md` | 기능 범위 정의 | v1.0 / CURRENT |
