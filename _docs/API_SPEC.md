@@ -2,10 +2,10 @@
 
 - Product: 차곡
 - Stage: Development Specification — API
-- Version: **1.1**
+- Version: **1.2**
 - Date: 2026-10-16
 - Status: **CURRENT / IMPLEMENTATION BASELINE**
-- Basis: 현재 `preview-server.mjs` Route + Product Spec v1.4 + FUNCTION_SPEC v1.1 + SCREEN_SPEC v1.1
+- Basis: 현재 `preview-server.mjs` Route + Product Spec v1.5 + FUNCTION_SPEC v1.2 + SCREEN_SPEC v1.2
 - Pair: `_docs/ENGINE_CONTRACT.md`, `_docs/DATA_SPEC.md`, `_docs/PHASE_15_AUTH_FOUNDATION.md`
 
 현재 Route를 기준으로 기능/화면과 연결한다. 새 프레임워크를 만들지 않는다. CURRENT와 Phase 15 TARGET Route를 명확히 구분한다.
@@ -27,9 +27,9 @@
 5. Workspace(S10–S15)는 기존 edit / blocks / structure / state / pdf를 재사용한다.
 6. 새 Error 코드를 대량 발명하지 않는다. 현재 메시지/status를 우선한다.
 7. Identity 쿼리/바디 키는 `file` (경로). UUID 아님.
-8. Phase 15 Auth는 브라우저 Supabase SDK를 사용하며 아직 서버 API authorization은 없다.
+8. Phase 15A는 Local/Auth client foundation까지 완료했다. Real Supabase Runtime은 Phase 15B HOLD이며 서버 API authorization은 Phase 16 전에는 없다.
 
-상태: CURRENT / WRAP / PHASE15_TARGET / LATER.
+상태: CURRENT / WRAP / PHASE15B_HOLD / PHASE16_HOLD / LATER.
 
 ---
 
@@ -48,7 +48,7 @@
 
 **CURRENT 목록 공급:** `GET /library`가 서재 HTML 안에 `books.list()` JSON을 심는다. 별도 `GET /__books`는 아직 없다.
 
-**Auth:** 회원가입/로그인/세션은 브라우저 Supabase SDK가 담당한다. 서버-side Auth API나 ownership authorization은 Phase 16 전에는 없다.
+**Auth:** Local fallback과 Auth client foundation은 CURRENT다. 실제 Chagok Web 회원가입/로그인/세션 Runtime은 Phase 15B HOLD다. 서버-side ownership authorization은 Phase 16 전에는 없다.
 
 ---
 
@@ -74,7 +74,7 @@
 
 ### API-AUTH-01 Auth Page
 
-- **Status:** CURRENT / INFRA PENDING
+- **Status:** CURRENT UI/CLIENT FOUNDATION / PHASE15B RUNTIME HOLD
 - **Related Function ID:** F-AUTH-01..05
 - **Related Screen:** S02
 - **Method / Path:** `GET /__auth`
@@ -82,7 +82,7 @@
 - **Auth Operations:** 브라우저 Supabase SDK의 `signUp`, `signInWithPassword`, `getSession`, `signOut`
 - **Session:** `persistSession: true`, `autoRefreshToken: true`, storage key `chagok-auth-v1`
 - **returnTo:** client-side 내부 path 검증. invalid/external → `/library`
-- **Important:** 전용 Chagok Web Supabase 연결 전 Runtime QA 불가. 기존 MyChapter 앱 project 사용 금지.
+- **Important:** Phase 15A Local QA는 완료. 전용 Chagok Web Supabase 연결은 Phase 15B HOLD. 기존 MyChapter 앱 project 사용 금지.
 - **Boundary:** 서버 API authorization / Book ownership 없음.
 
 ---
@@ -617,6 +617,19 @@ image state 실패: 404 file, 또는 클라 fetch 실패 (슬롯 비움).
 | S17 | F-PAY-01 | 없음 | LATER |
 
 Theme API는 현재 `GET/POST /__theme`으로 구현되어 있다.
+
+---
+
+## 17. Commerce / SaaS Export Boundary
+
+Payment target API는 본 CURRENT Core API Spec에 합치지 않는다.
+
+기준:
+
+- `_docs/PAYMENT_API_SPEC.md` v1.1
+- 현재 `GET /__pdf?file=`는 Local Core Engine route다.
+- SaaS Payment go-live 전 direct `/__pdf`/PDF cache 우회를 차단하고 ownership + ACTIVE entitlement를 검사하는 Authorized Export boundary로 WRAP해야 한다.
+- 이 작업은 Phase 15B/16 이후이며 현재 Local MVP route를 지금 깨지 않는다.
 
 ---
 
