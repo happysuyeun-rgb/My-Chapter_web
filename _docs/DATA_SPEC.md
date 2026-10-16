@@ -2,13 +2,13 @@
 
 - Product: 차곡
 - Stage: Development Specification — Data
-- Version: **1.1**
+- Version: **1.2**
 - Date: 2026-10-16
 - Status: **CURRENT / IMPLEMENTATION BASELINE**
-- Basis: 실제 파일/코드, Product Spec v1.4, FUNCTION_SPEC v1.1, SCREEN_SPEC v1.1, ENGINE_CONTRACT
+- Basis: 실제 파일/코드, Product Spec v1.5, FUNCTION_SPEC v1.2, SCREEN_SPEC v1.2, ENGINE_CONTRACT
 - Pair: `_docs/API_SPEC.md`, `_docs/PHASE_15_AUTH_FOUNDATION.md`
 
-현재 저장소를 기준으로 한다. Phase 15에서는 Supabase Auth session만 도입하며 DB / Storage schema는 만들지 않는다.
+현재 저장소를 기준으로 한다. Phase 15A는 Local/Auth client foundation까지 완료했고, Real Supabase Auth Runtime은 Phase 15B HOLD다. DB / Storage / ownership schema는 Phase 16 HOLD다.
 
 상태: CURRENT = 지금 있음. PHASE15_TARGET = Phase 15에서 변경 예정. LATER = 이후 범위.
 
@@ -29,7 +29,7 @@ Book을 구성하는 데이터가 무엇이며 어디에 저장되는가.
 5. S10 Editor에는 **Phase 14 local recovery + autosave state가 CURRENT**다.
 6. 기존 책 마이그레이션 없음.
 7. React/Vite 데이터 모델은 없다.
-8. Supabase는 Phase 15 Auth session에만 사용한다. DB books / Storage / ownership schema는 아직 없다.
+8. Phase 15A는 Auth UI/client foundation + Local fallback만 사용한다. Real Supabase Auth는 Phase 15B HOLD이며 DB books / Storage / ownership schema는 Phase 16 HOLD다.
 
 ---
 
@@ -348,7 +348,7 @@ Schema:
 
 ## 13. Auth Session Data
 
-### CURRENT CODE / INFRA PENDING
+### PHASE 15A CURRENT FOUNDATION / PHASE 15B RUNTIME HOLD
 
 Storage key:
 
@@ -361,7 +361,7 @@ Supabase client options:
 - `autoRefreshToken: true`
 - `detectSessionInUrl: true`
 
-현재 `_shared/auth.js`의 URL / publishable key는 비어 있으며 전용 `Chagok Web` 연결이 pending이다.
+현재 `_shared/auth.js`의 URL / publishable key는 비어 있으며 이는 의도된 Local baseline이다. 전용 `Chagok Web` 연결은 Phase 15B HOLD다.
 
 Auth data의 역할:
 - 로그인 여부
@@ -480,7 +480,29 @@ trash → _trash
 
 ---
 
-## 18. Later Data
+## 18. Commerce Target Data
+
+Payment/Book Pass 데이터는 Core 파일 데이터와 분리한다.
+
+기준 문서:
+
+- `_docs/PAYMENT_DATA_SPEC.md` v1.1
+
+핵심 Target:
+
+- immutable service-layer `book_id`
+- Order
+- Payment Attempt
+- Entitlement
+- Refund/Reversal
+- Commerce Audit
+- Webhook dedup / reconciliation
+
+현재 Core `file` path와 `book.html` SoT는 그대로 유지한다.
+
+---
+
+## 19. Later Data
 
 - User ↔ Book ownership
 - Supabase DB metadata
