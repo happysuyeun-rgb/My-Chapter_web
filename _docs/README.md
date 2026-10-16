@@ -28,14 +28,15 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 12. _docs/PAYMENT_SCREEN_SPEC.md
 13. _docs/PAYMENT_DATA_SPEC.md
 14. _docs/PAYMENT_API_SPEC.md
-15. _docs/API_SPEC.md
-16. _docs/DATA_SPEC.md
-17. _docs/ENGINE_CONTRACT.md
-18. _docs/QA_ACCEPTANCE.md
-19. _docs/IMPLEMENTATION_STATUS_2026-10-16.md
-20. _docs/IMPLEMENTATION_PLAN.md
-21. active Phase document
-22. current audit / release evidence
+15. _docs/PAYMENT_IMPLEMENTATION_PLAN.md
+16. _docs/API_SPEC.md
+17. _docs/DATA_SPEC.md
+18. _docs/ENGINE_CONTRACT.md
+19. _docs/QA_ACCEPTANCE.md
+20. _docs/IMPLEMENTATION_STATUS_2026-10-16.md
+21. _docs/IMPLEMENTATION_PLAN.md
+22. active Phase document
+23. current audit / release evidence
 ```
 
 ---
@@ -52,6 +53,7 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 | `_docs/PAYMENT_SCREEN_SPEC.md` | P01~P11 상태·CTA·전이·QA 계약 | v1.0 / TARGET |
 | `_docs/PAYMENT_DATA_SPEC.md` | Book Pass Order / Payment / Entitlement / Refund / Reconciliation 논리 데이터 계약 | v1.1 / TARGET |
 | `_docs/PAYMENT_API_SPEC.md` | Commerce price / order / verify / webhook / entitlement / reconciliation API 계약 | v1.1 / TARGET |
+| `_docs/PAYMENT_IMPLEMENTATION_PLAN.md` | Auth→Ownership→Authorized Export→Payment 실행 순서 / Go-Live Gate | v1.0 / TARGET / HOLD |
 | `_docs/IA.md` | Information Architecture | v1.0 / CURRENT |
 | `_docs/TASK_FLOW.md` | User task flow | v1.0 / CURRENT |
 | `_docs/FUNCTION_DEFINITION.md` | 기능 범위 정의 | v1.0 / CURRENT |
@@ -239,6 +241,7 @@ HOLD (다음 즉시 작업 아님):
 - Payment/Pricing UI Requirements v1.1
 - Payment Screen Design / Spec v1.0
 - Payment Data / API Spec v1.1 — direct PDF bypass / reconciliation / compensation grant 포함
+- Payment Implementation Plan v1.0 — 실행 순서 / Rollback / Staged Launch / Go-Live Gate
 
 ---
 
