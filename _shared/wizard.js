@@ -6,6 +6,7 @@
     source: null,
     parseResult: null,
     parseState: 'idle',
+    reanalyzeNotice: false,
     structureDraft: null,
     structureDirty: false,
     structureConfirmed: false,
@@ -145,7 +146,9 @@
   }
 
   function sourceLabel() {
-    if (state.parseState === 'loading') return '원고 읽는 중…';
+    if (state.parseState === 'loading') {
+      return state.reanalyzeNotice ? '다른 파일이라 다시 분석합니다…' : '원고 읽는 중…';
+    }
     if (state.parseState === 'success') {
       const detail = statsText(state.parseResult?.stats);
       return '원고 분석 완료' + (detail ? ' · ' + detail : '');
@@ -194,6 +197,7 @@
     clearTimeout(parseTimer);
     state.parseResult = null;
     state.parseState = 'idle';
+    state.reanalyzeNotice = false;
     clearStructureSession();
     syncInputState();
   }
@@ -202,6 +206,7 @@
     state.source = null;
     state.parseResult = null;
     state.parseState = 'idle';
+    state.reanalyzeNotice = false;
     clearStructureSession();
     parseSequence++;
     clearTimeout(parseTimer);
@@ -272,6 +277,7 @@
       if (seq !== parseSequence || source !== state.source) return;
       state.parseResult = out;
       state.parseState = 'success';
+      state.reanalyzeNotice = false;
       clearStructureSession();
       syncInputState();
       scheduleDraftSave();
@@ -279,6 +285,7 @@
       if (seq !== parseSequence || source !== state.source) return;
       state.parseResult = null;
       state.parseState = 'error';
+      state.reanalyzeNotice = false;
       clearStructureSession();
       syncInputState();
       showError(err.message || String(err));
@@ -293,6 +300,25 @@
     parseTimer = setTimeout(parseCurrentSource, delay);
   }
 
+  function fileSourceFromFile(file) {
+    return {
+      kind: 'file',
+      file,
+      name: file.name,
+      size: file.size,
+      type: file.type || '',
+      lastModified: file.lastModified
+    };
+  }
+
+  function sameFileFingerprint(saved, file) {
+    if (!saved || !file || saved.kind !== 'file') return false;
+    return String(saved.name || '') === String(file.name || '') &&
+      Number(saved.size) === Number(file.size) &&
+      String(saved.type || '') === String(file.type || '') &&
+      Number(saved.lastModified) === Number(file.lastModified);
+  }
+
   function useFile(file) {
     clearError();
     const error = validateFile(file);
@@ -304,15 +330,28 @@
       scheduleDraftSave();
       return;
     }
-    const keepParsed = state.source?.kind === 'file' && state.source.needsReselect && state.parseResult && state.structureDraft;
-    if (keepParsed) {
-      state.source = { kind: 'file', file, name: file.name };
+    const pendingReselect = state.source?.kind === 'file' &&
+      state.source.needsReselect &&
+      state.parseResult &&
+      state.structureDraft;
+    if (pendingReselect && sameFileFingerprint(state.source, file)) {
+      state.source = fileSourceFromFile(file);
       syncInputState();
       scheduleDraftSave();
       if (state.structureConfirmed && state.structureDraft) showStep('theme');
       return;
     }
-    state.source = { kind: 'file', file, name: file.name };
+    if (pendingReselect && !sameFileFingerprint(state.source, file)) {
+      invalidateParse();
+      state.source = fileSourceFromFile(file);
+      state.reanalyzeNotice = true;
+      textInput.value = '';
+      clearTimeout(parseTimer);
+      parseTimer = setTimeout(parseCurrentSource, 0);
+      scheduleDraftSave();
+      return;
+    }
+    state.source = fileSourceFromFile(file);
     textInput.value = '';
     syncInputState();
     scheduleParse(0);
@@ -1078,9 +1117,13 @@
     if (!source) return null;
     if (source.kind === 'text') return { kind: 'text', text: String(source.text || '') };
     if (source.kind === 'file') {
+      const file = source.file;
       return {
         kind: 'file',
-        name: source.name || source.file?.name || '',
+        name: source.name || file?.name || '',
+        size: Number.isFinite(source.size) ? source.size : (file?.size ?? 0),
+        type: source.type || file?.type || '',
+        lastModified: Number.isFinite(source.lastModified) ? source.lastModified : (file?.lastModified ?? 0),
         needsReselect: true
       };
     }
@@ -1208,7 +1251,14 @@
     state.structureConfirmed = !!saved.structureConfirmed && !!state.structureDraft;
     if (saved.source?.kind === 'text') state.source = { kind: 'text', text: String(saved.source.text || '') };
     else if (saved.source?.kind === 'file') {
-      state.source = { kind: 'file', name: String(saved.source.name || ''), needsReselect: true };
+      state.source = {
+        kind: 'file',
+        name: String(saved.source.name || ''),
+        size: Number(saved.source.size) || 0,
+        type: String(saved.source.type || ''),
+        lastModified: Number(saved.source.lastModified) || 0,
+        needsReselect: true
+      };
     } else state.source = null;
     titleInput.value = state.meta.title;
     subtitleInput.value = state.meta.subtitle;
