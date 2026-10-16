@@ -633,7 +633,7 @@ Payment target API는 본 CURRENT Core API Spec에 합치지 않는다.
 
 ---
 
-## 17. Remaining Gaps
+## 18. Remaining Gaps
 
 Phase 15에서 남은 API/route gap:
 
