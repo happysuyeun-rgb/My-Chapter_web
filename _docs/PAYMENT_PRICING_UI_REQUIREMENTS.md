@@ -1,7 +1,7 @@
 # 차곡 Payment & Pricing UI Requirements
 
 - Product: 차곡 (Chagok)
-- Version: **v1.0**
+- Version: **v1.1**
 - Date: 2026-10-16
 - Status: **TARGET / UI REQUIREMENTS ONLY**
 - Depends on: `_docs/SERVICE_POLICY.md`, `_docs/PRICING_POLICY.md`
@@ -10,31 +10,27 @@
 
 이 문서는 차곡의 향후 Pricing/Payment UI 요구사항을 정의한다.
 
-현재 Local MVP에는 결제를 연결하지 않는다.  
-이 문서는 **결제 구현 전에 UX 계약을 먼저 고정하기 위한 기준**이다.
+현재 Local MVP에는 결제를 연결하지 않는다.
 
 ---
 
 ## 1. UX Goal
 
-가격 UI는 사용자가 다음 4가지를 즉시 이해하게 해야 한다.
+사용자가 즉시 이해해야 하는 것:
 
 1. 책을 만들어보는 것은 무료다.
 2. 결제는 PDF 완성본이 필요할 때만 한다.
-3. 가격은 책 1권당 ₩14,900이다.
-4. 한 번 결제한 같은 책은 다시 결제하지 않는다.
+3. 기준 가격은 책 1권당 ₩14,900이다.
+4. 한 번 구매한 같은 책은 수정 후 재출력 때문에 다시 결제하지 않는다.
+5. Duplicate/새 책은 별도 Book Pass다.
 
 핵심 메시지:
 
 > **먼저 만들어보고, 완성본이 필요할 때 결제하세요.**
 
-가격표보다 "언제 돈을 내는지"가 더 명확해야 한다.
-
 ---
 
 ## 2. Target Screens / States
-
-기존 S01~S16 이후 가격/결제 화면을 별도 영역으로 정의한다.
 
 | ID | Screen / State | Route / Surface | Status |
 |---|---|---|---|
@@ -43,26 +39,20 @@
 | P03 | Checkout | `/__checkout?file=...` 후보 | TARGET |
 | P04 | Payment Processing | Checkout state | TARGET |
 | P05 | Payment Success | Checkout completion | TARGET |
-| P06 | Payment Failure | Checkout error state | TARGET |
+| P06 | Payment Failure / Pending | Checkout state | TARGET |
 | P07 | Already Unlocked | Workspace Export state | TARGET |
-| P08 | Purchase / Entitlement Info | Library/Book menu | LATER |
+| P08 | Purchase / Entitlement Info | Account/Library/Book menu | TARGET |
+| P09 | Purchase Recovery | Account/Checkout state | TARGET |
+| P10 | Refunded / Revoked | Purchase state | TARGET |
+| P11 | Paid Book Delete Warning | Library delete/purge | TARGET |
 
-라우트는 구현 Phase에서 서버 구조에 맞춰 최종 확정한다.
+라우트는 구현 Phase에서 최종 확정한다.
 
 ---
 
 ## 3. P01 Pricing Page
 
-### 3.1 Purpose
-
-- 가격 구조 설명
-- Free와 Book Pass 차이 설명
-- 구독 강요가 아님을 명확히 전달
-- 사용자가 책 제작을 시작하도록 유도
-
-### 3.2 Hero
-
-권장:
+### Hero
 
 **제목**
 > 먼저 책을 만들어보세요.
@@ -71,25 +61,21 @@
 > 원고 입력부터 디자인·표지·미리보기까지 무료입니다.  
 > 완성 PDF가 필요할 때 책 1권당 ₩14,900만 결제하세요.
 
-Primary CTA:
-- **무료로 책 만들기**
+Primary:
+- 무료로 책 만들기
 
-Secondary CTA:
+Secondary:
 - 내 서재
 
-로그인/결제가 아직 필요하지 않은 사용자를 가격표에서 막지 않는다.
+### Cards
 
-### 3.3 Pricing Cards
-
-초기에는 카드 2개만 노출한다.
+초기 판매 카드는 2개만 노출한다.
 
 #### Free
 
 ~~~text
 Free
 ₩0
-
-책을 완성해보기 위한 모든 기본 제작 기능
 
 ✓ 원고 Import
 ✓ 구조 정리
@@ -109,265 +95,224 @@ Free
 Book Pass
 ₩14,900 / 책 1권
 
-완성된 이 책을 실제 파일로 가져가세요.
-
 ✓ 워터마크 없는 PDF
-✓ 같은 책 재출력
-✓ 본문 수정 후 재출력
-✓ 표지 변경 후 재출력
-✓ Theme 변경 후 재출력
+✓ 같은 책 수정 후 재출력
+✓ 표지/Theme 변경 후 재출력
 ✓ 상업적 이용 가능
 
 [책 만들기 시작]
 ~~~
 
-Pricing 화면에서 Creator를 실제 판매 카드처럼 노출하지 않는다.
-
-필요하면 맨 아래 작은 문구:
-
-> 여러 권을 만드는 Creator 플랜은 추후 제공 예정입니다.
-
-초기에는 이 문구도 없어도 된다.
+Creator는 Launch 판매 카드로 노출하지 않는다.
 
 ---
 
-## 4. Pricing Page Design Rules
+## 4. Pricing Design Rules
 
 - 4개 요금제 표 금지
-- "BEST", "MOST POPULAR" 같은 억지 강조 금지
+- 가짜 "BEST / MOST POPULAR" 금지
 - 월 환산 가격 금지
-- 숨겨진 수수료 금지
-- 가짜 할인 정가 금지
-- Book Pass 카드를 시각적 Primary로 둘 수 있음
-- 그러나 Free를 의도적으로 불편하게 보이게 만들지 않음
+- 숨겨진 필수 비용 금지
+- 가짜 상시 할인 금지
+- Free를 의도적으로 불편하게 만들지 않음
+- Mobile: 1열
+- Desktop: 2열
 
-모바일에서는:
-
-~~~text
-Free
-↓
-Book Pass
-~~~
-
-1열 스택.
-
-Desktop에서는 2열 카드.
+가격은 서버 canonical price와 일치해야 한다.
 
 ---
 
 ## 5. P02 Export Paywall
 
-### 5.1 Trigger
+### Trigger
 
-Free entitlement 상태에서 사용자가:
+Free/LOCKED 상태에서 PDF Export를 시도할 때만 노출한다.
 
-- PDF Export
-- PDF 다운로드
-- Export Complete로 진입
+Preview 자체는 무료 유지.
 
-을 시도할 때 노출한다.
-
-Preview 자체에서는 결제를 강제하지 않는다.
-
-### 5.2 Recommended Modal Copy
+### Copy
 
 **Title**
 > 이 책을 완성할까요?
 
 **Body**
 > ₩14,900 한 번 결제하면  
-> 이 책의 PDF를 계속 다시 만들고 다운로드할 수 있어요.
+> 이 책은 수정 후에도 추가 결제 없이 PDF를 다시 만들 수 있어요.
 
 Benefits:
 
 - 워터마크 없는 PDF
-- 수정 후 재출력
+- 같은 책 재출력
 - 상업적 이용 가능
 
-Primary CTA:
+Primary:
 > **₩14,900 결제하고 PDF 만들기**
 
 Secondary:
 > 미리보기로 돌아가기
 
-Tertiary text link:
+Text link:
 > 가격 정책 보기
-
-### 5.3 Context
-
-Paywall에 현재 책을 보여준다.
-
-- Book title
-- Author
-- Cover thumbnail (가능하면)
-- 현재 페이지 수 (안정적으로 계산되는 경우에만)
-
-단, 페이지 수에 따라 가격이 달라지는 인상을 주지 않는다.
 
 ---
 
-## 6. Paywall Rules
+## 6. Paywall Context and Rules
 
-Paywall은 다음을 하지 않는다.
+가능하면 표시:
 
-- 작업물을 잃게 하지 않음
-- Checkout 때문에 Workspace state를 초기화하지 않음
-- 뒤로 가면 Preview 상태가 유지됨
-- 결제 실패 후 다시 원고 처음부터 시작시키지 않음
-- 결제 버튼 연타로 중복 주문을 만들지 않음
+- 책 제목
+- 저자
+- Cover thumbnail
+- 페이지 수는 안정적으로 계산되는 경우에만 참고 정보로 표시
 
-Paywall은 **저장된 작업 위에 얹히는 구매 단계**다.
+금지:
+
+- 페이지 수에 따라 가격이 달라지는 인상
+- 뒤로 가기 시 작업 초기화
+- 결제 실패 후 원고 처음부터 재시작
+- 결제 버튼 연타로 중복 주문
+- entitlement 확인 실패를 Free로 단정
 
 ---
 
 ## 7. P03 Checkout
 
-### 7.1 Layout
-
-Checkout 핵심 정보:
+### Summary
 
 ~~~text
 차곡 Book Pass
 
 [책 제목]
 
-책 1권 PDF Export Unlock
+이 책의 PDF Export Unlock
 
-결제금액
+최종 결제금액
 ₩14,900
 ~~~
 
-포함 혜택:
+포함:
 
-- 이 책의 PDF Export
-- 같은 책 재출력
+- 같은 책 PDF Export
+- 수정 후 재출력
 - 워터마크 없음
 - 상업적 이용 가능
 
-### 7.2 Required Information
+### Required Information
 
-실제 PG 연동 전 확정할 항목:
+Payment go-live 전 확정:
 
-- 결제수단
 - 구매자 식별
-- 이메일/영수증 수신
+- 결제수단
+- 이메일/영수증
 - 세금/증빙
 - 이용약관
 - 개인정보 처리
 - 디지털 콘텐츠 공급/환불 고지
-- 최종 결제금액
 
-법률 검토가 끝나기 전 임의의 "환불 불가" 체크박스를 넣지 않는다.
+법률 검토 전 임의의 "환불 불가" 문구를 넣지 않는다.
 
-### 7.3 CTA
-
-Primary:
+### CTA
 
 > **₩14,900 결제하기**
 
-버튼 옆/아래:
-
-> 결제가 완료되면 이 책의 PDF Export가 잠금 해제됩니다.
-
 ---
 
-## 8. P04 Payment Processing
+## 8. Price Drift at Checkout
 
-결제 진행 중에는 명확한 단일 상태를 보여준다.
+Paywall에서 본 가격과 Checkout canonical price가 달라졌다면 조용히 금액을 바꾸지 않는다.
 
-~~~text
-결제를 확인하고 있어요.
-창을 닫지 마세요.
-~~~
+예:
+
+> 가격이 변경되어 최종 결제금액을 다시 확인해주세요.
 
 Requirements:
 
-- 결제 CTA disabled
-- 중복 요청 방지
-- spinner/progress
-- 브라우저 refresh 시 거래 상태 재조회 가능하도록 설계
-- 결제 완료 여부를 client callback만 믿지 않음
-- 서버 검증 전 entitlement를 확정하지 않음
-
-마지막 두 항목은 구현 Phase의 보안 요구사항이다.
+- Checkout 진입 시 server canonical price 조회
+- 최종 금액 재동의
+- 이전 client amount를 신뢰하지 않음
 
 ---
 
-## 9. P05 Payment Success
+## 9. P04 Payment Processing
 
-### 9.1 Copy
+Copy:
+
+> 결제를 확인하고 있어요.  
+> 창을 닫지 마세요.
+
+Requirements:
+
+- CTA disabled
+- 중복 요청 방지
+- spinner/progress
+- refresh 후 거래 상태 재조회
+- client callback만으로 성공 확정 금지
+- server verification 전 entitlement grant 금지
+
+---
+
+## 10. P05 Payment Success
 
 **Title**
 > 이 책의 PDF가 열렸어요.
 
 **Body**
-> 이제 이 책은 다시 결제하지 않고 PDF를 만들 수 있어요.
+> 이제 이 책은 수정 후에도 추가 결제 없이 PDF를 다시 만들 수 있어요.
 
 Primary:
-> **PDF 만들기**
+- PDF 만들기
 
 Secondary:
-> 책으로 돌아가기
+- 책으로 돌아가기
 
 Optional:
-> 영수증 보기
-
-### 9.2 Behavior
+- 구매 정보/영수증 보기
 
 Success 이후:
 
-1. purchase server verification
-2. entitlement = unlocked
-3. Workspace 복귀 또는 PDF 생성
-4. Export CTA 상태 갱신
-
-가능하면 사용자가 Checkout을 시작했던 책으로 정확히 돌아간다.
+1. server purchase verification
+2. entitlement = ACTIVE
+3. 원래 책으로 복귀
+4. Export UI 갱신
+5. PDF 생성
 
 ---
 
-## 10. P06 Payment Failure
+## 11. P06 Payment Failure / Pending
 
-실패 상태는 결제 실패와 PDF 생성 실패를 구분한다.
+### Failure
 
-### Payment Failure
-
-~~~text
-결제가 완료되지 않았어요.
-결제수단을 확인하고 다시 시도해주세요.
-~~~
+> 결제가 완료되지 않았어요.  
+> 결제수단을 확인하고 다시 시도해주세요.
 
 Actions:
 
 - 다시 결제
 - 책으로 돌아가기
 
-### Payment Verification Pending
+### Pending
 
-~~~text
-결제 확인에 시간이 걸리고 있어요.
-잠시 후 다시 확인해주세요.
-~~~
+> 결제 확인에 시간이 걸리고 있어요.  
+> 잠시 후 다시 확인해주세요.
 
 Actions:
 
 - 결제 상태 다시 확인
 - 서재로 이동
 
-"실패"로 단정하기 전에 실제 거래 상태를 확인한다.
+거래 상태를 확인하기 전에 실패로 단정하지 않는다.
 
 ---
 
-## 11. PDF Generation Failure After Successful Purchase
+## 12. PDF Generation Failure After Purchase
 
-결제 성공과 PDF 생성은 별도 상태다.
-
-예:
+결제 성공과 PDF 생성 성공은 별도 상태다.
 
 ~~~text
 결제는 완료됐어요.
 PDF 생성 중 문제가 발생했습니다.
 
-구매한 이 책은 이미 잠금 해제되어 있어요.
+이 책은 이미 잠금 해제되어 있어요.
 다시 생성해도 추가 결제되지 않습니다.
 ~~~
 
@@ -377,13 +322,11 @@ Primary:
 Secondary:
 - 책으로 돌아가기
 
-절대 다시 Paywall을 보여주지 않는다.
+다시 Paywall을 보여주지 않는다.
 
 ---
 
-## 12. P07 Already Unlocked State
-
-Book Pass 구매 이후 Export 영역:
+## 13. P07 Already Unlocked
 
 Before:
 
@@ -393,81 +336,133 @@ Before:
 After:
 
 > **PDF 만들기**  
-> 이 책은 Book Pass로 잠금 해제됨
+> 이 책은 PDF 사용 가능
 
-Optional status badge:
-
-> PDF Unlock
-
-"Pro" badge는 사용하지 않는다. 사용자가 구독한 것이 아니기 때문이다.
+"Pro" badge는 사용하지 않는다.
 
 ---
 
-## 13. Library Card / Book Menu
+## 14. P08 Purchase / Entitlement Info
 
-Book Pass 상태가 Library에서 보일 필요가 있다면 작은 상태만 표시한다.
+최소 표시:
 
-예:
+- 구매 책
+- 결제일
+- 최종 결제금액
+- 거래/주문 식별자 일부 또는 영수증 링크
+- 상태: ACTIVE / REFUNDED / REVOKED / PENDING
+- PDF 사용 가능 여부
 
-- **PDF 사용 가능**
-- 또는 작은 download/unlock icon
+구매 기록과 책 콘텐츠 삭제는 같은 개념이 아니다.
 
-과도한 결제 배지는 책 자체보다 강조하지 않는다.
-
-추후 메뉴:
-
-- PDF 만들기
-- 구매 정보
-
-구매 정보는 Phase 16 이후 ownership/payment history 설계와 함께 확정한다.
+세무/법률상 보존해야 하는 결제 기록은 콘텐츠 삭제와 분리해서 취급한다.
 
 ---
 
-## 14. Duplicate Book Behavior
+## 15. P09 Purchase Recovery
+
+다음 상황에서 "구매 복원/결제 상태 확인"이 가능해야 한다.
+
+- 결제 후 redirect 실패
+- 브라우저 종료
+- 기기 변경
+- 로그인 재진입
+- local state 유실
+
+UI 예:
+
+> 구매 내역을 확인했어요.  
+> 이 책의 PDF 사용 권한을 복원했습니다.
+
+Requirements:
+
+- server-verified order 기준
+- 같은 stable book identity 기준
+- 다른 새 책으로 entitlement 이전 금지
+
+---
+
+## 16. P10 Refunded / Revoked
+
+환불·결제취소·chargeback 확정 후:
+
+~~~text
+이 Book Pass는 환불/취소되어 PDF 사용 권한이 종료됐어요.
+~~~
+
+Actions:
+
+- 구매 정보 보기
+- 다시 구매 가능 여부 표시
+- 문의하기
+
+이미 사용자가 보유한 과거 PDF 파일을 원격으로 삭제하려고 하지 않는다.
+
+서비스 내 향후 Export entitlement만 revoke한다.
+
+---
+
+## 17. P11 Paid Book Delete Warning
+
+구매한 책을 휴지통으로 이동하는 일반 삭제:
+
+> 휴지통으로 이동해도 이 책의 PDF 사용 권한은 유지됩니다.
+
+영구 삭제:
+
+> 이 책을 영구 삭제하면 작업물을 복구할 수 없을 수 있습니다.  
+> Book Pass는 다른 새 책으로 이전되지 않습니다.
+
+가능하면 확인 UI에:
+
+- 책 제목
+- PDF 사용 가능 상태
+- 삭제 영향
+
+을 함께 표시한다.
+
+---
+
+## 18. Duplicate Behavior
 
 구매한 책을 Duplicate하면:
 
-Original:
-> PDF Unlock
+- Original = ACTIVE
+- Duplicate = LOCKED
 
-Duplicate:
-> Free / PDF Locked
+필요 시 안내:
 
-Duplicate 생성 시 필요하면 짧게 안내:
+> 복제본은 새 책으로 생성됩니다. PDF Export는 별도 Book Pass가 필요합니다.
 
-> 복제본은 새 책으로 생성되어 PDF Export는 별도 Book Pass가 필요합니다.
-
-복제 전에 구매를 다시 요구하지 않는다.
+복제 자체를 막지 않는다.
 
 ---
 
-## 15. Title / Content Changes
+## 19. Title / Content Changes
 
-구매 후 다음 변경으로 Paywall이 다시 생기면 안 된다.
+다음 변경으로 Paywall이 다시 생기면 안 된다.
 
 - 제목
 - 부제
 - 저자
 - 본문
-- 목차
+- 목차/구조
 - 표지
 - Theme
-- 페이지 수 변화
+- 페이지 수
 
-Entitlement는 콘텐츠 hash나 제목이 아니라 **책 프로젝트의 stable purchase identity**에 연결한다.
+Entitlement는 콘텐츠 hash나 제목이 아니라 stable purchase identity에 연결한다.
 
 ---
 
-## 16. Auth Interaction
+## 20. Auth Interaction
 
-현재 Local MVP는 결제가 없다.
-
-향후 실제 Payment를 붙일 때는 구매 entitlement 복구를 위해 사용자 식별이 필요하다.
-
-권장 Target:
+Target:
 
 ~~~text
 Guest book
+  ↓
+Preview
   ↓
 Export Paywall
   ↓
@@ -475,49 +470,47 @@ Export Paywall
   ↓
 Checkout
   ↓
-Book ownership + entitlement
+Book Ownership + entitlement
 ~~~
 
-그러나 Auth를 앞단 강제벽으로 만들지 않는다.
-
-사용자는 구매 직전까지 원고 제작과 Preview를 경험할 수 있어야 한다.
+Auth를 제작 시작 전에 강제하지 않는다.
 
 정확한 Guest→Account migration은 Phase 15B/16에서 설계한다.
 
 ---
 
-## 17. Pricing Entry Points
+## 21. Account Deletion Warning
 
-가격 페이지 진입점 후보:
+향후 계정 삭제 화면에서 유료 entitlement가 있으면 별도 경고한다.
+
+표시 후보:
+
+- 구매한 책 수
+- 최종 PDF Export 권장
+- 계정/콘텐츠 삭제 후 복구 제한
+- 법적 보존이 필요한 구매 기록은 별도 보존될 수 있다는 고지
+
+정확한 문구는 개인정보처리방침/이용약관 확정 후 반영한다.
+
+---
+
+## 22. Pricing Entry Points
+
+후보:
 
 - Landing header/footer "가격"
 - Export Paywall "가격 정책 보기"
 - FAQ
-- 결제 전 Checkout
+- Checkout
 
-초기 Landing Hero Primary CTA는 계속:
-
+Landing Hero Primary는 계속:
 > 새 책 만들기
 
-가격 보기가 Hero보다 우선하면 안 된다.
+가격 보기가 제품 시작보다 우선하지 않는다.
 
 ---
 
-## 18. Loading / Disabled / Error States
-
-### Pricing Loading
-
-가격은 가능한 한 정적 정책값으로 빠르게 노출.
-
-결제 provider 상태를 기다리느라 Pricing 전체를 막지 않는다.
-
-### Checkout Disabled
-
-예:
-
-- 거래 생성 중
-- 이미 결제 진행 중
-- 구매 검증 중
+## 23. Loading / Disabled / Error
 
 ### Entitlement Unknown
 
@@ -527,45 +520,52 @@ Book ownership + entitlement
 
 재확인 CTA 제공.
 
-바로 Free로 간주해 Paywall을 띄우지 않는다.
+바로 LOCKED/Free로 간주해 Paywall을 띄우지 않는다.
+
+### Checkout Disabled
+
+- order 생성 중
+- 결제 진행 중
+- verification 중
+
+이유가 필요한 경우 사용자에게 설명한다.
 
 ---
 
-## 19. Accessibility
+## 24. Accessibility
 
-- 가격은 색만으로 구분하지 않음
-- CTA 텍스트에 금액 포함
+- 가격을 색만으로 구분하지 않음
+- CTA에 금액 포함
 - focus 상태 명확
 - modal keyboard trap / ESC 정책 명확
 - screen reader에서 가격과 단위를 한 문장으로 읽을 수 있어야 함
-- disabled CTA 이유가 필요한 경우 텍스트 제공
-- 성공/실패 메시지는 시각 효과만으로 전달하지 않음
+- 성공/실패는 시각 효과만으로 전달하지 않음
 
 ---
 
-## 20. Responsive
+## 25. Responsive
 
-검수 기준:
+검수:
 
-- Mobile: 390px
-- Tablet: 768px
-- Desktop: 1440px
+- Mobile 390
+- Tablet 768
+- Desktop 1440
 
-특히:
+확인:
 
-- Pricing 카드 1열/2열 전환
-- 긴 혜택 copy wrapping
-- ₩14,900 가격 줄바꿈 방지
-- Checkout summary clipping 방지
+- Pricing 1열/2열
+- 긴 혜택 copy
+- ₩14,900 줄바꿈
+- Checkout clipping
 - modal viewport height
-- keyboard open 시 CTA 가림 방지
+- mobile keyboard 시 CTA 가림
 - safe area
 
 ---
 
-## 21. Analytics Requirements
+## 26. Analytics
 
-결제 구현 시 최소 이벤트:
+최소 이벤트:
 
 - `pricing_view`
 - `pricing_start_free_click`
@@ -576,106 +576,99 @@ Book ownership + entitlement
 - `payment_success`
 - `payment_failure`
 - `payment_pending`
+- `purchase_recovered`
+- `entitlement_revoked`
+- `paid_book_delete_warning_view`
 - `pdf_export_after_purchase`
 - `repeat_pdf_export`
 
-Required properties 후보:
-
-- book entitlement state
-- source screen
-- import method
-- theme
-- approximate page bucket
-- new vs returning user
-
-원고 내용/책 제목 등 민감한 실제 콘텐츠를 analytics property로 보내지 않는다.
+원고 내용/책 제목 등 실제 콘텐츠는 analytics property로 보내지 않는다.
 
 ---
 
-## 22. Security / Payment Integrity Requirements
+## 27. Security / Payment Integrity
 
-UI 요구사항이지만 구현 시 반드시 지킬 것:
-
-- 클라이언트만으로 결제 성공 판정 금지
-- 가격을 client request 값만 믿지 않음
-- server-side amount/order verification
-- idempotency / duplicate payment protection
-- payment callback replay protection
+- client만으로 결제 성공 판정 금지
+- client request price만 신뢰 금지
+- server canonical amount 검증
+- order/payment idempotency
+- callback replay protection
 - entitlement grant audit trail
-- 실패 후 entitlement 회수/복구 기준
-- 사용자가 다른 책의 entitlement를 임의로 재사용하지 못하도록 ownership 검증
-
-이 구현은 Phase 15B/16 이후 Payment Phase에서 별도 기술 명세가 필요하다.
+- refund/revoke audit trail
+- stable ownership 검증
+- 다른 책 entitlement 재사용 방지
+- purchase recovery는 서버 기록 기준
 
 ---
 
-## 23. Out of Scope for First Payment UI
-
-초기 결제에 넣지 않는다.
+## 28. Out of Scope for First Payment UI
 
 - Creator subscription checkout
 - annual billing
 - team billing
 - seat management
-- coupon marketplace
+- 복잡한 coupon marketplace
 - affiliate
-- complex credit packs
-- AI usage purchase
-- invoice admin dashboard
+- AI credit pack
 - multiple currencies
 - lifetime plan
-- enterprise sales form
+- enterprise sales
 
 Book Pass 하나의 결제 성공률부터 검증한다.
 
 ---
 
-## 24. QA Acceptance — Pricing / Payment
-
-실제 구현 시 최소 Acceptance:
+## 29. QA Acceptance
 
 ### Pricing
-
-- Free / Book Pass 가격 정확
-- ₩14,900 한 번만 명확히 표시
-- Creator가 현재 판매 상품처럼 보이지 않음
+- Free / Book Pass 정확
+- canonical ₩14,900
+- Creator 판매 카드 없음
 
 ### Paywall
-
-- Preview는 무료 유지
-- Free Export에서만 paywall
-- unlocked book에는 paywall 없음
+- Preview 무료
+- LOCKED Export에서만 노출
+- ACTIVE book에는 없음
 
 ### Checkout
-
 - 올바른 책
-- 올바른 가격
+- 올바른 canonical price
 - 중복 결제 방지
+- 가격 변경 시 재확인
 - 취소 후 작업 상태 보존
 
 ### Success
-
-- 결제 검증 완료 후 unlock
+- server verification 후 ACTIVE
 - 동일 책 재결제 없음
 - PDF 실패 시 entitlement 유지
 
-### Failure
-
-- 결제 실패와 PDF 실패 구분
+### Failure / Pending
+- 결제 실패와 pending 구분
 - 작업 데이터 손실 없음
 
-### Duplicate
+### Recovery
+- redirect 실패/재로그인 후 구매 복원
+- 다른 책으로 잘못 복원되지 않음
 
-- 원본 entitlement 유지
-- 복제본은 별도 locked 상태
+### Refund / Revoke
+- revoke 후 향후 Export 잠금
+- 구매 기록 상태 표시
+
+### Delete
+- 휴지통 복원 시 entitlement 유지
+- permanent delete 경고
+- entitlement transfer 없음
+
+### Duplicate
+- 원본 ACTIVE
+- 복제본 LOCKED
 
 ### Responsive
-
 - 390 / 768 / 1440 PASS
 
 ---
 
-## 25. UI Copy Summary
+## 30. UI Copy Summary
 
 ### Pricing
 > 먼저 책을 만들어보세요.  
@@ -683,48 +676,52 @@ Book Pass 하나의 결제 성공률부터 검증한다.
 
 ### Paywall
 > 이 책을 완성할까요?  
-> ₩14,900 한 번 결제하면 이 책의 PDF를 계속 다시 만들 수 있어요.
+> ₩14,900 한 번 결제하면 이 책은 수정 후에도 추가 결제 없이 PDF를 다시 만들 수 있어요.
 
-### Checkout CTA
+### Checkout
 > ₩14,900 결제하기
 
 ### Success
 > 이 책의 PDF가 열렸어요.
+
+### Recovery
+> 이 책의 PDF 사용 권한을 복원했습니다.
 
 ### PDF Failure after Purchase
 > 결제는 완료됐어요. 이 책은 이미 잠금 해제되어 있습니다.
 
 ---
 
-## 26. Implementation Gate
+## 31. Implementation Gate
 
-이 UI를 실제 구현하기 전에 먼저 필요한 것:
+실제 구현 전에 필요한 것:
 
 1. Phase 15B Auth Runtime
 2. Phase 16 Book Ownership
-3. stable commerce entitlement identity
+3. immutable service-layer book identity
 4. Payment provider 결정
-5. server-side payment verification architecture
-6. Book Pass purchase ledger
-7. refund/legal checkout wording review
-8. cloud/deployment architecture
+5. server-side payment verification
+6. order / payment / entitlement ledger
+7. refund/revoke lifecycle
+8. 이용약관/개인정보/결제 고지
+9. Asset License Audit
+10. cloud/deployment architecture
 
-따라서 현재 단계에서는:
+현재:
 
 ~~~text
-POLICY = 확정
-UI REQUIREMENTS = 확정
+POLICY = CURRENT
+UI REQUIREMENTS = TARGET DEFINED
 PAYMENT IMPLEMENTATION = HOLD
 ~~~
 
 ---
 
-## 27. Final Product Principle
-
-결제 UI는 제작 흐름을 방해하는 앞문이 아니라 **완성물을 가져가는 마지막 단계**여야 한다.
+## 32. Final Product Principle
 
 ~~~text
 만들기 전에 결제시키지 않는다.
 가치를 본 뒤 결제하게 한다.
 한 번 산 같은 책은 다시 결제시키지 않는다.
+삭제·환불·복구 같은 예외도 사용자에게 숨기지 않는다.
 ~~~
