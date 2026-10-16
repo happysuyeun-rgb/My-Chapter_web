@@ -6,6 +6,7 @@
     source: null,
     parseResult: null,
     parseState: 'idle',
+    reanalyzeNotice: false,
     structureDraft: null,
     structureDirty: false,
     structureConfirmed: false,
@@ -18,6 +19,15 @@
   let structureSelection = null;
   let allowLeave = false;
   let generating = false;
+  let currentStep = 'method';
+  let readyToPersist = false;
+  let restorePending = false;
+  let draftTimer = null;
+
+  const DRAFT_KEY = 'mychapter:wizard-draft:v1';
+  const DRAFT_VERSION = 1;
+  const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+  const STEPS = ['method', 'input', 'meta', 'structure', 'theme', 'generate'];
 
   const panels = [...document.querySelectorAll('[data-step]')];
   const methodCards = [...document.querySelectorAll('[data-method]')];
@@ -92,8 +102,10 @@
       generate: '책 만들기'
     };
     stepLabel.textContent = labels[name] || '새 책 만들기';
+    currentStep = name;
     if (name === 'meta') titleInput.focus();
     if (name === 'structure') renderStructure();
+    scheduleDraftSave();
   }
 
   function clearError() {
@@ -134,24 +146,35 @@
   }
 
   function sourceLabel() {
-    if (state.parseState === 'loading') return '원고 읽는 중…';
+    if (state.parseState === 'loading') {
+      return state.reanalyzeNotice ? '다른 파일이라 다시 분석합니다…' : '원고 읽는 중…';
+    }
     if (state.parseState === 'success') {
       const detail = statsText(state.parseResult?.stats);
       return '원고 분석 완료' + (detail ? ' · ' + detail : '');
     }
     if (!state.source) return '아직 사용할 원고를 선택하지 않았습니다.';
-    if (state.source.kind === 'file') return '현재 사용할 원고: ' + state.source.file.name;
+    if (state.source.kind === 'file') {
+      const name = state.source.file?.name || state.source.name || '파일';
+      if (!state.source.file) return '원본 파일을 다시 선택해 주세요: ' + name;
+      return '현재 사용할 원고: ' + name;
+    }
     return '현재 사용할 원고: 붙여넣은 텍스트';
   }
 
   function syncInputState() {
     inputChoice.textContent = sourceLabel();
     inputNext.disabled = !state.parseResult || state.parseState !== 'success';
-    const file = state.source?.kind === 'file' ? state.source.file : null;
-    pickedFile.hidden = !file;
+    const fileSource = state.source?.kind === 'file' ? state.source : null;
+    const file = fileSource?.file || null;
+    const pendingName = fileSource && !file ? (fileSource.name || '') : '';
+    pickedFile.hidden = !file && !pendingName;
     if (file) {
       pickedFileName.textContent = file.name;
       pickedFileSize.textContent = sizeText(file.size);
+    } else if (pendingName) {
+      pickedFileName.textContent = pendingName;
+      pickedFileSize.textContent = '원본 파일을 다시 선택해 주세요';
     } else {
       pickedFileName.textContent = '';
       pickedFileSize.textContent = '';
@@ -174,6 +197,7 @@
     clearTimeout(parseTimer);
     state.parseResult = null;
     state.parseState = 'idle';
+    state.reanalyzeNotice = false;
     clearStructureSession();
     syncInputState();
   }
@@ -182,6 +206,7 @@
     state.source = null;
     state.parseResult = null;
     state.parseState = 'idle';
+    state.reanalyzeNotice = false;
     clearStructureSession();
     parseSequence++;
     clearTimeout(parseTimer);
@@ -201,6 +226,7 @@
       card.setAttribute('aria-checked', String(on));
     });
     methodContinue.disabled = false;
+    scheduleDraftSave();
   }
 
   function validateFile(file) {
@@ -251,15 +277,19 @@
       if (seq !== parseSequence || source !== state.source) return;
       state.parseResult = out;
       state.parseState = 'success';
+      state.reanalyzeNotice = false;
       clearStructureSession();
       syncInputState();
+      scheduleDraftSave();
     } catch (err) {
       if (seq !== parseSequence || source !== state.source) return;
       state.parseResult = null;
       state.parseState = 'error';
+      state.reanalyzeNotice = false;
       clearStructureSession();
       syncInputState();
       showError(err.message || String(err));
+      scheduleDraftSave();
     }
   }
 
@@ -270,6 +300,25 @@
     parseTimer = setTimeout(parseCurrentSource, delay);
   }
 
+  function fileSourceFromFile(file) {
+    return {
+      kind: 'file',
+      file,
+      name: file.name,
+      size: file.size,
+      type: file.type || '',
+      lastModified: file.lastModified
+    };
+  }
+
+  function sameFileFingerprint(saved, file) {
+    if (!saved || !file || saved.kind !== 'file') return false;
+    return String(saved.name || '') === String(file.name || '') &&
+      Number(saved.size) === Number(file.size) &&
+      String(saved.type || '') === String(file.type || '') &&
+      Number(saved.lastModified) === Number(file.lastModified);
+  }
+
   function useFile(file) {
     clearError();
     const error = validateFile(file);
@@ -278,9 +327,31 @@
       invalidateParse();
       resetFileControl();
       showError(error);
+      scheduleDraftSave();
       return;
     }
-    state.source = { kind: 'file', file };
+    const pendingReselect = state.source?.kind === 'file' &&
+      state.source.needsReselect &&
+      state.parseResult &&
+      state.structureDraft;
+    if (pendingReselect && sameFileFingerprint(state.source, file)) {
+      state.source = fileSourceFromFile(file);
+      syncInputState();
+      scheduleDraftSave();
+      if (state.structureConfirmed && state.structureDraft) showStep('theme');
+      return;
+    }
+    if (pendingReselect && !sameFileFingerprint(state.source, file)) {
+      invalidateParse();
+      state.source = fileSourceFromFile(file);
+      state.reanalyzeNotice = true;
+      textInput.value = '';
+      clearTimeout(parseTimer);
+      parseTimer = setTimeout(parseCurrentSource, 0);
+      scheduleDraftSave();
+      return;
+    }
+    state.source = fileSourceFromFile(file);
     textInput.value = '';
     syncInputState();
     scheduleParse(0);
@@ -291,12 +362,14 @@
     if (!value.trim()) {
       if (state.source?.kind === 'text') state.source = null;
       invalidateParse();
+      scheduleDraftSave();
       return;
     }
     state.source = { kind: 'text', text: value };
     resetFileControl();
     syncInputState();
     scheduleParse(500);
+    scheduleDraftSave();
   }
 
   function syncMeta() {
@@ -307,6 +380,7 @@
     };
     metaNext.disabled = !titleInput.value.trim();
     if (titleInput.value.trim()) metaBlocked.hidden = true;
+    scheduleDraftSave();
   }
 
   function cloneUnits() {
@@ -457,6 +531,7 @@
     state.structureDirty = true;
     state.structureConfirmed = false;
     structureNotice('');
+    scheduleDraftSave();
   }
 
   function renderStructure() {
@@ -741,6 +816,7 @@
 
   async function sourcePayload() {
     if (state.source?.kind === 'file') {
+      if (!state.source.file) return null;
       return { name: state.source.file.name, data: await readBase64(state.source.file) };
     }
     if (state.source?.kind === 'text') {
@@ -778,6 +854,9 @@
         if (!state.structureConfirmed || !state.structureDraft) {
           throw new Error('확정된 원고 구조가 없어요.');
         }
+        if (state.source?.kind === 'file' && !state.source.file) {
+          throw Object.assign(new Error('원본 파일을 다시 선택해 주세요.'), { reselect: true });
+        }
         body.units = JSON.parse(JSON.stringify(state.structureDraft));
         const source = await sourcePayload();
         if (source) body.source = source;
@@ -792,10 +871,19 @@
       if (!res.ok) throw new Error(out.error || '책을 만들지 못했습니다.');
       if (!out.url && !out.file) throw new Error('만든 책 경로를 받지 못했습니다.');
 
+      readyToPersist = false;
+      clearDraftStorage();
       allowLeave = true;
       location.href = out.file ? ('/__workspace?file=' + encodeURIComponent(out.file)) : (out.url || '/');
     } catch (err) {
       generating = false;
+      if (err.reselect) {
+        themeNext.disabled = false;
+        generatePanel.dataset.busy = 'false';
+        showStep('input');
+        showError(err.message);
+        return;
+      }
       setGenerateView({
         status: '책을 만들지 못했어요',
         detail: '입력한 내용과 구조는 그대로 있습니다. 다시 시도할 수 있어요.',
@@ -808,6 +896,8 @@
   function cancelWizard() {
     if (generating) return;
     allowLeave = true;
+    readyToPersist = false;
+    clearDraftStorage();
     parseSequence++;
     clearTimeout(parseTimer);
     state.method = null;
@@ -858,6 +948,7 @@
     resetFileControl();
     invalidateParse();
     clearError();
+    scheduleDraftSave();
   });
 
   textInput.addEventListener('input', () => useText(textInput.value));
@@ -960,6 +1051,7 @@
     themePreview.dataset.theme = themeId;
     themeMessage.hidden = true;
     themeMessage.textContent = '';
+    scheduleDraftSave();
   }
 
   themeCards.forEach((card) => {
@@ -1007,8 +1099,228 @@
     button.addEventListener('click', cancelWizard);
   });
 
+  function draftWorthSaving() {
+    return !!(
+      state.method ||
+      state.source ||
+      state.parseResult ||
+      state.structureDraft ||
+      state.meta.title.trim() ||
+      state.meta.subtitle.trim() ||
+      state.meta.author.trim() ||
+      state.themeId !== 'practical' ||
+      (currentStep && currentStep !== 'method')
+    );
+  }
+
+  function serializableSource(source) {
+    if (!source) return null;
+    if (source.kind === 'text') return { kind: 'text', text: String(source.text || '') };
+    if (source.kind === 'file') {
+      const file = source.file;
+      return {
+        kind: 'file',
+        name: source.name || file?.name || '',
+        size: Number.isFinite(source.size) ? source.size : (file?.size ?? 0),
+        type: source.type || file?.type || '',
+        lastModified: Number.isFinite(source.lastModified) ? source.lastModified : (file?.lastModified ?? 0),
+        needsReselect: true
+      };
+    }
+    return null;
+  }
+
+  function draftSnapshot() {
+    return {
+      version: DRAFT_VERSION,
+      savedAt: new Date().toISOString(),
+      step: currentStep,
+      state: {
+        method: state.method,
+        source: serializableSource(state.source),
+        parseResult: state.parseResult,
+        parseState: state.parseState,
+        structureDraft: state.structureDraft,
+        structureDirty: state.structureDirty,
+        structureConfirmed: state.structureConfirmed,
+        themeId: state.themeId,
+        meta: {
+          title: state.meta.title || '',
+          subtitle: state.meta.subtitle || '',
+          author: state.meta.author || ''
+        }
+      }
+    };
+  }
+
+  function clearDraftStorage() {
+    try { localStorage.removeItem(DRAFT_KEY); } catch (err) {
+      console.warn('wizard draft clear failed', err);
+    }
+  }
+
+  function writeDraftNow() {
+    if (!readyToPersist || restorePending) return;
+    if (!draftWorthSaving()) {
+      clearDraftStorage();
+      return;
+    }
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draftSnapshot()));
+    } catch (err) {
+      console.warn('wizard draft save failed', err);
+    }
+  }
+
+  function scheduleDraftSave() {
+    if (!readyToPersist || restorePending) return;
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(writeDraftNow, 400);
+  }
+
+  function readDraft() {
+    let raw = '';
+    try { raw = localStorage.getItem(DRAFT_KEY) || ''; } catch { return null; }
+    if (!raw) return null;
+    try {
+      const data = JSON.parse(raw);
+      const savedAt = Date.parse(data && data.savedAt);
+      const valid = data && data.version === DRAFT_VERSION && data.state && Number.isFinite(savedAt);
+      if (!valid || Date.now() - savedAt > DRAFT_TTL_MS) {
+        clearDraftStorage();
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.warn('wizard draft ignored', err);
+      clearDraftStorage();
+      return null;
+    }
+  }
+
+  function paintMethod(method) {
+    methodCards.forEach((card) => {
+      const on = card.dataset.method === method;
+      card.classList.toggle('selected', on);
+      card.setAttribute('aria-checked', String(on));
+    });
+    methodContinue.disabled = !method;
+  }
+
+  function resetWizardState() {
+    parseSequence++;
+    clearTimeout(parseTimer);
+    clearTimeout(draftTimer);
+    state.method = null;
+    state.source = null;
+    state.parseResult = null;
+    state.parseState = 'idle';
+    clearStructureSession();
+    state.themeId = 'practical';
+    state.meta = { title: '', subtitle: '', author: '' };
+    titleInput.value = '';
+    subtitleInput.value = '';
+    authorInput.value = '';
+    textInput.value = '';
+    resetFileControl();
+    paintMethod(null);
+    selectTheme('practical');
+    syncInputState();
+    clearError();
+    metaBlocked.hidden = true;
+    themeMessage.hidden = true;
+  }
+
+  function hideDraftBanner() {
+    document.querySelector('#draft-banner').hidden = true;
+  }
+
+  function applyDraft(draft) {
+    const saved = draft.state || {};
+    state.method = ['empty', 'import'].includes(saved.method) ? saved.method : null;
+    state.meta = {
+      title: saved.meta?.title || '',
+      subtitle: saved.meta?.subtitle || '',
+      author: saved.meta?.author || ''
+    };
+    state.themeId = ['practical', 'minimal'].includes(saved.themeId) ? saved.themeId : 'practical';
+    state.parseResult = saved.parseResult || null;
+    state.parseState = saved.parseResult ? 'success' : 'idle';
+    state.structureDraft = Array.isArray(saved.structureDraft) ? saved.structureDraft : null;
+    state.structureDirty = !!saved.structureDirty;
+    state.structureConfirmed = !!saved.structureConfirmed && !!state.structureDraft;
+    if (saved.source?.kind === 'text') state.source = { kind: 'text', text: String(saved.source.text || '') };
+    else if (saved.source?.kind === 'file') {
+      state.source = {
+        kind: 'file',
+        name: String(saved.source.name || ''),
+        size: Number(saved.source.size) || 0,
+        type: String(saved.source.type || ''),
+        lastModified: Number(saved.source.lastModified) || 0,
+        needsReselect: true
+      };
+    } else state.source = null;
+    titleInput.value = state.meta.title;
+    subtitleInput.value = state.meta.subtitle;
+    authorInput.value = state.meta.author;
+    textInput.value = state.source?.kind === 'text' ? state.source.text : '';
+    metaNext.disabled = !state.meta.title.trim();
+    paintMethod(state.method);
+    selectTheme(state.themeId);
+    syncInputState();
+    clearError();
+    let step = STEPS.includes(draft.step) ? draft.step : 'method';
+    if (step === 'generate') step = 'theme';
+    if (step === 'structure' && !state.structureDraft) step = 'meta';
+    if (step === 'input' && state.method !== 'import') step = 'method';
+    if ((step === 'structure' || step === 'theme') && state.method === 'import' && !state.parseResult) step = 'input';
+    hideDraftBanner();
+    readyToPersist = true;
+    restorePending = false;
+    showStep(step);
+  }
+
+  function showDraftPrompt(draft) {
+    restorePending = true;
+    readyToPersist = false;
+    panels.forEach((panel) => { panel.hidden = true; });
+    const banner = document.querySelector('#draft-banner');
+    const title = draft.state?.meta?.title?.trim();
+    document.querySelector('#draft-banner-detail').textContent = title
+      ? '제목: ' + title
+      : '이어서 쓰거나 새로 시작할 수 있습니다.';
+    banner.hidden = false;
+    stepLabel.textContent = '이어서 만들기';
+  }
+
+  function startFresh() {
+    clearDraftStorage();
+    restorePending = false;
+    hideDraftBanner();
+    resetWizardState();
+    readyToPersist = true;
+    showStep('method');
+  }
+
+  document.querySelector('#draft-resume').addEventListener('click', () => {
+    const draft = readDraft();
+    if (!draft) {
+      startFresh();
+      return;
+    }
+    applyDraft(draft);
+  });
+  document.querySelector('#draft-restart').addEventListener('click', startFresh);
+
+  window.addEventListener('pagehide', () => { writeDraftNow(); });
+
   selectTheme(state.themeId);
   syncInputState();
   syncMeta();
-  showStep('method');
+  const pendingDraft = readDraft();
+  if (pendingDraft) showDraftPrompt(pendingDraft);
+  else {
+    readyToPersist = true;
+    showStep('method');
+  }
 })();

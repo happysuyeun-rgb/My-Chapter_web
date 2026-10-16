@@ -44,6 +44,17 @@ button { color: inherit; }
   font-size: 13px;
   font-weight: 650;
 }
+.draft-banner h2 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -.03em;
+}
+.draft-detail {
+  margin: 12px 0 0;
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+.draft-banner .wizard-actions { margin-top: 28px; }
 .wizard-card {
   background: #fff;
   border: 1px solid var(--rule);
