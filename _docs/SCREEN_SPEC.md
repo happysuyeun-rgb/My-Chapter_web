@@ -18,7 +18,7 @@
 
 Architecture는 Product Spec v1.4와 IA/Task Flow를 따른다. 기존 S03 / S10 원고 / S14 / S15는 재설계하지 않고 KEEP / WRAP / MINOR UI CHANGE만 한다.
 
-현재 코드와 Target Route가 다른 경우 CURRENT와 TARGET을 구분한다. Phase 15 완료 전까지 현재 `/` = Library일 수 있지만 제품 기준은 `/` = Landing, `/library` = Library다.
+현재 Route는 `/` = Landing, `/library` = Library로 구현되어 있다. Phase 15에서 남은 것은 전용 Supabase 연결과 Runtime Auth QA다.
 
 ---
 
@@ -67,9 +67,9 @@ Later: S12 → S13 AI Cover. S16 / S03 → S17 Pricing/Payment.
 
 | Screen | Existing / Partial / New | MVP / Later | Main Reuse |
 |---|---|---|---|
-| S01 Landing | New / Pending | Phase 15 | 없음 |
+| S01 Landing | Implemented | Phase 15 | `_shared/landing.html/js` |
 | S02 Auth | Partial Implemented | Phase 15 | `_shared/auth.html`, `_shared/auth.js` |
-| S03 Library | Existing / Route move pending | MVP | `_shared/library.html` |
+| S03 Library | Existing / `/library` current | MVP | `_shared/library.html` |
 | S04 New Book Method | Implemented | MVP | Wizard |
 | S05 Manuscript Input | Implemented | MVP | file/paste + parser |
 | S06 Book Metadata | Implemented | MVP | 제목/부제/저자 |
@@ -91,7 +91,7 @@ Later: S12 → S13 AI Cover. S16 / S03 → S17 Pricing/Payment.
 
 - **화면명:** Landing
 - **목적:** 차곡 소개와 제품 진입. 엔진 아님
-- **현재 구현 상태:** **Phase 15 Target / 미구현**
+- **현재 구현 상태:** **Phase 15 Implemented / Runtime QA pending**
 - **목표 Route:** `/`
 - **기존 재사용 코드:** Auth session check만 재사용 가능. Book engine과 분리
 - **Entry / Exit:** 공개 URL → S02 / S03 / S04
@@ -572,8 +572,10 @@ Current branch at this document revision:
 - `GET /__auth` = implemented
 - Auth client/session UI = implemented
 - `GET /` still serves Library until Entry Routing implementation
-- `GET /library` = target, not yet implemented
-- S01 Landing = target, not yet implemented
+- `GET /` = Landing implemented
+- `GET /library` = Library implemented
+- safe `returnTo` implemented
+- Workspace/Wizard/Logout navigation aligned
 - Chagok Web Supabase config = pending
 
-Phase 15 Runtime QA는 이 gap을 구현하고 전용 Supabase를 연결한 뒤 수행한다.
+Phase 15 Runtime QA는 전용 Supabase를 연결한 뒤 수행한다.
