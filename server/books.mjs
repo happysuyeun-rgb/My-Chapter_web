@@ -306,7 +306,7 @@ export function createBooks(ws, { history, lintSummary } = {}) {
     const statePath = path.join(bookDir(htmlPath), STATE_FILE);
     const state = ws.readJsonFile(statePath, {}) || {};
     if (dataUrl) {
-      if (!/^data:image\/(png|jpeg|webp|avif);base64,/.test(dataUrl)) throw Object.assign(new Error("PNG, JPEG, WebP 이미지만 쓸 수 있어요."), { status: 400 });
+      if (!/^data:image\/(png|jpeg|webp|avif);base64,/.test(dataUrl)) throw Object.assign(new Error("PNG, JPEG, WebP, AVIF 이미지만 쓸 수 있어요."), { status: 400 });
       state["cover-image"] = { u: dataUrl, s: 1, x: 0, y: 0 };
     } else delete state["cover-image"];
     const next = JSON.stringify(state);
