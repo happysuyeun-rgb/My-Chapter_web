@@ -328,8 +328,8 @@ Import 역할: Raw Manuscript → **기본 Book Structure**.
 | S06 | metadata client state |
 | S07 | structure client state + Phase 13 draft recovery |
 | S08 | theme client state |
-| S09 | `POST /__new-book`에서 첫 실제 book write |
-| 생성 후 Theme | 필요 시 `POST /__theme` |
+| S09 | `POST /__new-book { ..., themeId }`에서 첫 실제 book write + 선택 Theme CSS 적용 |
+| S11 Theme 변경 | 기존 책에 `POST /__theme` |
 
 원본 source 사본은 생성 확정 후에만 책 폴더에 보관한다.
 
