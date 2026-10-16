@@ -347,21 +347,34 @@ Current evidence:
 
 ## 10. Merge Gate
 
-다음 조건 전에는 PR #4를 main에 merge하지 않는다.
+Phase 15A와 Phase 15B를 분리한다.
 
-- 전용 Chagok Web Supabase 연결 완료
+**PR #4의 Phase 15A merge 조건:**
+
 - Entry Routing 구현 완료
-- Runtime QA 전체 PASS
+- Local/Guest fallback 구현 완료
+- Local E2E QA PASS
+- Wizard / Editor / Preview / PDF 핵심 회귀 PASS
 - `npm run check` PASS
 - 보호 책 불변
 - 앱용 MyChapter Supabase 접근 없음
 - 사용자 책 / stash 영향 없음
 
+**Phase 15B는 Phase 15A merge blocker가 아니다.**
+
+Phase 15B HOLD:
+- 전용 Chagok Web Supabase 생성/연결
+- signup/login/session/logout Runtime Auth QA
+- configured session Landing CTA QA
+
 ---
 
 ## 11. Next
 
-Phase 15 완료 후 Phase 16 설계를 시작한다.
+Phase 15A Local E2E + PDF 품질 QA를 먼저 완료한다.
+PASS 후 Phase 15A를 main에 merge할 수 있다.
+
+Phase 15B와 Phase 16은 외부 사용자 테스트/서비스 배포 필요 시까지 HOLD한다.
 
 Phase 16:
 
