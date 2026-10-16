@@ -12,7 +12,7 @@
 
 Phase 0~14 핵심 개발은 현재 문서와 대체로 일치한다.
 
-현재 실제 개발 누락의 중심은 **Phase 15 Entry Routing + Supabase runtime 연결**이다.
+Entry Routing gap은 수정 완료했다. 현재 실제 개발 누락의 중심은 **전용 Chagok Web Supabase runtime 연결 + Runtime Auth QA**다.
 
 추가로 문서 몇 곳이 실제 구현보다 뒤처져 있었고, 일부 코드에는 Phase 15 전환 시 반드시 수정해야 할 navigation / auth robustness 문제가 있다.
 
@@ -38,15 +38,15 @@ Phase 0~14 핵심 개발은 현재 문서와 대체로 일치한다.
 | PDF / S16 | CURRENT | 구현됨 | ✅ |
 | Auth UI/client | Phase 15 | 구현됨 | ✅ partial |
 | Dedicated Supabase | Chagok Web | config blank | 🚧 pending |
-| Landing | `/` | 없음 | 🚧 pending |
-| Library route | `/library` | 없음; 현재 `/` | 🚧 pending |
-| Auth returnTo | required | 미구현; 성공 후 `/` | 🔴 gap |
-| Logout destination | `/` Landing | Library에 잔류 | 🔴 gap |
-| Wizard cancel | `/library` | `/` | 🔴 gap |
-| Workspace library link | `/library` | `/` | 🔴 gap |
-| Library login target | `returnTo=/library` | `/__auth` only | 🔴 gap |
-| Auth config-missing resilience | local features should remain usable | Library `onAuthStateChange` can throw synchronously while config blank | 🔴 robustness gap |
-| Release static gate | Phase 15 routes/returnTo 검증 | auth marker만 검사 | 🔴 QA tooling gap |
+| Landing | `/` | 구현됨 | ✅ static QA pass |
+| Library route | `/library` | 구현됨 | ✅ static QA pass |
+| Auth returnTo | required | safe returnTo 구현 | ✅ static QA pass |
+| Logout destination | `/` Landing | 구현됨 | ✅ |
+| Wizard cancel | `/library` | 구현됨 | ✅ |
+| Workspace library link | `/library` | 구현됨 | ✅ |
+| Library login target | `returnTo=/library` | 구현됨 | ✅ |
+| Auth config-missing resilience | local features should remain usable | guard 구현 | ✅ |
+| Release static gate | Phase 15 routes/returnTo 검증 | 확대 완료, CI PASS | ✅ |
 | Ownership / RLS / Storage | Phase 16 | 없음 | ✅ intentionally not Phase 15 |
 | Deployment / PDF worker | Later | local-only | ✅ intentionally later |
 
@@ -56,25 +56,31 @@ Phase 0~14 핵심 개발은 현재 문서와 대체로 일치한다.
 
 ### P0 / must close before merge
 
-1. S01 Landing 구현
+완료:
+1. S01 Landing
 2. `GET /` → Landing
 3. `GET /library` → existing Library
-4. safe `returnTo` 구현
+4. safe `returnTo`
 5. login/signup success → returnTo
 6. logout → `/`
-7. Workspace / Wizard Library navigation → `/library`
-8. Library login link → `/__auth?returnTo=/library`
-9. Chagok Web Supabase 연결
-10. runtime signup/login/session/logout QA
-11. wrong MyChapter Supabase ref absence
-12. protected book regression
+7. Workspace / Wizard → `/library`
+8. Library login → `/__auth?returnTo=/library`
+9. wrong MyChapter Supabase ref static guard
+
+남음:
+10. Chagok Web Supabase 연결
+11. runtime signup/login/session/logout QA
+12. protected book final regression
 
 ### P1 / Phase 15 robustness
 
-1. CONFIG가 비어 있을 때 Library auth subscription이 core Library를 깨지 않도록 guard
-2. Release check에 Landing / Library / returnTo / navigation marker 추가
-3. Auth 화면의 “서재로 돌아가기” 문구/경로를 새 IA에 맞춤
-4. 로그인 상태 Landing CTA 확인
+완료:
+1. CONFIG blank guard
+2. release check route/returnTo markers
+3. Auth 홈 링크 문구/경로 정리
+
+Runtime pending:
+4. 로그인 상태 Landing CTA 실제 session QA
 
 ---
 
@@ -120,7 +126,7 @@ Cover는 실제 코드에서:
 
 를 허용하지만 일부 오류 문구는 “PNG, JPEG, WebP”만 표시한다.
 
-기능 동작에는 영향이 없지만 메시지를 실제 accept set과 맞춰야 한다.
+오류 문구도 실제 accept set에 맞게 AVIF까지 반영 완료했다.
 
 ---
 
@@ -153,11 +159,11 @@ B. stale docs correction
    ↓
 C. Document Index
    ↓
-D. Phase 15 Entry Routing code
+D. Phase 15 Entry Routing code ✅
    ↓
-E. static release gate update
+E. static release gate update ✅
    ↓
-F. Chagok Web Supabase creation/config
+F. Chagok Web Supabase creation/config ← NEXT
    ↓
 G. Runtime Auth QA
    ↓
@@ -181,3 +187,15 @@ J. Phase 16 design
 - returnTo external redirect 허용 → STOP
 - Auth 작업 때문에 Editor/Viewer/PDF 재작성 → STOP
 - recovery legacy key migration 없이 rename → STOP
+
+
+---
+
+## 9. Static QA Evidence
+
+- Routing/auth code completion head: `92f4c205dc21902b1045a2625a0029b5bc9eed0a`
+- GitHub Actions run: `38845874579`
+- Job: `release-static-check`
+- Result: **SUCCESS**
+- `npm ci`: SUCCESS
+- `npm run check`: SUCCESS
