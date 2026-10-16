@@ -1,5 +1,7 @@
 # My Chapter MVP Release Gate — 2026-10-11
 
+> Historical note: 이 Release Gate는 제품명이 **My Chapter**였던 시점의 기록이다. 현재 제품명은 **차곡**이며, 과거 검증 기록의 의미를 보존하기 위해 제목은 변경하지 않는다.
+
 ## Release baseline
 
 - Release commit: `28aa7732b3b0db85e21da9fa5ecae4b6c23721a3`
