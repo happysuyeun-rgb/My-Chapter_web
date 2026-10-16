@@ -6,7 +6,7 @@
 - Status: CURRENT / IMPLEMENTATION BASELINE
 - Updated: 2026-10-16
 - Related: `MY_CHAPTER_PRODUCT_SPEC.md`, `_docs/SCREEN_SPEC.md`, `_docs/FUNCTION_SPEC.md`
-- Phase note: Phase 15 Auth Foundation 진행 중. 현재 구현의 `/` = Library 구조는 본 문서의 목표 구조와 다름.
+- Phase note: Phase 15A COMPLETE. `/` = Landing, `/library` = Library. Phase 15B Supabase Auth Runtime = HOLD. Phase 16 Ownership/DB/Storage/RLS = HOLD.
 
 ---
 
@@ -56,7 +56,7 @@ Entry Routing 구현 완료:
 /__workspace?file=... → Workspace
 ```
 
-남은 Phase 15 항목은 전용 `Chagok Web` Supabase 연결과 Runtime Auth QA다.
+Phase 15A Local/Guest entry는 완료됐다. Phase 15B(`Chagok Web` Supabase 연결 + Runtime Auth QA)와 Phase 16 Ownership은 HOLD다.
 
 ---
 
@@ -531,30 +531,16 @@ S10 Workspace
 
 ## 16. Phase 15 Implementation Impact
 
-Phase 15에서 반드시 정리해야 할 Entry Routing:
+Phase 15A에서 Entry Routing은 반영 완료됐다.
 
-1. `GET /`
-   - 현재: Library
-   - 목표: Landing
-
-2. `GET /library`
-   - 기존 `library.html` 제공
-
-3. Auth success destination
-   - 현재 단순 `/` 이동 금지
-   - `returnTo` 우선
-   - 없으면 `/library`
-
-4. Logout destination
-   - `/` Landing
-
-5. Library에서 로그인 상태 유지
-
-6. 아직 구현하지 않음
-   - Book ownership
-   - DB books table
-   - Supabase Storage
-   - server authorization
+1. `GET /` → Landing
+2. `GET /library` → Library
+3. Auth success → `returnTo` 우선, 없으면 `/library` (Configured mode)
+4. Local mode → Auth 강제 없이 Wizard/Library
+5. Logout → `/` Landing (Configured mode)
+6. HOLD
+   - Phase 15B Supabase Auth Runtime
+   - Phase 16 Book ownership / DB / Storage / server authorization
 
 ---
 
@@ -587,4 +573,4 @@ Phase 15에서 반드시 정리해야 할 Entry Routing:
 /__workspace = Workspace
 ```
 
-Phase 15 Auth Foundation은 이 Entry Routing을 반영한 뒤 Runtime QA를 수행한다.
+Phase 15A는 이 Entry Routing과 Local/Guest fallback까지 완료했다. Phase 15B Runtime Auth QA와 Phase 16 Ownership은 HOLD다.
