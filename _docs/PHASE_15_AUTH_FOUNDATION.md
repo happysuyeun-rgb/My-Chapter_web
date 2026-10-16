@@ -1,39 +1,229 @@
-# 차곡 Phase 15 — Auth Foundation
+# 차곡 Phase 15 — Auth + Entry Routing Foundation
 
 - 작성일: 2026-10-16
 - Branch: `phase-15-auth-foundation`
 - Base: `main@2af7924`
-- Status: IMPLEMENTED / INFRA CONFIG PENDING / RUNTIME QA PENDING
+- Status: AUTH IMPLEMENTED / ENTRY ROUTING PENDING / INFRA CONFIG PENDING / RUNTIME QA PENDING
 - Supabase project: **PENDING — 새 `Chagok Web` 프로젝트 생성·연결 필요**
-- 기존 `MyChapter` Supabase 프로젝트는 앱용이므로 차곡 웹에서 사용하지 않는다.
+- 기존 `MyChapter` Supabase 프로젝트는 별도 앱용이므로 차곡 웹에서 사용하지 않는다.
+- Related: `_docs/IA.md`, `_docs/TASK_FLOW.md`, `_docs/SCREEN_DESIGN.md`, `_docs/SCREEN_SPEC.md`
 
-## Goal
+---
 
-차곡에 계정 세션의 기반만 추가한다.
+## 1. Goal
 
-이번 Phase의 범위:
+Phase 15의 목표는 두 가지다.
+
+1. 차곡에 계정 세션 기반을 추가한다.
+2. 최종 제품 진입 구조에 맞게 Landing / Library / Auth의 Entry Routing을 정리한다.
+
+Phase 15 완료 기준은 단순히 로그인 화면이 존재하는 것이 아니다.
+
+```text
+/          → Landing
+/library   → Library
+/__auth    → Auth
+/__wizard  → New Book
+/__workspace?file=... → Workspace
+```
+
+위 진입 구조와 Auth session이 함께 동작해야 Phase 15를 완료한 것으로 본다.
+
+---
+
+## 2. Scope
+
+### Auth Foundation
 
 - 이메일/비밀번호 회원가입
 - 이메일/비밀번호 로그인
 - 세션 유지
 - 로그아웃
 - 서재에서 로그인 상태 표시
-- 기존 로컬 책 엔진은 그대로 유지
+- `returnTo` 기반 Auth 복귀
+- 외부 URL redirect 차단
 
-## Architecture
+### Entry Routing Foundation
 
-현재 `_shared/auth.js`의 Supabase URL/key는 비워 두어, 앱용 `MyChapter` 프로젝트로 잘못 접속하지 않도록 차단한다. 새 `Chagok Web` 프로젝트를 만든 뒤에만 연결한다.
+- S01 Landing 추가
+- `GET /` → Landing
+- `GET /library` → 기존 Library
+- Auth 성공 → `returnTo` 또는 `/library`
+- Logout → `/`
+- Workspace의 "내 서재" → `/library`
+- Wizard 취소/복귀 → `/library`
 
+### Preserve
 
-- Supabase Auth 사용
-- 브라우저 클라이언트는 Supabase publishable key만 사용
-- 세션은 Supabase JS의 브라우저 저장소를 사용
-- 기존 `book.html` Content SoT 변경 없음
-- 기존 `books/` 파일 저장 방식 변경 없음
+- 기존 로컬 책 엔진
+- `book.html` Content SoT
+- Editor
+- Viewer
+- Paged.js
+- PDF
+- Wizard Recovery
+- Editor Autosave / Recovery
+- 기존 사용자 책
 
-## Important Boundary
+---
 
-이번 Phase는 Auth Foundation이다.
+## 3. Current Implementation Status
+
+### Implemented
+
+- `_shared/auth.html`
+- `_shared/auth.js`
+- `window.ChagokAuth`
+- `signUp`
+- `signInWithPassword`
+- `signOut`
+- `getSession`
+- `persistSession: true`
+- `autoRefreshToken: true`
+- auth storage key: `chagok-auth-v1`
+- `GET /__auth`
+- Library login / email / logout UI
+- 앱용 MyChapter Supabase 프로젝트 연결 제거
+- release-check의 앱용 Supabase project ref 차단 guard
+- 차곡 브랜드 반영
+
+### Pending
+
+- 전용 `Chagok Web` Supabase 프로젝트 생성
+- Supabase URL / publishable key 연결
+- S01 Landing 구현
+- `/library` route 추가
+- Auth `returnTo` 처리
+- Logout → Landing
+- Workspace / Wizard의 Library 링크 정리
+- Runtime Auth QA
+
+---
+
+## 4. Target Entry Routing
+
+### Public Entry
+
+```text
+GET /
+→ S01 Landing
+```
+
+Landing은 로그인 여부와 관계없이 제품의 브랜드 진입점으로 유지한다.
+
+비로그인 상태:
+
+```text
+Landing
+├─ 로그인
+└─ 새 책 만들기
+```
+
+로그인 상태:
+
+```text
+Landing
+├─ 내 서재
+└─ 새 책 만들기
+```
+
+---
+
+### Library
+
+```text
+GET /library
+→ S03 Library
+```
+
+현재 `/`가 반환하는 기존 `_shared/library.html`을 `/library`에서 제공한다.
+
+Library는 Landing 역할을 하지 않는다.
+
+---
+
+### Auth
+
+```text
+GET /__auth
+→ S02 Auth
+```
+
+일반 로그인:
+
+```text
+/
+→ /__auth?returnTo=/library
+→ 로그인 성공
+→ /library
+```
+
+새 책 만들기:
+
+```text
+/
+→ /__auth?returnTo=/__wizard
+→ 로그인 성공
+→ /__wizard
+```
+
+---
+
+## 5. returnTo Contract
+
+`returnTo`는 내부 경로만 허용한다.
+
+허용 예:
+
+- `/library`
+- `/__wizard`
+- `/__workspace?file=...`
+
+금지:
+
+- `http://...`
+- `https://...`
+- `//external...`
+
+잘못되거나 없는 값:
+
+```text
+fallback → /library
+```
+
+Open Redirect가 생기지 않도록 반드시 내부 경로만 허용한다.
+
+---
+
+## 6. Auth Architecture
+
+현재 `_shared/auth.js`의 Supabase URL/key는 비워 둔다.
+
+이유:
+
+- 기존 `MyChapter` Supabase 프로젝트는 별도 앱용
+- 차곡 웹툴과 데이터 경계를 분리해야 함
+- 새 `Chagok Web` 프로젝트를 만든 뒤에만 연결
+
+사용:
+
+- Supabase Auth
+- 브라우저 클라이언트는 publishable key만 사용
+- Supabase JS browser session storage
+- persistent session
+- auto refresh
+
+사용하지 않음:
+
+- service role key
+- 앱용 MyChapter Supabase project
+- 서버 비밀키 노출
+
+---
+
+## 7. Important Boundary
+
+Phase 15는 **계정 세션 + 진입 흐름**까지다.
 
 아직 구현하지 않음:
 
@@ -43,37 +233,117 @@
 - 서버 API authorization
 - 다른 사용자의 책 접근 차단
 - 로컬 책 → 계정 마이그레이션
+- RLS
 - Vercel 배포
+- PDF worker 분리
 - 결제
 
-따라서 로그인하지 않아도 기존 로컬 MVP는 계속 사용할 수 있다.
-계정 소유권과 서버 보호는 Phase 16에서 구현한다.
+따라서 Phase 15의 로그인은 아직 데이터 보안 경계가 아니다.
 
-## Files
+```text
+Phase 15
+Auth Session + Entry Routing
 
-- `_shared/auth.html` — S02 Auth 화면
+Phase 16
+Auth User
+→ Book Ownership
+→ DB Metadata
+→ per-user Storage
+→ API Authorization
+```
+
+---
+
+## 8. Files
+
+현재 관련 파일:
+
+- `_shared/auth.html` — S02 Auth
 - `_shared/auth.js` — Supabase Auth client
-- `_shared/library.html` — 로그인 상태 / 로그아웃 UI
-- `preview-server.mjs` — `GET /__auth`
-- `scripts/release-check.mjs` — Auth static guard
+- `_shared/library.html` — S03 Library
+- `_shared/workspace.html`
+- `_shared/workspace.js`
+- `_shared/wizard.html`
+- `_shared/wizard.js`
+- `preview-server.mjs`
+- `scripts/release-check.mjs`
 
-## QA Required
+Entry Routing 구현 시 S01 Landing 파일을 추가한다.
+
+파일명은 구현 시 기존 구조와 충돌하지 않는 최소 형태로 정한다.
+
+---
+
+## 9. Runtime QA Required
+
+### Static
 
 1. `npm run check` PASS
-2. `/__auth` 열림
-3. 신규 이메일 회원가입
-4. 로그인
-5. 새로고침 후 세션 유지
-6. 서재에 로그인 이메일 표시
-7. 로그아웃
-8. 로그아웃 후 기존 로컬 서재/책 기능 유지
-9. Wizard / Editor / PDF 회귀 없음
-10. 보호 책 해시 불변
+2. JS/MJS syntax PASS
+3. 앱용 Supabase project ref 미사용
+4. 보호 책 hash 불변
 
-## Next
+### Landing / Routing
+
+5. `/` → Landing
+6. `/library` → Library
+7. 비로그인 Landing CTA 정상
+8. 로그인 Landing CTA 정상
+9. Workspace → 내 서재 = `/library`
+10. Wizard 취소/복귀 = `/library`
+
+### Auth
+
+11. `/__auth` 정상 표시
+12. 신규 이메일 회원가입
+13. 로그인
+14. 새로고침 후 세션 유지
+15. Library에 사용자 이메일 표시
+16. 로그아웃
+17. 로그아웃 후 `/` Landing 이동
+18. `returnTo=/__wizard` 정상
+19. `returnTo=/library` 정상
+20. 외부 URL returnTo 거부
+
+### Regression
+
+21. 기존 Library 기능 정상
+22. Wizard 정상
+23. Editor 정상
+24. Autosave / Recovery 정상
+25. Single / Spread / Grid 정상
+26. PDF 정상
+27. 보호 책 hash 불변
+28. `books/서아의/` 보존
+
+---
+
+## 10. Merge Gate
+
+다음 조건 전에는 PR #4를 main에 merge하지 않는다.
+
+- 전용 Chagok Web Supabase 연결 완료
+- Entry Routing 구현 완료
+- Runtime QA 전체 PASS
+- `npm run check` PASS
+- 보호 책 불변
+- 앱용 MyChapter Supabase 접근 없음
+- 사용자 책 / stash 영향 없음
+
+---
+
+## 11. Next
+
+Phase 15 완료 후 Phase 16 설계를 시작한다.
 
 Phase 16:
 
-`Auth user → Book ownership → DB metadata → per-user storage boundary`
+```text
+Auth User
+→ Book Ownership
+→ DB Metadata
+→ Storage Boundary
+→ RLS / API Authorization
+```
 
-Phase 16 전에는 Auth가 데이터 보안 경계라고 간주하지 않는다.
+Phase 16 상세 구현명세는 Phase 15 완료 전 확정하지 않는다.
