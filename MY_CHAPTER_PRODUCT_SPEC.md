@@ -1,28 +1,33 @@
 # 차곡 Product Spec
 
 - Product: 차곡
-- Legacy filename note: 파일명 `MY_CHAPTER_PRODUCT_SPEC.md`는 참조 안정성을 위해 당분간 유지한다.
-- Version: **v1.3**
-- Date: 2026-10-03
-- Status: Product / Development Baseline
-- Basis: M0.5-A Engine Boundary Audit + M0.5-B Content Architecture Audit
-- Prior text: 채팅의 v1.2.1 (루트 파일은 v1.3에서 처음 디스크에 둠)
+- Version: **v1.4**
+- Date: 2026-10-16
+- Status: **CURRENT / Product + Development Baseline**
+- Basis: M0.5-A/B Audit + MVP Release Gate + Phase 13 Wizard Recovery + Phase 14 Editor Autosave/Recovery + Phase 15 Auth/Entry Routing
+- Prior baseline: v1.3 (2026-10-03)
+- Legacy filename note: 파일명은 참조 안정성을 위해 유지하며 제품명은 차곡이다.
 
 이 문서는 제품/개발 기준이다. 구현 명세가 아니다.
 
 충돌 시 우선순위:
 
-1. M0.5-A 실제 코드 Audit
-2. M0.5-B Content Architecture Audit
-3. 현재 실제 코드
-4. 이 문서의 과거 가정 (v1.2.1 이하)
+1. **엔진 불변 계약** — M0.5-A/B Audit에서 확정한 KEEP / WRAP / SoT 결정
+2. **현재 제품 기준** — 본 v1.4 + `_docs/IA.md` + `_docs/TASK_FLOW.md`
+3. **현재 Phase 기준** — `_docs/PHASE_15_AUTH_FOUNDATION.md` 등 활성 Phase 문서
+4. **현재 실제 코드** — 아직 목표 구조를 구현 중일 수 있으므로 CURRENT와 TARGET을 구분
+5. 과거 가정 / Historical 문서
 
-Audit에서 기각된 가정은 다시 살리지 않는다.
+Audit에서 기각된 가정은 다시 살리지 않는다. Historical Release Gate는 당시 사실 기록으로 유지하며 현재 상태 문서로 해석하지 않는다.
 
 근거 문서:
 
 - `_docs/M0.5_ENGINE_AUDIT.md`
 - `_docs/M0.5_CONTENT_AUDIT.md`
+- `_docs/RELEASE_GATE_MVP_2026-10-11.md`
+- `_docs/IA.md`
+- `_docs/TASK_FLOW.md`
+- `_docs/PHASE_15_AUTH_FOUNDATION.md`
 
 ---
 
@@ -44,20 +49,36 @@ Audit에서 기각된 가정은 다시 살리지 않는다.
 
 ---
 
-## 2. What Changed in v1.3
+## 2. What Changed in v1.4
 
-v1.2.1까지 남아 있던 후보/가정을 Audit 결과로 고정하거나 제거했다.
+v1.4는 엔진 아키텍처를 뒤집는 버전이 아니라, **Phase 13~15에서 실제로 추가된 제품 기반과 최신 Entry Flow를 상위 기준에 반영하는 버전**이다.
 
-| 과거 가정 | v1.3 |
+| Area | v1.4 |
+|---|---|
+| Product name | 현재 브랜드는 **차곡 (Chagok)**. legacy filename은 참조 안정성을 위해 유지 |
+| Wizard recovery | **IMPLEMENTED (Phase 13)** — 새로고침/탭 종료 후 draft recovery |
+| Editor autosave | **IMPLEMENTED (Phase 14)** — debounce autosave + local recovery + conflict safety |
+| Auth | **Phase 15 구현 중** — Supabase Auth client/session foundation 구현, 전용 Chagok Web 연결·runtime QA pending |
+| Entry | **TARGET 확정** — `/` Landing, `/library` Library, `/__auth` Auth |
+| Auth return | 내부 `returnTo` 지원, 잘못된 값은 `/library` fallback |
+| Ownership | **Phase 16** — Auth와 Book ownership은 아직 같은 것이 아님 |
+| Persistence | 책 Content는 여전히 local `book.html`; Supabase DB/Storage는 아직 도입하지 않음 |
+| Engine | Editor / Viewer / Paged.js / PDF / Theme 계약 유지 |
+
+### v1.3 Historical Architecture Decisions
+
+v1.2.1까지 남아 있던 후보/가정을 Audit 결과로 고정하거나 제거한 결정은 계속 유효하다.
+
+| 과거 가정 | v1.3 이후 현재 결정 |
 |---|---|
 | canonicalContent JSON이 Content SoT | **기각.** SoT는 `book.html` |
-| React / Vite가 Core Stack | **기각.** 현재 엔진은 Node + Vanilla HTML/JS + Paged.js + Headless Chrome |
+| React / Vite가 Core Stack | **기각.** Core Engine은 Node + Vanilla HTML/JS + Paged.js + Headless Chrome |
 | Pagination을 새로 만든다 | **기각.** Paged.js KEEP |
 | PDF Engine 미정 | **기각.** 현행 파이프라인 KEEP |
 | `legacy_html` / `structured_v1` 이중 포맷 | **기각.** HTML Book Contract 하나 |
 | EPUB / Print / History / Inspection 삭제 | **기각.** KEEP / HIDE FROM PRODUCT |
-| Import는 DOCX / TXT / MD만 | **수정.** TXT / MD / PDF / DOCX. PDF는 기존 자산으로 유지 |
-| M1 = Auth | **기각.** M1은 Auth가 아니다 |
+| Import는 DOCX / TXT / MD만 | **수정.** TXT / MD / PDF / DOCX |
+| M1 = Auth | **과거 단계 가정으로 폐기.** 현재는 Phase 기반 로드맵 사용 |
 | Structured Book JSON을 지금 도입 | **DEFER.** 지금은 도입하지 않음 |
 
 ---
@@ -71,7 +92,7 @@ M0.5-A가 확정한 사실이다.
 | Stack | Node 내장 HTTP + Vanilla HTML/JS + Paged.js + Headless Chrome |
 | React | NOT USED |
 | Vite | NOT USED |
-| Supabase | NOT USED |
+| Supabase | **Core Engine에는 NOT USED.** Service/Auth layer에서 Phase 15 Supabase Auth를 사용하며 전용 Chagok Web 연결은 pending. DB/Storage는 아직 없음 |
 | Content Source | `book.html` |
 | Metadata | 제목/저자 등 일부는 HTML. 서재 상태는 `book.json` |
 | Image State | `.image-slots.state.json` |
@@ -116,7 +137,7 @@ Content SoT는 `book.html`이다.
 - 안전한 Patch
 - AI Editing
 - 구조 조작
-- 향후 Auto Save
+- Auto Save / Recovery (Phase 14 구현)
 
 `htmltree`는 JSON 문서가 아니다. 원본 문자열 위의 위치 보존 오버레이다. 슬라이스 패치 기준 round-trip은 LOSSLESS에 가깝다. 트리를 직렬화해 HTML을 다시 만들면 LOSSY다.
 
@@ -355,7 +376,9 @@ blocks layer는 필요 기능에 따라 **점진적으로** 확장한다. 28종 
 └─ preview-server.mjs
 ```
 
-지속성은 지금 로컬 파일시스템이다. Supabase는 쓰지 않는다.
+책 Content 지속성은 현재도 로컬 파일시스템이다. `book.html` / `book.css` / `book.json` 계약은 유지한다.
+
+Phase 15에서는 **Supabase Auth만 서비스 계층에 추가**한다. Supabase DB / Storage는 아직 사용하지 않으며, 사용자별 Book ownership과 클라우드 저장 경계는 Phase 16에서 설계한다.
 
 ---
 
@@ -363,40 +386,47 @@ blocks layer는 필요 기능에 따라 **점진적으로** 확장한다. 28종 
 
 화면 ID는 유지한다. 기존 엔진 화면은 재작성하지 않는다.
 
-### 9.1 Keep as existing engine
+| ID | Screen | Current / Target | Strategy |
+|---|---|---|---|
+| S01 | Landing | **Phase 15 TARGET / pending implementation** | 신규 진입 화면. `/` |
+| S02 | Auth | **Phase 15 PARTIAL IMPLEMENTED** | `_shared/auth.html/js`; Chagok Web 연결·runtime QA pending |
+| S03 | Library | **IMPLEMENTED / route move pending** | 기존 서재 KEEP / WRAP. 목표 `/library` |
+| S04 | New Book Method | **IMPLEMENTED** | Wizard |
+| S05 | Manuscript Input | **IMPLEMENTED** | TXT / MD / PDF / DOCX / paste |
+| S06 | Metadata | **IMPLEMENTED** | 제목·부제·저자 |
+| S07 | Structure Review | **IMPLEMENTED** | parse 결과 확인·수정 |
+| S08 | Theme Selection | **IMPLEMENTED** | Practical / Minimal |
+| S09 | Generation | **IMPLEMENTED** | 확정 후 실제 book 생성 |
+| S10 | Workspace / Manuscript | **IMPLEMENTED** | 기존 Editor KEEP / WRAP |
+| S11 | Design | **IMPLEMENTED** | Theme layer |
+| S12 | Cover | **IMPLEMENTED** | 기존 cover/image state WRAP |
+| S13 | AI Cover | **LATER** | 별도 Phase |
+| S14 | Preview | **IMPLEMENTED** | Single / Spread / Grid KEEP |
+| S15 | PDF Export | **IMPLEMENTED** | 기존 PDF Engine KEEP |
+| S16 | Export Complete | **IMPLEMENTED** | 제품 완료 상태 |
+| S17 | Pricing / Payment | **LATER** | Auth/ownership/usage 이후 |
 
-| ID | Screen | Strategy |
-|---|---|---|
-| S03 | Library | 기존 서재 KEEP / WRAP |
-| S10 | Editor | 기존 Editor KEEP / WRAP |
-| S14 | Viewer | 기존 Single / Spread / Grid KEEP |
-| S15 | PDF | 기존 PDF Engine KEEP |
+### 9.1 Target Entry Routing
 
-### 9.2 Needs new product design
+```text
+/          → S01 Landing
+/library   → S03 Library
+/__auth    → S02 Auth
+/__wizard  → S04~S09
+/__workspace?file=... → S10~S14
+/__pdf?file=... → S15
+```
 
-기존 생성 흐름을 서비스 UX로 감싸는 화면. 엔진 교체가 아니다.
+Phase 15 완료 전에는 현재 코드와 목표 Route가 다를 수 있다. 이 차이는 버그가 아니라 **진행 중인 Implementation Gap**으로 추적한다.
 
-| ID | Screen | Note |
-|---|---|---|
-| S04 | 제작 방식 | 빈 책 / 원고 Import 등 |
-| S05 | 원고 입력 | TXT / MD / PDF / DOCX. 붙여넣기는 Gap |
-| S06 | 기본 정보 | 제목·부제·저자. Identity는 경로 |
-| S07 | 원고 구조 확인 | Import 결과 골격 확인. 설계본 완성도가 아님 |
-| S08 | 디자인 선택 | Practical / Minimal. CSS Theme Token |
-| S09 | 생성 상태 | 현재 Job UI 없음. Wrapper 후보 |
-| S11 | 디자인 | 테마/토큰 조정. HTML 재작성 아님 |
-| S16 | 출력 완료 | PDF 결과. 엔진은 S15 |
+### 9.2 Auth vs Ownership
 
-### 9.3 Later
+S02 Auth가 동작해도 Phase 15에서는 아직 사용자별 Book ownership을 보장하지 않는다.
 
-| ID | Screen |
-|---|---|
-| S01 | Landing |
-| S02 | Auth |
-| S13 | AI Cover |
-| S17 | Payment |
-
-S02를 M1과 같지 않게 읽는다.
+```text
+Phase 15: Auth Session + Entry Routing
+Phase 16: Auth User → Book Ownership → DB Metadata → Storage → API Authorization
+```
 
 ---
 
@@ -415,77 +445,69 @@ contenteditable DOM
 - 글 저장은 reload 없이 쪽 분할을 유지한다.
 - 버전은 원본 HTML sha1이다.
 - 충돌은 409다.
-- Auto Save는 아직 없다. Overlay가 준비되면 붙일 수 있다. 구현은 이 문서의 범위가 아니다.
+- **Auto Save / Recovery는 Phase 14에서 구현 완료.**
+- 자동 저장 debounce 1500ms, local recovery write 400ms.
+- 한 번에 하나의 `/__edit` 요청만 진행하며 pending change는 다음 저장으로 이어진다.
+- 409 conflict 시 autosave를 중지하고 recovery/dirty를 보존하며 자동 재전송하지 않는다.
+- 수동 Save와 Ctrl/Cmd+S는 계속 지원한다.
+- editor recovery localStorage key는 현재 legacy prefix를 사용하므로 리브랜딩 시 삭제/단순 rename하지 않고 migration/fallback이 필요하다.
 
 History / Restore / Inspection / EPUB / Print는 엔진에 있다. 제품 화면에서 숨길 수 있다. 삭제 대상이 아니다.
 
 ---
 
-## 11. M1
+## 11. Current Phase Model
 
-M1을 Auth 시작 단계로 고정하지 않는다.
-
-M1은:
-
-**Audit 이후 가장 작은 실제 서비스 경계 구현**
-
-후보는 다음이다. 순서는 이후 Development Specification과 Implementation Plan에서 정한다.
-
-- Book Identity 안정화
-- Persistence Boundary
-- Service Wrapper
-- Project Metadata
-- Auth
-
-Auth는 후보다. 기본값이 아니다.
-
----
-
-## 12. Roadmap
+과거 M1 후보 체계는 더 이상 현재 실행 로드맵이 아니다. 현재는 실제 구현 Phase를 기준으로 관리한다.
 
 ```text
-M0.5-A Engine Audit ✅
-  ↓
-M0.5-B Content Audit ✅
-  ↓
-Product Spec v1.3 ✅
-  ↓
-Development Specification
-  ↓
-Implementation Plan
-  ↓
-Incremental Development
+Phase 12  Full Regression / MVP Release Gate ✅
+Phase 13  Wizard Draft Recovery ✅
+Phase 14  Editor Autosave / Recovery ✅
+Phase 15  Auth + Entry Routing Foundation 🚧
+Phase 16  Ownership + DB Metadata + Storage Boundary + API Authorization ⏳
+Later     Deployment / PDF Worker / AI / Payment
 ```
 
-다음 단계는 기능 구현이 아니다. 다음 단계는 개발 명세 작성이다.
+### Phase 15 Completion Gate
 
-Development Specification에 포함될 문서 (이번 작업에서 만들지 않음):
+Phase 15는 다음이 모두 끝나야 완료다.
 
-- `FUNCTION_SPEC.md`
-- `SCREEN_SPEC.md`
-- `ENGINE_CONTRACT.md`
-- `DATA_SPEC.md`
-- `API_SPEC.md`
-- `QA_ACCEPTANCE.md`
+- 전용 `Chagok Web` Supabase 연결
+- `/` Landing
+- `/library` Library
+- Auth `returnTo`
+- logout → Landing
+- Workspace/Wizard의 Library 복귀 route 정리
+- Runtime Auth QA PASS
+- 기존 Wizard / Editor / Viewer / PDF 회귀 없음
+- 보호 책## 13. Out of Scope for This Document
+
+이 Product Spec 자체는 구현 코드를 작성하지 않는다.
+
+현재 별도 Phase로 남겨 두는 것:
+
+- Phase 16 Ownership / DB / Storage / RLS 상세 스키마
+- Vercel 배포 구조
+- SaaS PDF worker / queue
+- AI manuscript assist
+- AI Cover
+- Usage / Credit model
+- Payment
+- Structured Book JSON SoT
+- React/Vite 전환
+- 기존 168쪽 Book migration
+
+보호 원칙:
+
+- 168쪽 기준책과 실제 사용자 책을 Product Spec 갱신 때문에 수정하지 않는다.
+- Core Engine KEEP / WRAP 결정을 리브랜딩이나 Auth 도입 때문에 뒤집지 않는다.
 
 ---
 
-## 13. Out of Scope for This Document
+# Architecture Decision Summary v1.4
 
-이 문서는 구현하지 않는다.
-
-- 코드 / UI / CSS / Theme 구현
-- `blocks.mjs` 확장
-- Auto Save
-- Supabase / Auth / React
-- API 수정
-- 168쪽 Book 수정
-- 위 6개 개발 명세 파일 작성
-
----
-
-# Architecture Decision Summary v1.3
-
+- Product = **차곡 (Chagok)**
 - Content SoT = `book.html`
 - Structured Overlay = eid + editable + htmltree + blocks
 - Separate Book JSON Content Model = NOT NOW
@@ -496,4 +518,10 @@ Development Specification에 포함될 문서 (이번 작업에서 만들지 않
 - Existing Book Migration = NO
 - Import = TXT / MD / PDF / DOCX
 - Existing Engine = KEEP / WRAP
-- Next Step = Development Specification
+- Wizard Draft Recovery = IMPLEMENTED
+- Editor Autosave / Recovery = IMPLEMENTED
+- Supabase = Auth service layer only in Phase 15; **DB/Storage NOT YET**
+- Target Entry = `/` Landing, `/library` Library, `/__auth` Auth
+- Phase 15 = Auth + Entry Routing Foundation
+- Phase 16 = Ownership + DB Metadata + Storage + API Authorization
+- Next Step = **align detailed specs, then finish Phase 15 runtime implementation/QA**
