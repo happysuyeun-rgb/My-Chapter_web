@@ -49,4 +49,16 @@ for (const marker of ["/__pdf", "/__theme", "/__book/cover", "panel-export-compl
 }
 pass("workspace MVP release markers");
 
+const authClient = fs.readFileSync("_shared/auth.js", "utf8");
+for (const authMarker of ["mychapter-auth-v1", "signInWithPassword", "signUp", "signOut", "persistSession"]) {
+  if (!authClient.includes(authMarker)) fail(`auth client marker missing: ${authMarker}`);
+}
+const serverText = fs.readFileSync("preview-server.mjs", "utf8");
+if (!serverText.includes('"GET /__auth"')) fail("auth route is missing");
+const libraryText = fs.readFileSync("_shared/library.html", "utf8");
+for (const authMarker of ["/__auth", "auth-login", "auth-logout", "/_shared/auth.js"]) {
+  if (!libraryText.includes(authMarker)) fail(`library auth marker missing: ${authMarker}`);
+}
+pass("auth foundation markers");
+
 console.log("\nRelease static check: PASS");
