@@ -684,7 +684,7 @@ S07은 세션. `structureOp`(API-STRUCT-01)가 아니다.
 
 ### QA-STRUCT-06 확정 CTA
 
-- **Test Name:** 이 구조로 책 만들기 ≠ 생성
+- **Test Name:** 디자인 선택하기 ≠ 생성
 - **Related Screen:** S07 → S08
 - **Related Function ID:** F-STRUCT-06
 - **Related API:** 없음 (API-BOOK-03 금지)

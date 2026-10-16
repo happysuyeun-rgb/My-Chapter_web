@@ -71,7 +71,7 @@
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
-│ 차곡                         [로그인] [새 책 만들기]         │
+│ 차곡              [로그인 준비 중] [내 서재] [새 책 만들기]  │
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
 │          원고가 책이 되는 과정, 차곡                         │
@@ -84,37 +84,50 @@
 ├──────────────────────────────────────────────────────────────┤
 │  원고  →  구조  →  디자인  →  표지  →  PDF                 │
 ├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│              Product Preview Area                            │
-│                                                              │
+│  원고를 구조화  ·  책답게 디자인  ·  바로 PDF로             │
+│  (MVP value props — Product Preview 구역은 MVP에서 생략)     │
 ├──────────────────────────────────────────────────────────────┤
 │ Footer                                                       │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-## 비로그인
+## MVP 결정
+
+- Product Preview 이미지/목업 구역은 MVP에서 넣지 않는다.
+- 대신 How-it-works(5단계) + 3개 가치 설명으로 제품 이해를 제공한다.
+- Local mode: Header에 `로그인 준비 중` 1회만 표시. Hero에는 제품 CTA만 둔다.
+
+## Local / Guest
+
+- Header: 로그인 준비 중 / 내 서재 / 새 책 만들기
+- Primary: 새 책 만들기 → `/__wizard`
+- Secondary: 내 서재 → `/library`
+
+## Configured · 비로그인
 
 - Header: 로그인 / 새 책 만들기
-- Primary: 새 책 만들기
-- Secondary: 로그인
+- Primary: 새 책 만들기 → `/__auth?returnTo=/__wizard`
+- Secondary: 로그인 → `/__auth?returnTo=/library`
 
-## 로그인
+## Configured · 로그인
 
 - Header: 내 서재 / 새 책 만들기
-- Primary: 새 책 만들기
-- Secondary: 내 서재
+- Primary: 새 책 만들기 → `/__wizard`
+- Secondary: 내 서재 → `/library`
 
 ## 주요 Interaction
 
 - 새 책 만들기
-  - 비로그인 → `/__auth?returnTo=/__wizard`
-  - 로그인 → `/__wizard`
+  - Local → `/__wizard`
+  - Configured 비로그인 → `/__auth?returnTo=/__wizard`
+  - Configured 로그인 → `/__wizard`
 - 로그인 → `/__auth?returnTo=/library`
 - 내 서재 → `/library`
 
 ## 상태
 
 - DEFAULT
+- LOCAL
 - AUTH_CHECKING
 - AUTHENTICATED
 - AUTH_ERROR
@@ -127,7 +140,26 @@
 
 `/__auth`
 
-## Wireframe
+## Local / Guest Wireframe (CURRENT)
+
+```text
+┌────────────────────────────────────────┐
+│ 차곡                           [홈으로] │
+│                                        │
+│ 지금은 로그인 없이 사용할 수 있어요    │
+│ 계정 기능은 준비 중입니다.             │
+│ 지금은 새 책을 만들거나 내 서재에서    │
+│ 작업을 이어갈 수 있어요.               │
+│                                        │
+│ [        새 책 만들기        ]         │
+│ [           내 서재          ]         │
+│ [            홈으로          ]         │
+└────────────────────────────────────────┘
+```
+
+사용자 UI에 Supabase / CONFIG / Runtime 등 개발자 용어를 노출하지 않는다.
+
+## Configured Wireframe
 
 ```text
 ┌────────────────────────────────────────┐
@@ -153,22 +185,23 @@
 ## Component
 
 - Brand
-- Login Tab
-- Signup Tab
-- Email Input
-- Password Input
-- Submit Button
+- Local fallback panel (CURRENT)
+- Login Tab / Signup Tab (Configured)
+- Email Input / Password Input (Configured)
+- Submit Button (Configured)
 - Message
-- Back Link
+- Back / Home Link
 
 ## Navigation
 
-- 성공: `returnTo`
+- Local: `/__wizard`, `/library`, `/`
+- Configured 성공: `returnTo`
 - returnTo 없음: `/library`
 - 잘못된 외부 URL: `/library`
 
 ## 상태
 
+- LOCAL
 - DEFAULT
 - SUBMITTING
 - SUCCESS
@@ -365,9 +398,10 @@
 │ └ Chapter 2           │                                      │
 │                       │                                      │
 ├───────────────────────┴──────────────────────────────────────┤
-│ 3장 · 8섹션              [원고 다시 선택] [구조 확정]        │
+│ 3장 · 8섹션              [원고 다시 선택] [디자인 선택하기]  │
 └──────────────────────────────────────────────────────────────┘
 ```
+
 
 ## Mobile
 
@@ -731,7 +765,7 @@ PDF 만드는 중...
 | S04 | `/__wizard` | 시작 방식 선택 |
 | S05 | Wizard | 다음 |
 | S06 | Wizard | 다음 |
-| S07 | Wizard | 구조 확정 |
+| S07 | Wizard | 디자인 선택하기 |
 | S08 | Wizard | 디자인으로 만들기 |
 | S09 | Wizard | 자동 진행 |
 | S10 | `/__workspace` | 저장/PDF |
