@@ -44,11 +44,9 @@
 | PDF | `/__pdf?file=...` | S15 |
 | Export Complete | Workspace 내 상태/패널 | S16 |
 
-### Current implementation gap
+### Current implementation
 
-현재 구현은 `GET /` 가 Library를 반환한다.
-
-목표 구조:
+Entry Routing 구현 완료:
 
 ```text
 /          → Landing
@@ -58,7 +56,7 @@
 /__workspace?file=... → Workspace
 ```
 
-Phase 15 완료 전 Entry Routing 정리가 필요하다.
+남은 Phase 15 항목은 전용 `Chagok Web` Supabase 연결과 Runtime Auth QA다.
 
 ---
 
