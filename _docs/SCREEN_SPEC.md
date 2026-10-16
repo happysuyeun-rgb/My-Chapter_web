@@ -248,7 +248,7 @@ Later: S12 → S13 AI Cover. S16 / S03 → S17 Pricing/Payment.
 - **사용 데이터:** Part / Chapter / Section 트리, 통계
 - **화면 Layout:** 좌 트리, 우 선택 항목 제목, 하단 CTA
 - **Component:** 트리, 제목 편집, 위/아래, 추가(부/장/부록/섹션), 삭제, 통계, Primary, Secondary
-- **Primary CTA:** 이 구조로 책 만들기 → F-STRUCT-06 → S08
+- **Primary CTA:** 디자인 선택하기 → F-STRUCT-06 → S08
 - **Secondary CTA:** 원고 다시 선택 → F-IMPORT-06
 - **Interaction:** 인라인 제목, 순서 이동, 추가/삭제. 본문 문단 편집 없음
 - **Validation:** 장 ≥ 1, 장 제목 비어 있지 않음. 마지막 장 삭제 불가

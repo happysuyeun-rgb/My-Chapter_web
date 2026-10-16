@@ -601,7 +601,7 @@
     }
 
     structureConfirm.disabled = !structureValid() || state.structureConfirmed;
-    structureConfirm.textContent = state.structureConfirmed ? '구조 확정됨' : '이 구조로 책 만들기';
+    structureConfirm.textContent = state.structureConfirmed ? '구조 확정됨' : '디자인 선택하기';
   }
 
   function selectTreeItem(unitIndex, blockIndex) {
