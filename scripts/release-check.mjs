@@ -50,7 +50,9 @@ for (const marker of ["/__pdf", "/__theme", "/__book/cover", "panel-export-compl
 pass("workspace MVP release markers");
 
 const authClient = fs.readFileSync("_shared/auth.js", "utf8");
-for (const authMarker of ["mychapter-auth-v1", "signInWithPassword", "signUp", "signOut", "persistSession"]) {
+if (authCode.includes("rdrafwfdwfzgcfiqkgug")) fail("auth must not point to the MyChapter app Supabase project");
+
+for (const authMarker of ["chagok-auth-v1", "signInWithPassword", "signUp", "signOut", "persistSession"]) {
   if (!authClient.includes(authMarker)) fail(`auth client marker missing: ${authMarker}`);
 }
 const serverText = fs.readFileSync("preview-server.mjs", "utf8");
