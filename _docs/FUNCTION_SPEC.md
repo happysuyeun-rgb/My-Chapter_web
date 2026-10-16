@@ -1617,12 +1617,12 @@ Phase 16의 Ownership / DB / Storage / API authorization은 “Later product fea
 | F-EXPORT-07 | Web ZIP | — | Later / HIDE | Existing |
 | F-DONE-01 | 출력 완료 | S16 | MVP | New |
 | F-DONE-02 | Book으로 | S16→S10 | MVP | New |
-| F-LAND-01 | Landing | S01 | Phase 15 | New |
+| F-LAND-01 | Landing | S01 | Phase 15 | Implemented |
 | F-AUTH-01 | 회원가입 | S02 | Phase 15 | Implemented / infra pending |
 | F-AUTH-02 | 로그인 | S02 | Phase 15 | Implemented / infra pending |
 | F-AUTH-03 | Session 유지 | S01~S03 | Phase 15 | Implemented / infra pending |
-| F-AUTH-04 | 로그아웃 | S03→S01 | Phase 15 | Implemented / routing pending |
-| F-AUTH-05 | returnTo | S01→S02→Target | Phase 15 | Target / routing pending |
+| F-AUTH-04 | 로그아웃 | S03→S01 | Phase 15 | Implemented / runtime QA pending |
+| F-AUTH-05 | returnTo | S01→S02→Target | Phase 15 | Implemented / runtime QA pending |
 | F-AICOVER-01 | AI Cover | S13 | Later | New |
 | F-PAY-01 | Pricing | S17 | Later | New |
 | F-HIST-01 | History | — | Later / HIDE | Existing |
