@@ -1,7 +1,7 @@
 # 차곡 Payment Data Specification
 
 - Product: 차곡 (Chagok)
-- Version: **v1.0**
+- Version: **v1.1**
 - Date: 2026-10-16
 - Status: **TARGET / COMMERCE DATA CONTRACT**
 - Depends on:
@@ -36,6 +36,9 @@
 8. Payment Provider 응답 원문 전체를 무제한 저장하지 않는다. 필요한 식별자/검증 필드만 저장한다.
 9. 원고/책 제목 같은 실제 콘텐츠를 결제 analytics/audit에 불필요하게 복제하지 않는다.
 10. provider webhook은 idempotent하게 처리한다.
+11. 금액은 currency별 canonical minor unit 규칙을 따른다. KRW는 **정수 원 단위**이며 float를 사용하지 않는다.
+12. 거래/권리 상태는 부분 실패가 생겨도 reconciliation으로 복구할 수 있어야 한다.
+13. 운영자 보상 entitlement는 정상 구매와 구분되는 origin을 가진다.
 
 ---
 
@@ -193,6 +196,7 @@ FAILED
 CANCELLED
 EXPIRED
 REFUNDED
+CHARGEDBACK
 PARTIALLY_REFUNDED   # 초기에는 사용하지 않아도 됨
 ~~~
 
@@ -233,6 +237,8 @@ PARTIALLY_REFUNDED   # 초기에는 사용하지 않아도 됨
 | failed_at | N | 실패 시각 |
 | failure_code | N | 정규화된 실패 코드 |
 | failure_message | N | 사용자/운영용 최소 메시지 |
+| receipt_ref | N | Provider 또는 내부 영수증 reference |
+| receipt_url | N | 안전하게 노출 가능한 영수증 URL. 영구 URL 보장은 Provider 정책 따름 |
 | created_at | Y | 생성 |
 | updated_at | Y | 갱신 |
 
@@ -270,7 +276,9 @@ Provider status → Chagok normalized status mapping이 필요하다.
 | user_id | Y | 소유 사용자 |
 | book_id | Y | 특정 책 |
 | product_code | Y | BOOK_PASS |
-| source_order_id | Y | 최초 권리 발생 order |
+| source_type | Y | PURCHASE / ADMIN_GRANT / COMPENSATION |
+| source_order_id | N | PURCHASE일 때 원본 order. 비구매 grant면 null 가능 |
+| grant_reason | N | 운영자 보상/복구 사유 |
 | status | Y | 현재 권리 상태 |
 | granted_at | Y | 활성화 시각 |
 | revoked_at | N | revoke 시각 |
@@ -295,6 +303,8 @@ UI의 LOCKED/UNKNOWN은 서버 데이터 row status라기보다 **조회 결과/
 
 ### Grant Rule
 
+#### PURCHASE
+
 다음 모두 확인된 뒤 ACTIVE:
 
 1. order 대상 book/user가 올바름
@@ -302,6 +312,18 @@ UI의 LOCKED/UNKNOWN은 서버 데이터 row status라기보다 **조회 결과/
 3. amount/currency 일치
 4. order가 이미 refund/revoke 대상이 아님
 5. 동일 provider transaction replay 아님
+6. source_type = PURCHASE, source_order_id 설정
+
+#### ADMIN_GRANT / COMPENSATION
+
+구매 없이 권리를 부여할 수 있는 예외 경로다.
+
+- 일반 사용자 API로 노출하지 않는다.
+- 관리자/지원 권한이 필요하다.
+- source_type을 명시한다.
+- source_order_id는 null일 수 있다.
+- grant_reason과 audit event는 필수다.
+- 다른 책으로의 entitlement transfer 대용으로 사용하지 않는다.
 
 ### Revoke Rule
 
@@ -358,6 +380,7 @@ ACTIVE
 | amount | Y | 환불 금액 |
 | currency | Y | KRW |
 | reason | N | 기술장애/중복/사용자 요청 등 |
+| idempotency_key | Y | 중복 refund 요청 방지 |
 | status | Y | refund 상태 |
 | requested_at | Y | 요청 시각 |
 | completed_at | N | 완료 시각 |
@@ -675,7 +698,114 @@ Commerce는 책의 구매권리와 거래만 다룬다.
 
 ---
 
-## 23. Current vs Target
+## 23. Canonical Money and Time Representation
+
+### Money
+
+초기 KRW Book Pass:
+
+~~~text
+currency = "KRW"
+amount = 14900
+~~~
+
+규칙:
+
+- KRW amount는 **정수 원 단위**다.
+- float/double의 소수 계산으로 금액을 저장하지 않는다.
+- Provider가 minor-unit 규칙을 별도로 요구하면 adapter에서 변환하고 내부 canonical amount와 분리한다.
+- currency와 amount는 항상 함께 다룬다.
+- 음수 금액으로 환불을 표현하지 않는다. Refund record로 분리한다.
+
+### Time
+
+서버 저장 기준:
+
+- UTC 기반 timestamp
+- ISO 8601 또는 DB timezone-aware type
+- 사용자 UI에서만 로컬 시간대로 변환
+- provider timestamp와 내부 received_at/processed_at을 구분
+
+---
+
+## 24. Reconciliation / Orphan Recovery
+
+다음 부분 실패를 정상 시나리오로 가정하고 복구 경로를 둔다.
+
+### Orphan Examples
+
+1. Provider 결제 성공 → 서버 timeout → order가 PROCESSING에 남음
+2. payment SUCCEEDED 기록 → entitlement grant 실패
+3. webhook 유실/지연 → client는 종료
+4. entitlement ACTIVE → order status 갱신 실패
+5. refund 성공 → entitlement revoke 실패
+
+### Required Recovery
+
+~~~text
+Provider / Payment record
+        ↓
+Reconciliation
+        ↓
+Order / Payment / Entitlement / Refund 상태 정합성 회복
+~~~
+
+최소 원칙:
+
+- PROCESSING/PENDING 상태를 주기적으로 재검증할 수 있어야 한다.
+- SUCCEEDED payment인데 ACTIVE entitlement가 없으면 재부여 후보로 탐지한다.
+- REFUNDED/CHARGEDBACK인데 ACTIVE entitlement가 남아 있으면 revoke 후보로 탐지한다.
+- reconciliation 자체도 idempotent해야 한다.
+- 자동 복구가 위험한 경우 admin review queue로 보낸다.
+- 모든 repair는 audit event를 남긴다.
+
+구체적인 cron/queue 구현은 Deployment Architecture 이후 확정한다.
+
+---
+
+## 25. Admin / Compensation Entitlement
+
+정상 결제 외 entitlement origin:
+
+~~~text
+PURCHASE
+ADMIN_GRANT
+COMPENSATION
+~~~
+
+사용 예:
+
+- 기술 장애 보상
+- CS 복구
+- 내부 테스트 계정
+- 운영상 예외 승인
+
+규칙:
+
+- 일반 결제 flow와 섞지 않는다.
+- 무료/보상 grant는 별도 audit가 필수다.
+- source_type과 grant_reason을 기록한다.
+- 관리자 권한과 운영 절차가 필요하다.
+- 정상 Book Pass 구매 수익 지표에서 구분 가능해야 한다.
+
+---
+
+## 26. Receipt / Purchase Evidence
+
+구매 정보 UI에 필요한 최소 데이터 출처를 정의한다.
+
+- Order: 구매 대상/금액/시각
+- Payment: provider transaction reference, receipt_ref/receipt_url
+- Refund: 환불 상태/금액/시각
+- Entitlement: 현재 PDF 사용 권리
+
+책 제목은 Commerce SoT로 복제하지 않고 Book metadata와 조합한다.
+
+영수증 URL이 Provider에서 만료될 수 있다면 URL 자체보다 provider reference를 보존하고 조회 시 재생성하는 전략을 검토한다.
+
+---
+
+## 27. Current vs Target
 
 | Data | State |
 |---|---|
@@ -695,7 +825,7 @@ Commerce는 책의 구매권리와 거래만 다룬다.
 
 ---
 
-## 24. Implementation Gate
+## 28. Implementation Gate
 
 이 문서를 기반으로 DB를 지금 생성하지 않는다.
 
@@ -714,9 +844,9 @@ Commerce는 책의 구매권리와 거래만 다룬다.
 
 ---
 
-## 25. Done Criteria
+## 29. Done Criteria
 
-Payment Data Spec v1.0 완료 기준:
+Payment Data Spec v1.1 완료 기준:
 
 - Book / Order / Payment / Entitlement identity 분리
 - entitlement lifecycle 정의
@@ -726,3 +856,7 @@ Payment Data Spec v1.0 완료 기준:
 - duplicate/trash/delete/account deletion 정의
 - ownership/security boundary 정의
 - Core Engine 불변 원칙 유지
+- money/time canonical rule 정의
+- orphan payment/reconciliation 정의
+- admin/compensation grant origin 정의
+- receipt evidence source 정의
