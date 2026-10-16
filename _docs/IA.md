@@ -6,7 +6,7 @@
 - Status: CURRENT / IMPLEMENTATION BASELINE
 - Updated: 2026-10-16
 - Related: `_docs/TASK_FLOW.md`, `_docs/SCREEN_SPEC.md`, `_docs/FUNCTION_SPEC.md`
-- Phase note: Phase 15 Auth Foundation 진행 중. 현재 구현의 `/` = Library 구조는 목표 IA와 다르며 Phase 15에서 Entry Routing을 정리한다.
+- Phase note: Phase 15A COMPLETE. `/` = Landing, `/library` = Library. Phase 15B Supabase Auth Runtime = HOLD. Phase 16 Ownership/DB/Storage/RLS = HOLD.
 
 ---
 
@@ -120,16 +120,17 @@ Library
 | L2 | Export Complete | Workspace 내부 상태 | S16 | Workspace와 동일 |
 | Later | Pricing | TBD | S17 | 선택 |
 
-### Phase 15 예외
+### Phase 15A / HOLD
 
-Phase 15는 Auth Foundation만 구현한다.
+Phase 15A는 Entry Routing + Local/Guest fallback까지 완료했다.
 
-따라서 현재:
-- 로그인 세션은 존재
+현재:
+- Local mode에서 로그인 없이 Library / Wizard / Workspace 사용 가능
+- Configured Auth UI foundation은 유지
 - 사용자별 책 소유권은 없음
 - Library / Wizard / Workspace 강제 로그인 차단은 아직 최종 보안 경계가 아님
 
-Phase 16에서 Auth + Ownership + Storage를 결합한다.
+Phase 15B Supabase Auth Runtime과 Phase 16 Ownership/DB/Storage/RLS는 HOLD다.
 
 ---
 
@@ -479,38 +480,32 @@ Wizard 취소:
 
 ## 15. Phase 15 IA Impact
 
-Phase 15에서 IA 기준으로 변경이 필요한 부분:
+Phase 15A Entry Routing은 구현 완료됐다.
 
-### Current
-
-```text
-/ → Library
-/__auth → Auth
-/__wizard → Wizard
-/__workspace → Workspace
-```
-
-### Target
+### Current (= Target)
 
 ```text
 / → Landing
 /library → Library
-/__auth → Auth
+/__auth → Auth / Local fallback
 /__wizard → Wizard
 /__workspace → Workspace
 ```
 
-따라서 Phase 15 Runtime QA 전에 다음 Entry Routing이 필요하다.
+완료된 정렬:
 
-1. Landing 화면 추가
+1. Landing 화면
 2. `GET /` → Landing
-3. `GET /library` → 기존 Library
-4. Auth 성공 → `returnTo` 또는 `/library`
-5. Logout → `/`
+3. `GET /library` → Library
+4. Auth 성공 → `returnTo` 또는 `/library` (Configured mode)
+5. Local mode → Auth 강제 없이 Wizard/Library 사용
 6. Workspace의 "내 서재" → `/library`
 7. Wizard 취소/복귀 → `/library`
 
-단, Phase 16 전까지 서버 ownership 보안은 별도 범위다.
+HOLD:
+
+- Phase 15B Supabase Auth Runtime
+- Phase 16 Ownership / DB / Storage / RLS
 
 ---
 

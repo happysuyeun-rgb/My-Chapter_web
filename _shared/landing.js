@@ -14,7 +14,8 @@
     login.hidden = true;
     secondaryLogin.hidden = true;
     if (loginReady) loginReady.hidden = false;
-    if (secondaryLoginReady) secondaryLoginReady.hidden = false;
+    // Hero keeps product CTAs only; Local status stays in the header once.
+    if (secondaryLoginReady) secondaryLoginReady.hidden = true;
     library.hidden = false;
     secondaryLibrary.hidden = false;
     newTop.href = '/__wizard';

@@ -3,7 +3,7 @@
 - Product: 차곡 (Chagok)
 - Updated: 2026-10-16
 - Status: **CURRENT / DOCUMENT SOURCE MAP**
-- Active branch: `phase-15-auth-foundation`
+- Active baseline: `main` (Phase 15A COMPLETE)
 
 이 파일은 차곡 문서의 **읽는 순서, 우선순위, 현재/역사 상태**를 정의한다.
 
@@ -54,35 +54,38 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 
 ## 3. ACTIVE PHASE Document
 
-현재 활성 Phase:
+현재 Phase 상태:
 
 ```text
-Phase 15 — Auth + Entry Routing Foundation
+Phase 15A — Local MVP entry + Guest fallback = COMPLETE
+Phase 15B — Supabase Auth Runtime = HOLD
+Phase 16  — Ownership / DB / Storage / RLS = HOLD
 ```
 
 기준 문서:
 
 ```text
 _docs/PHASE_15_AUTH_FOUNDATION.md
+_docs/UI_PRODUCT_AUDIT_2026-10-16.md
 ```
 
-현재 목표:
+현재 route:
 
 ```text
 /          → Landing
 /library   → Library
-/__auth    → Auth
+/__auth    → Auth / Local fallback
 /__wizard  → Wizard
 /__workspace?file=... → Workspace
 ```
 
-Phase 15 완료 전:
+HOLD 동안 금지:
 
-- Phase 16 ownership code 시작 금지
-- DB books table 확정 금지
-- Supabase Storage migration 금지
-- RLS/API authorization 구현 금지
-- Payment 금지
+- Phase 16 ownership code 시작
+- DB books table 확정
+- Supabase Storage migration
+- RLS/API authorization 구현
+- Payment
 
 ---
 
@@ -180,8 +183,9 @@ MY_CHAPTER_PRODUCT_SPEC.md
 Phase 0~12  ✅ Complete
 Phase 13    ✅ Wizard Draft Recovery
 Phase 14    ✅ Editor Autosave / Recovery
-Phase 15    🚧 Auth + Entry Routing
-Phase 16    ⏳ Ownership + DB + Storage + API Authorization
+Phase 15A   ✅ Local MVP entry + Guest fallback
+Phase 15B   ⏸ Supabase Auth Runtime (HOLD)
+Phase 16    ⏸ Ownership / DB / Storage / RLS (HOLD)
 Later       Deployment / PDF Worker / AI / Payment
 ```
 
@@ -193,22 +197,21 @@ Later       Deployment / PDF Worker / AI / Payment
 
 ```text
 _docs/DEV_DOC_ALIGNMENT_AUDIT_2026-10-16.md
+_docs/UI_PRODUCT_AUDIT_2026-10-16.md
 ```
 
-현재 Phase 15 남은 gap:
+Phase 15A 완료:
 
-- Chagok Web Supabase project/config
-- runtime signup/login/session/logout QA
-- final regression + protected hash verification
-- PR merge
+- Landing `/`
+- Library `/library`
+- Local/Guest fallback
+- Auth UI foundation + safe `returnTo`
+- Wizard / Workspace / Preview / PDF Local E2E
 
-이미 완료:
-- Landing
-- `/library`
-- safe `returnTo`
-- logout → Landing
-- Wizard/Workspace → `/library`
-- static release gate 강화
+HOLD (다음 즉시 작업 아님):
+
+- Phase 15B: Chagok Web Supabase project/config + runtime Auth QA
+- Phase 16: Ownership / DB / Storage / RLS
 
 ---
 
