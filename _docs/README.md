@@ -16,19 +16,21 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 ```text
 1. MY_CHAPTER_PRODUCT_SPEC.md
 2. _docs/SERVICE_POLICY.md
-3. _docs/IA.md
-4. _docs/TASK_FLOW.md
-5. _docs/FUNCTION_DEFINITION.md
-6. _docs/FUNCTION_SPEC.md
-7. _docs/SCREEN_DESIGN.md
-8. _docs/SCREEN_SPEC.md
-9. _docs/API_SPEC.md
-10. _docs/DATA_SPEC.md
-11. _docs/ENGINE_CONTRACT.md
-12. _docs/QA_ACCEPTANCE.md
-13. _docs/IMPLEMENTATION_PLAN.md
-14. active Phase document
-15. current audit / release evidence
+3. _docs/PRICING_POLICY.md
+4. _docs/IA.md
+5. _docs/TASK_FLOW.md
+6. _docs/FUNCTION_DEFINITION.md
+7. _docs/FUNCTION_SPEC.md
+8. _docs/SCREEN_DESIGN.md
+9. _docs/SCREEN_SPEC.md
+10. _docs/PAYMENT_PRICING_UI_REQUIREMENTS.md
+11. _docs/API_SPEC.md
+12. _docs/DATA_SPEC.md
+13. _docs/ENGINE_CONTRACT.md
+14. _docs/QA_ACCEPTANCE.md
+15. _docs/IMPLEMENTATION_PLAN.md
+16. active Phase document
+17. current audit / release evidence
 ```
 
 ---
@@ -39,6 +41,8 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 |---|---|---|
 | `MY_CHAPTER_PRODUCT_SPEC.md` | Product + Development baseline | v1.4 / CURRENT |
 | `_docs/SERVICE_POLICY.md` | 사용자-facing 서비스 범위 / 권리 / 저장 / 출력 / AI 정책 | v1.0 / CURRENT |
+| `_docs/PRICING_POLICY.md` | Free / Book Pass 가격·권리·과금 경계 | v1.0 / CURRENT |
+| `_docs/PAYMENT_PRICING_UI_REQUIREMENTS.md` | Pricing / Paywall / Checkout / 결제 상태 UI 요구사항 | v1.0 / TARGET |
 | `_docs/IA.md` | Information Architecture | v1.0 / CURRENT |
 | `_docs/TASK_FLOW.md` | User task flow | v1.0 / CURRENT |
 | `_docs/FUNCTION_DEFINITION.md` | 기능 범위 정의 | v1.0 / CURRENT |
