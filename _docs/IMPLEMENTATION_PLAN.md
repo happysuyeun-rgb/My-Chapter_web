@@ -1,6 +1,7 @@
-# My Chapter Implementation Plan
+# 차곡 Implementation Plan
 
-- Product: My Chapter
+- Product: 차곡
+- Legacy filename: `MY_CHAPTER_PRODUCT_SPEC.md`는 기존 문서 참조 보호를 위해 유지
 - Stage: Implementation Planning
 - Version: 1.0
 - Date: 2026-10-03
