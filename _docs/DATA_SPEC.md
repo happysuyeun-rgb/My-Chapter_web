@@ -2,14 +2,15 @@
 
 - Product: 차곡
 - Stage: Development Specification — Data
-- Version: 1.0
-- Date: 2026-10-03
-- Basis: 실제 파일/코드, Product Spec v1.3, FUNCTION_SPEC, SCREEN_SPEC, ENGINE_CONTRACT
-- Pair: `_docs/API_SPEC.md`
+- Version: **1.1**
+- Date: 2026-10-16
+- Status: **CURRENT / IMPLEMENTATION BASELINE**
+- Basis: 실제 파일/코드, Product Spec v1.4, FUNCTION_SPEC v1.1, SCREEN_SPEC v1.1, ENGINE_CONTRACT
+- Pair: `_docs/API_SPEC.md`, `_docs/PHASE_15_AUTH_FOUNDATION.md`
 
-현재 저장소를 기준으로 한다. 새 DB / Supabase Schema를 만들지 않는다.
+현재 저장소를 기준으로 한다. Phase 15에서는 Supabase Auth session만 도입하며 DB / Storage schema는 만들지 않는다.
 
-상태: CURRENT = 지금 있음. TARGET_MVP = MVP에 필요하나 아직 없거나 위치가 다름. LATER = 범위 밖.
+상태: CURRENT = 지금 있음. PHASE15_TARGET = Phase 15에서 변경 예정. LATER = 이후 범위.
 
 ---
 
@@ -24,9 +25,11 @@ Book을 구성하는 데이터가 무엇이며 어디에 저장되는가.
 1. 본문 SoT는 `book.html` 한 파일이다.
 2. 없는 필드를 있는 것처럼 쓰지 않는다.
 3. Overlay(eid, htmltree)는 디스크 데이터가 아니다.
-4. S05–S07 임시 데이터는 현재 Persistence가 없다. TARGET_MVP는 **세션 요구**이지 구현 가정이 아니다.
-5. 기존 책 마이그레이션 없음.
-6. React/Vite/Supabase 데이터 모델 없음.
+4. S04–S08 Wizard state는 **Phase 13 localStorage draft recovery가 CURRENT**다. File object/base64는 저장하지 않는다.
+5. S10 Editor에는 **Phase 14 local recovery + autosave state가 CURRENT**다.
+6. 기존 책 마이그레이션 없음.
+7. React/Vite 데이터 모델은 없다.
+8. Supabase는 Phase 15 Auth session에만 사용한다. DB books / Storage / ownership schema는 아직 없다.
 
 ---
 
@@ -151,39 +154,94 @@ sidecar·book.json은 스냅샷에 없음.
 
 ---
 
-## 8. Import Session Data
+## 8. Wizard Session / Draft Data
 
-### CURRENT
+### CURRENT — in-memory state
 
-세션 Persistence 없음. `POST /__new-book` body가 한 번에 끝난다.
+S04–S08 Wizard는 browser state에서 다음을 유지한다.
 
-Request (CURRENT):
+| 필드 | 용도 |
+|---|---|
+| method | `empty` \| `import` |
+| source | text 또는 file metadata |
+| parseResult | `/__parse` 결과 |
+| parseState | idle / success 등 |
+| structureDraft | S07 사용자 수정 구조 |
+| structureDirty | 구조 수정 여부 |
+| structureConfirmed | 구조 확정 여부 |
+| themeId | practical \| minimal |
+| meta | title / subtitle / author |
+
+### CURRENT — localStorage recovery
+
+키:
 
 ```text
-title, subtitle?, author?, source?: { name, data: base64 }
+mychapter:wizard-draft:v1
 ```
 
-성공 시 디스크: 새 폴더 + html/css + 선택 source/ + book.json.
+Legacy prefix는 기존 사용자 draft와 연결될 수 있으므로 단순 rename/delete 금지. `chagok:` prefix로 바꿀 경우 migration/fallback이 필요하다.
 
-### TARGET_MVP (요구만. 구현 가정 아님)
+Schema:
 
-S05–S08이 확정 전 유지해야 할 **휘발 세션**:
+```json
+{
+  "version": 1,
+  "savedAt": "ISO",
+  "step": "method|input|meta|structure|theme|generate",
+  "state": {
+    "method": "empty|import|null",
+    "source": {},
+    "parseResult": {},
+    "parseState": "string",
+    "structureDraft": [],
+    "structureDirty": false,
+    "structureConfirmed": false,
+    "themeId": "practical|minimal",
+    "meta": {
+      "title": "",
+      "subtitle": "",
+      "author": ""
+    }
+  }
+}
+```
 
-| 필드 | 용도 | Persistence |
-|---|---|---|
-| method | empty \| import | 메모리 |
-| title, subtitle, author | S06 | 메모리 |
-| sourceBytes / pastedText / filename | S05 | 메모리 |
-| parseResult (units/stats) | S07 | 메모리 |
-| structureEdits | S07 수정분 | 메모리 |
-| themeId | practical \| minimal | 메모리 |
-| confirmed | S07 잠금 | 메모리 |
+저장 규칙:
+- debounce 400ms
+- TTL 7일
+- invalid/corrupt/expired draft는 무시 후 제거
+- 생성 성공 또는 새로 시작 시 clear
+- 생성 실패 시 보존
 
-확정 전 `books/`·`source/`·사용자 원본 경로에 쓰지 않음.
+Text source:
 
-서버 parse-only가 생기면 응답은 세션에만 둔다 (API-SPEC TARGET).
+```text
+{ kind: "text", text: "..." }
+```
 
-관련: S04–S08, F-IMPORT-*, F-STRUCT-01..06, F-NEW-*.
+File source:
+
+```text
+{
+  kind: "file",
+  name,
+  size,
+  type,
+  lastModified,
+  needsReselect: true
+}
+```
+
+File object와 file base64는 localStorage에 넣지 않는다.
+
+같은 파일 재선택:
+- fingerprint 일치 → parse/structure state 복구
+- 다름 → 기존 구조 clear 후 재분석
+
+확정 전 `books/`·`source/`·사용자 원본 경로에 쓰지 않는다.
+
+관련: S04–S08, F-NEW-03..05, F-IMPORT-*, F-STRUCT-01..06.
 
 ---
 
@@ -194,11 +252,7 @@ S05–S08이 확정 전 유지해야 할 **휘발 세션**:
 열린 책: HTML section + `toc.mjs` `outlineOf` → `{ id, kind, title }[]`.  
 `GET /__outline`.
 
-S07 전용 스토어 없음.
-
-### TARGET_MVP
-
-세션 `parseResult` + 사용자 수정 트리.
+S07는 Wizard in-memory `parseResult` + `structureDraft`를 사용하며, Phase 13 localStorage draft에 복구용으로 저장한다.
 
 단위: Part / Chapter (pro,ch,ap,epi) / Section(h2).
 
@@ -212,16 +266,19 @@ S07 전용 스토어 없음.
 
 ### CURRENT
 
-Theme id 파일 없음. 실체 = 각 책 `book.css` (`:root` + 컴포넌트). Template과 설계본이 Practical에 해당.
+선택지:
+- `practical`
+- `minimal`
 
-### TARGET_MVP
+실체:
+- 각 책 `book.css`
+- CSS 주석 `/* my-chapter-theme: practical|minimal */`
+- `GET /__theme`으로 읽기
+- `POST /__theme`으로 적용
 
-- 선택지: `practical` | `minimal`
-- 적용: 같은 class contract + 토큰 세트 → `book.css`
-- id를 기억할 자리 후보: `book.json`에 필드 추가 **또는** CSS 주석/파일명. **아직 확정하지 않음.** 여기서 스키마를 닫지 않는다.
-- Preview 샘플은 디스크 SoT가 아님
-
-Theme는 HTML을 쓰지 않는다.
+Theme id는 `book.json`에 저장하지 않는다.
+Preview sample은 디스크 SoT가 아니다.
+Theme은 `book.html`을 쓰지 않는다.
 
 관련: S08, S11, F-THEME-*.
 
@@ -234,7 +291,7 @@ Theme는 HTML을 쓰지 않는다.
 | 전체 전자책 PDF 캐시 | CURRENT | `books/<folder>/<title>.pdf` (ids/print/wm 없을 때만 write) | NO |
 | EPUB / ZIP | CURRENT | 응답 바이트. 상주 아님 | NO |
 | 인쇄/워터마크/발췌 | CURRENT 옵션 | 쿼리. 파일명 접미사 | NO |
-| S16 성공 표시용 파일명 | TARGET_MVP | 직전 export 결과 (세션/캐시) | NO |
+| S16 성공 표시용 파일명/상태 | CURRENT UI | 직전 export 결과 / Workspace state | NO |
 
 PDF 생성은 HTML을 변경하지 않는다.
 
@@ -242,7 +299,89 @@ PDF 생성은 HTML을 변경하지 않는다.
 
 ---
 
-## 12. Data Ownership Matrix
+## 12. Editor Autosave / Recovery Data
+
+### CURRENT
+
+Autosave timing:
+- save debounce: 1500ms
+- recovery write debounce: 400ms
+
+Recovery key:
+
+```text
+mychapter:editor-recovery:v1:<encoded file>
+```
+
+Legacy prefix는 기존 recovery와 연결될 수 있으므로 migration 없이 rename/delete 금지.
+
+Schema:
+
+```json
+{
+  "version": 1,
+  "file": "books/<folder>/book.html",
+  "baseVersion": "<sha1>",
+  "savedAt": "ISO",
+  "changes": [
+    {
+      "eid": "...",
+      "tag": "...",
+      "html": "..."
+    }
+  ]
+}
+```
+
+규칙:
+- dirty change가 있을 때만 recovery write
+- baseVersion이 현재 server version과 같을 때만 자동 복구 후보
+- stale recovery는 자동 적용하지 않음
+- 복구 선택 → DOM 복원 → dirty → autosave
+- 409 conflict → autosave pause, dirty/recovery 유지, 자동 재전송 금지
+- manual Save / Ctrl+S 유지
+- save race 방지를 위해 eid별 dirty revision / submitted snapshot 사용
+
+관련: S10, F-EDITOR-09..11.
+
+---
+
+## 13. Auth Session Data
+
+### CURRENT CODE / INFRA PENDING
+
+Storage key:
+
+```text
+chagok-auth-v1
+```
+
+Supabase client options:
+- `persistSession: true`
+- `autoRefreshToken: true`
+- `detectSessionInUrl: true`
+
+현재 `_shared/auth.js`의 URL / publishable key는 비어 있으며 전용 `Chagok Web` 연결이 pending이다.
+
+Auth data의 역할:
+- 로그인 여부
+- user/session
+- Landing CTA state
+- Library account UI
+
+아직 하지 않는 것:
+- Book ownership
+- `book.json.userId`
+- server API authorization
+- DB metadata
+- Storage path ownership
+- RLS
+
+이 경계는 Phase 16에서 설계한다.
+
+---
+
+## 14. Data Ownership Matrix
 
 | Data | Status | Owner | Writer | Reader | Persistence | Source of Truth |
 |---|---|---|---|---|---|---|
@@ -257,31 +396,46 @@ PDF 생성은 HTML을 변경하지 않는다.
 | data-eid | CURRENT | Overlay | withEditIds 응답 | Editor | 없음 | NO |
 | version sha1 | CURRENT | Overlay | 원본 hash | edit/blocks/structure | 없음 | 충돌 키 |
 | list embed | CURRENT | Library | GET / 생성 | S03 | 응답 | NO |
-| Import session | TARGET_MVP | Wizard | S04–S08 UI | S07–S09 | 메모리 | NO |
-| S07 트리 수정 | TARGET_MVP | Wizard | 사용자 | F-GEN-01 | 메모리 | NO |
-| themeId | TARGET_MVP | Theme | S08/S11 | S09/S11 | 미정 | NO (실체는 CSS) |
-| S16 last pdf | TARGET_MVP | Export | F-EXPORT-01 | S16 | 세션/캐시 | NO |
+| Wizard state | CURRENT | Wizard | S04–S08 UI | S04–S09 | memory + localStorage | NO |
+| Wizard file fingerprint | CURRENT | Wizard | file 선택 | recovery | localStorage | NO |
+| S07 트리 수정 | CURRENT | Wizard | 사용자 | F-GEN-01 | memory + localStorage | NO |
+| Theme marker | CURRENT | Theme | /__theme | S08/S11/Viewer/PDF | book.css | NO |
+| Editor recovery | CURRENT | Editor | dirty change | S10 recovery | localStorage | NO |
+| Auth session | Phase 15 CURRENT code / infra pending | Auth | Supabase browser SDK | S01/S02/S03 | browser storage | NO ownership |
+| S16 last pdf | CURRENT UI | Export | F-EXPORT-01 | S16 | response / disk cache | NO |
 | AI cover job | LATER | — | — | — | — | — |
-| Auth user | LATER | — | — | — | — | — |
 
 ---
 
-## 13. Data Lifecycle
+## 15. Data Lifecycle
 
 ```text
-[마법사 TARGET]
-세션(method, meta, source, structure, theme)
+[Wizard CURRENT]
+memory state
+  ↔ localStorage draft recovery
+  → POST /__parse (no book write)
   → S09 create
   → folder + book.html + book.css + book.json + source?
 
-[기존 책 CURRENT]
+[Editor CURRENT]
 open file
   → serve html + eid
+  → dirty state
+  ↔ localStorage editor recovery
+  → autosave/manual save
   → edit/blocks/structure → snapshot + write html
-  → image → sidecar
-  → meta → book.json
-  → pdf → 캐시 파일
-  → trash → _trash
+
+[Auth Phase 15]
+Supabase browser session
+  → Landing/Library UI state
+  → 아직 Book ownership과 연결 안 됨
+
+[Book CURRENT]
+image → sidecar
+meta → book.json
+theme → book.css
+pdf → cache
+trash → _trash
 ```
 
 폐기: purge는 폴더 전체(html/css/json/sidecar/history/pdf).
@@ -290,7 +444,7 @@ open file
 
 ---
 
-## 14. Data Loss Prevention Rules
+## 16. Data Loss Prevention Rules
 
 1. **Import 확정 전 기존 Book 파괴 금지.** 다른 책 폴더를 덮어쓰지 않음. 마법사 중 사용자 원본 파일 수정 금지.
 2. **Save 실패 시 덮어쓰기 금지.** 409/검증 실패면 `commit` 없음. dirty 유지.
@@ -299,30 +453,40 @@ open file
 5. **기존 Book Migration 금지.**
 6. **PDF가 원본 Book을 변경하면 안 됨.**
 7. Restore는 HTML만. sidecar는 그 시점과 어긋날 수 있음 (현재 한계, 명시).
-8. 생성 실패 시 부분 폴더를 서재에 남기지 않음 (제품). CURRENT create는 성공 경로에서만 목록에 등장.
+8. 생성 실패 시 부분 폴더를 서재에 남기지 않음.
+9. Wizard / Editor recovery legacy key는 migration 없이 rename/delete 금지.
+10. 409 conflict 시 editor recovery/dirty를 유지하고 자동 재전송 금지.
+11. Logout은 local books / recovery / source 폴더 삭제 동작이 아니다.
+12. Auth session을 Book ownership으로 간주하지 않는다.
 
 ---
 
-## 15. Current vs Target MVP
+## 17. Current vs Target
 
-| Data | CURRENT | TARGET_MVP |
+| Data | CURRENT | NEXT |
 |---|---|---|
-| book.html | SoT | 동일 |
-| book.json 필드 | status, tags, coverColor, createdAt, id | 동일. themeId는 후보만 |
-| sidecar | 위 구조 | 동일 |
-| 새 책 생성 | `/__new-book` 즉시 write | S09에서만 write |
-| Import 결과 | 메모리 없이 바로 HTML | S07 세션 트리 |
-| Theme | CSS 파일 자체 | 토큰 세트 + 선택 id |
-| S16 | 브라우저 다운로드만 | 성공 화면용 파일 핸들 |
-| 붙여넣기 원고 | 없음 | 세션 텍스트 |
+| book.html | Content SoT | 동일 |
+| book.json | status, tags, coverColor, createdAt, id | Phase 16 ownership metadata와 관계 설계 |
+| sidecar | image slot state | SaaS Storage 이전 경계 설계 |
+| 새 책 생성 | S09에서만 write | 동일 |
+| Import parse | `POST /__parse` no-write | 동일 |
+| Wizard draft | localStorage + 7일 TTL | 필요 시 key migration |
+| S07 구조 | memory + draft recovery | 동일 |
+| Theme | book.css marker + GET/POST /__theme | 동일 |
+| Editor autosave | 1500ms + local recovery | SaaS concurrency와 재검토 |
+| Editor recovery | localStorage per file | cloud ownership 이후 path identity 재검토 |
+| Auth | browser Supabase session | Phase 16 ownership / server auth |
+| S16 | Product 완료 UI + PDF response/cache | SaaS worker 이후 다운로드 계약 재검토 |
 
 ---
 
-## 16. Later Data
+## 18. Later Data
 
-- Auth / user workspace
+- User ↔ Book ownership
+- Supabase DB metadata
+- Supabase Storage
+- RLS / server API authorization
 - AI cover job / prompt
-- Payment
-- Auto Save 초안 (History와 분리해야 함)
+- Payment / usage / credit
 - Structured Book JSON — NOT NOW
 - ISBN 등 확장 메타
