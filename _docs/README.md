@@ -195,15 +195,19 @@ Later       Deployment / PDF Worker / AI / Payment
 _docs/DEV_DOC_ALIGNMENT_AUDIT_2026-10-16.md
 ```
 
-현재 Phase 15 주요 gap:
+현재 Phase 15 남은 gap:
 
+- Chagok Web Supabase project/config
+- runtime signup/login/session/logout QA
+- final regression + protected hash verification
+- PR merge
+
+이미 완료:
 - Landing
 - `/library`
 - safe `returnTo`
 - logout → Landing
 - Wizard/Workspace → `/library`
-- Chagok Web Supabase config
-- runtime auth QA
 - static release gate 강화
 
 ---
