@@ -3,7 +3,7 @@
 - 작성일: 2026-10-16
 - Branch: `phase-15-auth-foundation`
 - Base: `main@2af7924`
-- Status: AUTH IMPLEMENTED / ENTRY ROUTING PENDING / INFRA CONFIG PENDING / RUNTIME QA PENDING
+- Status: **AUTH + ENTRY ROUTING IMPLEMENTED / STATIC QA PASS / INFRA CONFIG PENDING / RUNTIME QA PENDING**
 - Supabase project: **PENDING — 새 `Chagok Web` 프로젝트 생성·연결 필요**
 - 기존 `MyChapter` Supabase 프로젝트는 별도 앱용이므로 차곡 웹에서 사용하지 않는다.
 - Related: `_docs/IA.md`, `_docs/TASK_FLOW.md`, `_docs/SCREEN_DESIGN.md`, `_docs/SCREEN_SPEC.md`
@@ -87,15 +87,23 @@ Phase 15 완료 기준은 단순히 로그인 화면이 존재하는 것이 아�
 - release-check의 앱용 Supabase project ref 차단 guard
 - 차곡 브랜드 반영
 
+### Implemented after alignment audit
+
+- S01 Landing
+- `GET /` → Landing
+- `GET /library` → existing Library
+- safe Auth `returnTo`
+- Login/Signup success → `returnTo`
+- Logout → Landing
+- Workspace / Wizard → `/library`
+- Library login → `/__auth?returnTo=/library`
+- config-missing auth guard
+- release static gate expanded for routing/returnTo
+
 ### Pending
 
 - 전용 `Chagok Web` Supabase 프로젝트 생성
 - Supabase URL / publishable key 연결
-- S01 Landing 구현
-- `/library` route 추가
-- Auth `returnTo` 처리
-- Logout → Landing
-- Workspace / Wizard의 Library 링크 정리
 - Runtime Auth QA
 
 ---
@@ -268,9 +276,7 @@ Auth User
 - `preview-server.mjs`
 - `scripts/release-check.mjs`
 
-Entry Routing 구현 시 S01 Landing 파일을 추가한다.
-
-파일명은 구현 시 기존 구조와 충돌하지 않는 최소 형태로 정한다.
+S01 Landing 파일은 `_shared/landing.html` + `_shared/landing.js`로 구현했다.
 
 ---
 
@@ -282,6 +288,11 @@ Entry Routing 구현 시 S01 Landing 파일을 추가한다.
 2. JS/MJS syntax PASS
 3. 앱용 Supabase project ref 미사용
 4. 보호 책 hash 불변
+
+Current evidence:
+- commit `92f4c205dc21902b1045a2625a0029b5bc9eed0a`
+- GitHub Actions run `38845874579`
+- job `release-static-check` = SUCCESS
 
 ### Landing / Routing
 
