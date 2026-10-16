@@ -53,8 +53,8 @@
     <div class="notice">Phase 15에서는 로그인 세션만 연결합니다. 기존 로컬 책은 아직 특정 계정 소유로 제한하지 않으며, 소유권과 클라우드 저장은 다음 단계에서 연결합니다.</div>
   </div>
   <div id="auth-local" hidden>
-    <h1>지금은 로컬로 사용할 수 있어요</h1>
-    <p class="lead">계정 연결(Supabase)이 아직 준비되지 않았습니다. 로그인 없이 새 책을 만들고 서재를 이용할 수 있습니다.</p>
+    <h1>지금은 로그인 없이 사용할 수 있어요</h1>
+    <p class="lead">계정 기능은 준비 중입니다. 지금은 새 책을 만들거나 내 서재에서 작업을 이어갈 수 있어요.</p>
     <div class="local-actions">
       <a class="primary" href="/__wizard">새 책 만들기</a>
       <a href="/library">내 서재</a>
@@ -72,7 +72,7 @@
   if (!window.ChagokAuth || !ChagokAuth.isConfigured()) {
     $('#auth-configured').hidden = true;
     $('#auth-local').hidden = false;
-    document.title = '로컬 사용 · 차곡';
+    document.title = '로그인 없이 사용 · 차곡';
     return;
   }
 
