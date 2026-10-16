@@ -123,6 +123,12 @@ const routes = {
     res.end(html);
   },
 
+  "GET /__auth": (req, res) => {
+    const html = fs.readFileSync(path.join(APP_ROOT, "_shared", "auth.html"), "utf8");
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(html);
+  },
+
   "GET /__workspace": (req, res, url) => {
     const file = url.searchParams.get("file") || "";
     bookFrom(file);
