@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>로그인 · My Chapter</title>
+<title>로그인 · 차곡</title>
 <style>
   :root { --ink:#1c1b19; --ink2:#625f58; --paper:#faf8f4; --line:#ded8cc; --accent:#2f55d4; --soft:#eef2ff; }
   * { box-sizing:border-box; }
@@ -29,7 +29,7 @@
 </head>
 <body>
 <main class="card">
-  <div class="brand"><b>My Chapter</b><a href="/">서재로 돌아가기</a></div>
+  <div class="brand"><b>차곡</b><a href="/">서재로 돌아가기</a></div>
   <h1 id="title">로그인</h1>
   <p class="lead" id="lead">계정으로 로그인하면 이후 내 책을 계정과 연결할 수 있습니다.</p>
   <div class="tabs" role="tablist" aria-label="계정">
@@ -73,7 +73,7 @@
     $('#tab-signup').classList.toggle('on', signup);
     $('#title').textContent = signup ? '회원가입' : '로그인';
     $('#lead').textContent = signup
-      ? '이메일과 비밀번호로 My Chapter 계정을 만듭니다.'
+      ? '이메일과 비밀번호로 차곡 계정을 만듭니다.'
       : '계정으로 로그인하면 이후 내 책을 계정과 연결할 수 있습니다.';
     submit.textContent = signup ? '계정 만들기' : '로그인';
     password.autocomplete = signup ? 'new-password' : 'current-password';
