@@ -2,10 +2,11 @@
 
 - Product: 차곡
 - Stage: Development Specification — Screen
-- Version: 1.0
-- Date: 2026-10-03
-- Basis: `MY_CHAPTER_PRODUCT_SPEC.md` v1.3, `_docs/FUNCTION_SPEC.md`, M0.5-A/B
-- Pair: `_docs/FUNCTION_SPEC.md`
+- Version: **1.1**
+- Date: 2026-10-16
+- Status: **CURRENT / IMPLEMENTATION BASELINE**
+- Basis: `MY_CHAPTER_PRODUCT_SPEC.md` v1.4, `_docs/IA.md`, `_docs/TASK_FLOW.md`, `_docs/FUNCTION_SPEC.md`
+- Pair: `_docs/SCREEN_DESIGN.md`, `_docs/FUNCTION_SPEC.md`
 
 이 문서는 **각 화면에서 사용자가 무엇을 보고 무엇을 하는가**만 정한다.
 
@@ -15,7 +16,9 @@
 
 화면 ID·상태·CTA·기존 엔진 연결을 고정한다. 구현·API·DB·토큰 상세는 다음 단계다.
 
-Architecture는 v1.3을 따른다. 기존 S03 / S10 원고 / S14 / S15는 재설계하지 않고 KEEP / WRAP / MINOR UI CHANGE만 한다.
+Architecture는 Product Spec v1.4와 IA/Task Flow를 따른다. 기존 S03 / S10 원고 / S14 / S15는 재설계하지 않고 KEEP / WRAP / MINOR UI CHANGE만 한다.
+
+현재 코드와 Target Route가 다른 경우 CURRENT와 TARGET을 구분한다. Phase 15 완료 전까지 현재 `/` = Library일 수 있지만 제품 기준은 `/` = Landing, `/library` = Library다.
 
 ---
 
@@ -30,13 +33,19 @@ Architecture는 v1.3을 따른다. 기존 S03 / S10 원고 / S14 / S15는 재설
 - History / Inspection / Print / EPUB / Web ZIP은 엔진에 남기되 MVP 화면에서 숨길 수 있다. 삭제 금지.
 - React/Vite 전제 화면을 설계하지 않는다. 기존 Vanilla 엔진을 감싼다.
 
-상태 이름: DEFAULT / LOADING / EMPTY / ERROR / SUCCESS / DISABLED / UNSAVED.
+상태 이름: DEFAULT / LOADING / EMPTY / ERROR / SUCCESS / DISABLED / UNSAVED / SAVING / CONFLICT / AUTH_CHECKING.
 
 ---
 
 ## 3. Navigation Model
 
 ```text
+S01 Landing
+  ├─ 로그인 → S02 Auth → returnTo 또는 S03
+  ├─ 비로그인 새 책 → S02 Auth → S04
+  ├─ 로그인 내 서재 → S03 Library
+  └─ 로그인 새 책 → S04
+
 S03 Library
   ├─ 새 책 → S04 → (empty) S06 → S08 → S09 → S10
   │                (import) S05 → S06 → S07 → S08 → S09 → S10
@@ -48,9 +57,9 @@ S03 Library
                      └─ PDF → S15 → S16 → S10
 ```
 
-마법사 뒤로: 직전 화면. 취소: S03. 취소 시 새 폴더 없음.
+마법사 뒤로: 직전 화면. 취소: S03 Library (`/library`). 취소 시 새 폴더 없음.
 
-Later: S01 → S02 → S03. S12 → S13. S16 / S03 → S17.
+Later: S12 → S13 AI Cover. S16 / S03 → S17 Pricing/Payment.
 
 ---
 
@@ -58,51 +67,61 @@ Later: S01 → S02 → S03. S12 → S13. S16 / S03 → S17.
 
 | Screen | Existing / Partial / New | MVP / Later | Main Reuse |
 |---|---|---|---|
-| S01 Landing | New | Later | 없음 |
-| S02 Auth | New | Later | 없음 |
-| S03 Library | Existing | MVP | `_shared/library.html` |
-| S04 New Book Method | New | MVP | `#new-dialog`를 분해·감쌈 |
-| S05 Manuscript Input | Partial | MVP | 파일 input + Import parser |
-| S06 Book Metadata | Partial | MVP | 기존 제목/부제/저자 필드 |
-| S07 Structure Review | New | MVP | parser 출력만 재사용 |
-| S08 Theme Selection | New | MVP | `book.css` 토큰 / Paged.js 샘플 |
-| S09 Book Generation | New | MVP | `books.create` WRAP |
-| S10 Manuscript Workspace | Partial | MVP | `book_editor.js` + 새 셸 |
-| S11 Design | New | MVP | Theme 시스템 = S08 |
-| S12 Cover | Partial | MVP | `section.cover` + image-slot |
+| S01 Landing | New / Pending | Phase 15 | 없음 |
+| S02 Auth | Partial Implemented | Phase 15 | `_shared/auth.html`, `_shared/auth.js` |
+| S03 Library | Existing / Route move pending | MVP | `_shared/library.html` |
+| S04 New Book Method | Implemented | MVP | Wizard |
+| S05 Manuscript Input | Implemented | MVP | file/paste + parser |
+| S06 Book Metadata | Implemented | MVP | 제목/부제/저자 |
+| S07 Structure Review | Implemented | MVP | parse result staging |
+| S08 Theme Selection | Implemented | MVP | Practical / Minimal |
+| S09 Book Generation | Implemented | MVP | `books.create` WRAP |
+| S10 Manuscript Workspace | Implemented | MVP | `book_editor.js` + Workspace shell |
+| S11 Design | Implemented | MVP | Theme 시스템 = S08 |
+| S12 Cover | Implemented | MVP | `section.cover` + image-slot |
 | S13 AI Cover Studio | New | Later | 없음 |
-| S14 Preview | Existing | MVP | `paged_book_viewer.js` |
-| S15 PDF Export | Existing | MVP | `book_tools.js` `/__pdf` |
-| S16 Export Complete | New | MVP | PDF 결과만 |
-| S17 Pricing | New | Later | 없음 |
+| S14 Preview | Existing / Wrapped | MVP | `paged_book_viewer.js` |
+| S15 PDF Export | Existing / Wrapped | MVP | `/__pdf`, `server/pdf.mjs` |
+| S16 Export Complete | Implemented | MVP | Workspace 완료 패널 |
+| S17 Pricing / Payment | New | Later | 없음 |
 
 ---
 
 ## 5. S01 Landing
 
 - **화면명:** Landing
-- **목적:** 제품 소개. 엔진 아님
-- **현재 구현 상태:** 없음
-- **기존 재사용 코드:** 없음
-- **Entry / Exit:** 공개 URL → S02 또는 S03
-- **사용 데이터:** 없음
-- **Layout / Component / CTA:** 개요. 히어로 + 시작하기
-- **MVP / Later:** Later
-- **관련 Function ID:** F-LAND-01
-- **DO NOT BREAK:** 로컬 엔진 진입(서재)을 막지 말 것
+- **목적:** 차곡 소개와 제품 진입. 엔진 아님
+- **현재 구현 상태:** **Phase 15 Target / 미구현**
+- **목표 Route:** `/`
+- **기존 재사용 코드:** Auth session check만 재사용 가능. Book engine과 분리
+- **Entry / Exit:** 공개 URL → S02 / S03 / S04
+- **사용 데이터:** Auth session 상태만
+- **Layout / Component / CTA:** Header + Hero + 제작 흐름 + Product Preview + Footer
+- **비로그인 CTA:** 로그인, 새 책 만들기
+- **로그인 CTA:** 내 서재, 새 책 만들기
+- **Navigation:** 로그인 → `/__auth?returnTo=/library`; 비로그인 새 책 → `/__auth?returnTo=/__wizard`; 로그인 내 서재 → `/library`
+- **상태:** DEFAULT / AUTH_CHECKING / AUTHENTICATED / AUTH_ERROR
+- **MVP / Later:** **Phase 15**
+- **관련 Function ID:** F-LAND-01, F-AUTH-03
+- **DO NOT BREAK:** 로그인 사용자를 자동으로 Library로 강제 redirect하지 말 것. Landing은 항상 브랜드 진입점
 
 ---
 
 ## 6. S02 Auth
 
 - **화면명:** Auth
-- **목적:** 이후 계정. M1 기본값 아님
-- **현재 구현 상태:** 없음. Supabase 없음
-- **기존 재사용 코드:** 없음
-- **Entry / Exit:** S01 → S03
-- **MVP / Later:** Later
-- **관련 Function ID:** F-AUTH-01
-- **DO NOT BREAK:** 로컬 무인증 사용을 MVP에서 강제 로그인으로 바꾸지 말 것
+- **목적:** 이메일 회원가입/로그인과 browser session 생성
+- **현재 구현 상태:** **Phase 15 Partial Implemented** — UI/client/route 있음, 전용 Chagok Web 연결·Runtime QA pending
+- **Route:** `/__auth`
+- **기존 재사용 코드:** `_shared/auth.html`, `_shared/auth.js`
+- **Entry / Exit:** S01 → Auth → 안전한 `returnTo` 또는 `/library`
+- **Component:** 로그인/회원가입 전환, email, password, submit, status/error, 돌아가기
+- **상태:** DEFAULT / SUBMITTING / SUCCESS / ERROR / ALREADY_AUTHENTICATED
+- **Validation:** 내부 `returnTo`만 허용. `http://`, `https://`, `//` 거부
+- **Session:** `persistSession: true`, `autoRefreshToken: true`, storage key `chagok-auth-v1`
+- **MVP / Later:** **Phase 15**
+- **관련 Function ID:** F-AUTH-01 … F-AUTH-05
+- **DO NOT BREAK:** 앱용 MyChapter Supabase project 사용 금지. Auth를 Phase 16 전 Book ownership 보안 경계로 간주하지 말 것
 
 ---
 
@@ -110,13 +129,13 @@ Later: S01 → S02 → S03. S12 → S13. S16 / S03 → S17.
 
 - **화면명:** 서재
 - **목적:** 책을 찾고 열고 만들고 정리한다.
-- **현재 구현 상태:** Existing
+- **현재 구현 상태:** **Existing / Workspace WRAP implemented**
 - **기존 재사용 코드:** `_shared/library.html`
-- **Entry Condition:** 앱 홈. S10/S16에서 복귀. 마법사 취소
+- **Entry Condition:** 목표 `/library`. S01 로그인 사용자 CTA, Auth 성공, S10/S16 복귀, 마법사 취소
 - **Exit Condition:** F-LIB-02 → S10. F-LIB-03 → S04
 - **사용 데이터:** 책 목록, `book.json` 상태/태그(있을 때), 표지 썸네일, trash
 - **화면 Layout:** 상단 검색 + 새 책. 필터/정렬/휴지통. 카드 그리드
-- **Component:** 검색, 정렬, 상태 배지, 카드, 새 책 버튼, 휴지통 대화상자, 책 정보(상태/태그). **기존 `#new-dialog`는 S04로 연결되도록 WRAP.** 한 장 생성 완료는 제품 Primary가 아님
+- **Component:** 검색, 정렬, 상태 배지, 카드, 새 책 버튼, 휴지통 대화상자, 책 정보(상태/태그), 로그인 이메일, 로그아웃. 기존 새 책 진입은 S04 Wizard로 연결
 - **Primary CTA:** + 새 책 만들기 → S04
 - **Secondary CTA:** 열기, 복제, 휴지통, 정보
 - **Interaction:** 검색 즉시 필터. 정렬 변경. 카드 클릭 열기
@@ -128,7 +147,7 @@ Later: S01 → S02 → S03. S12 → S13. S16 / S03 → S17.
   - EMPTY SEARCH: 검색 0
   - ERROR: 목록 실패
 - **저장 시점:** 상태/태그만 즉시 `book.json`. 본문 아님
-- **Navigation:** → S04, → S10. 휴지통은 오버레이
+- **Navigation:** → S04, → S10. 로그아웃 → S01 `/`. 휴지통은 오버레이
 - **관련 Function ID:** F-LIB-01 … F-LIB-10, F-LIB-03
 - **기존 엔진 연결점:** 서재 HTML, `/__new-book`은 마법사 끝에서만, duplicate/trash/restore/purge/meta
 - **DO NOT BREAK:** 새 Library를 만들지 말 것. json 없는 168쪽 책 열기. 한글 제목. Identity=`file`
@@ -141,10 +160,10 @@ Later: S01 → S02 → S03. S12 → S13. S16 / S03 → S17.
 
 - **화면명:** 제작 방식
 - **목적:** 빈 책 vs 원고 Import
-- **현재 구현 상태:** New (기존 대화상자에 방식 분기가 없음)
+- **현재 구현 상태:** **Implemented**
 - **기존 재사용 코드:** 없음. 생성 엔진 미호출
 - **Entry Condition:** F-LIB-03
-- **Exit Condition:** empty → S06. import → S05. 취소 → S03
+- **Exit Condition:** empty → S06. import → S05. 취소 → S03 `/library`
 - **사용 데이터:** 세션 method만
 - **화면 Layout:** 두 카드 + 취소
 - **Component:** 빈 책 카드, 원고로 만들기 카드, 뒤로
@@ -156,9 +175,10 @@ Later: S01 → S02 → S03. S12 → S13. S16 / S03 → S17.
 - **Loading / Empty / Error / Success:** 해당 없음
 - **저장 시점:** 없음
 - **Navigation:** S06 또는 S05
-- **관련 Function ID:** F-NEW-01, F-NEW-02
+- **관련 Function ID:** F-NEW-01 … F-NEW-05
 - **기존 엔진 연결점:** 없음
-- **DO NOT BREAK:** 이 화면에서 `books.create` 호출 금지
+- **Recovery:** Phase 13 draft가 있으면 “작성 중이던 책이 있습니다.” → 이어서 하기 / 새로 시작. 파일 Import는 동일 fingerprint 재선택 시 구조 복구
+- **DO NOT BREAK:** 이 화면에서 `books.create` 호출 금지. legacy wizard recovery key를 migration 없이 rename/delete 금지
 
 ---
 
@@ -166,7 +186,7 @@ Later: S01 → S02 → S03. S12 → S13. S16 / S03 → S17.
 
 - **화면명:** 원고 입력
 - **목적:** 파일을 올리거나 글을 붙여 넣고 파싱한다.
-- **현재 구현 상태:** Partial. 파일은 있음. 붙여넣기 없음. 파싱은 create와 붙어 있음
+- **현재 구현 상태:** **Implemented** — file/paste + parse-only staging + recovery
 - **기존 재사용 코드:** accept 목록, `manuscript-import.mjs` (파싱만)
 - **Entry Condition:** S04 import. S07 다시 선택
 - **Exit Condition:** 파싱 성공 → S06(메타 미입력) 또는 메타가 있으면 S07. 뒤로 → S04
@@ -197,7 +217,7 @@ Later: S01 → S02 → S03. S12 → S13. S16 / S03 → S17.
 
 - **화면명:** 책 기본정보
 - **목적:** 제목·부제·저자
-- **현재 구현 상태:** Partial. 기존 새 책 폼 필드
+- **현재 구현 상태:** **Implemented**
 - **기존 재사용 코드:** `#new-dialog` 제목/부제/저자
 - **Entry Condition:** S04 empty 또는 S05 성공
 - **Exit Condition:** 제목 유효 → empty면 S08, import면 S07. 뒤로 직전
@@ -221,7 +241,7 @@ Later: S01 → S02 → S03. S12 → S13. S16 / S03 → S17.
 
 - **화면명:** 원고 구조 확인
 - **목적:** Import 골격을 보고 고친 뒤 확정한다. AI 없음
-- **현재 구현 상태:** New
+- **현재 구현 상태:** **Implemented**
 - **기존 재사용 코드:** parser units만. 기존 Editor 재사용 아님
 - **Entry Condition:** Import 파싱 성공 + 메타
 - **Exit Condition:** 확정 → S08. 다시 선택 → S05. 뒤로 → S06
@@ -249,7 +269,7 @@ Later: S01 → S02 → S03. S12 → S13. S16 / S03 → S17.
 
 - **화면명:** 디자인 선택
 - **목적:** Practical / Minimal을 고른다
-- **현재 구현 상태:** New
+- **현재 구현 상태:** **Implemented**
 - **기존 재사용 코드:** Template/설계본 CSS 토큰, Paged.js 샘플 가능
 - **Entry Condition:** S07 확정 또는 empty의 S06
 - **Exit Condition:** 다음 → S09. 뒤로 → S07 또는 S06
@@ -273,7 +293,7 @@ Later: S01 → S02 → S03. S12 → S13. S16 / S03 → S17.
 
 - **화면명:** 책 생성 상태
 - **목적:** 실제 생성 단계를 보여 주고 성공 시 Workspace로 보낸다
-- **현재 구현 상태:** New. Job UI 없음
+- **현재 구현 상태:** **Implemented**
 - **기존 재사용 코드:** `books.create` WRAP
 - **Entry Condition:** S08 다음
 - **Exit Condition:** 성공 → S10. 실패 → 재시도/이전/S03
@@ -301,7 +321,7 @@ Later: S01 → S02 → S03. S12 → S13. S16 / S03 → S17.
 
 - **화면명:** Manuscript Workspace
 - **목적:** 열린 책의 작업 셸. 원고 탭은 기존 Editor
-- **현재 구현 상태:** Partial. Editor/Viewer는 있음. 제품 셸/탭은 없음
+- **현재 구현 상태:** **Implemented** — Workspace shell + 기존 Editor/Viewer WRAP
 - **기존 재사용 코드:** `book_editor.js`, 미리보기 탭은 `paged_book_viewer.js`
 - **Entry Condition:** S03 열기, S09 성공, S16 복귀
 - **Exit Condition:** 서재. PDF 흐름. 탭
@@ -319,15 +339,16 @@ Later: S01 → S02 → S03. S12 → S13. S16 / S03 → S17.
 - **Secondary CTA:** 내 서재, 탭
 - **Interaction:** 탭 전환 시 미저장 가드. 원고에서 기존 편집/블록/장 추가
 - **Validation:** 기존 Editor
-- **상태:** DEFAULT / UNSAVED / SAVING / SUCCESS(저장됨) / ERROR(저장 실패)
+- **상태:** DEFAULT / UNSAVED / SAVING / SUCCESS(저장됨) / ERROR(저장 실패) / CONFLICT
 - **Loading:** 책 HTML + Paged.js (기존)
 - **Empty:** 빈 장 문단은 Template 문구일 수 있음. 정상
 - **Error:** 열기/저장 실패
-- **저장 시점:** 사용자 저장. Auto Save 없음
-- **Navigation:** 디자인 S11, 표지 S12, 미리보기 S14, PDF S15, 서재 S03
-- **관련 Function ID:** F-WS-01, F-WS-02, F-WS-03, F-EDITOR-01, F-EDITOR-02, F-EDITOR-03, F-EDITOR-04, F-EDITOR-08, F-STRUCT-07, F-EXPORT-01
+- **저장 시점:** 수동 Save + Phase 14 Autosave(1500ms debounce). Local Recovery는 400ms debounce
+- **Navigation:** 디자인 S11, 표지 S12, 미리보기 S14, PDF S15, 서재 S03 `/library`
+- **관련 Function ID:** F-WS-01, F-WS-02, F-WS-03, F-EDITOR-01, F-EDITOR-02, F-EDITOR-03, F-EDITOR-04, F-EDITOR-08, F-EDITOR-09, F-EDITOR-10, F-EDITOR-11, F-STRUCT-07, F-EXPORT-01
 - **기존 엔진 연결점:** `/__edit` `/__blocks` `/__structure` eid overlay
-- **DO NOT BREAK:** Editor 내부 재작성 금지. 글 저장 후 쪽 유지. 설계본 HTML 변환 금지. blocks 28종 일괄 확장 금지
+- **Recovery / Conflict:** baseVersion이 맞는 local recovery만 복구 제안. stale recovery 자동 적용 금지. 409 시 autosave pause + dirty/recovery 보존 + 자동 재전송 금지
+- **DO NOT BREAK:** Editor 내부 재작성 금지. 글 저장 후 쪽 유지. 설계본 HTML 변환 금지. blocks 28종 일괄 확장 금지. legacy editor recovery key 단순 rename/delete 금지
 
 ---
 
@@ -335,16 +356,14 @@ Later: S01 → S02 → S03. S12 → S13. S16 / S03 → S17.
 
 - **화면명:** 디자인
 - **목적:** 같은 Theme System으로 책 토큰을 바꾼다
-- **현재 구현 상태:** New
+- **현재 구현 상태:** **Implemented**
 - **기존 재사용 코드:** S08과 동일 Theme. Viewer 샘플 가능
 - **Entry Condition:** S10 디자인 탭
 - **Exit Condition:** 다른 탭. 적용 후 미리보기
 - **사용 데이터:** 현재 theme, `book.css` 토큰
-- **화면 Layout:** Theme 두 장 + MVP 조절 3종
-- **Component:** Practical / Minimal, 적용. MVP 추가 조절만:
-  - 본문 글자 크기 (토큰)
-  - 행간 (토큰)
-  - 쪽 여백 (토큰)
+- **화면 Layout:** Practical / Minimal 두 Theme 카드 + Preview + 적용
+- **Component:** Practical / Minimal, 현재/선택 상태, Preview, 적용
+- **Later:** 본문 글자 크기·행간·쪽 여백 직접 조절 UI
 - **Primary CTA:** 적용 (F-THEME-04)
 - **Secondary CTA:** 되돌리기(적용 전)
 - **Interaction:** 선택/슬라이더 → 미리보기 → 적용 시 `book.css`만
@@ -356,7 +375,7 @@ Later: S01 → S02 → S03. S12 → S13. S16 / S03 → S17.
 - **기존 엔진 연결점:** `book.css` `:root`
 - **DO NOT BREAK:** HTML 재작성 금지. 클래스 계약 유지. 색만으로 문단 타입을 지우지 말 것
 
-MVP에서 하지 않음: 컴포넌트별 색 픽커 풀세트, 폰트 파일 업로드, 판형 변경.
+현재 구현에서 하지 않음: 본문 글자 크기·행간·쪽 여백 직접 조절, 컴포넌트별 색 픽커 풀세트, 폰트 파일 업로드, 판형 변경.
 
 ---
 
@@ -364,7 +383,7 @@ MVP에서 하지 않음: 컴포넌트별 색 픽커 풀세트, 폰트 파일 업
 
 - **화면명:** 표지
 - **목적:** 기존 표지 면의 그림과 카피
-- **현재 구현 상태:** Partial. 슬롯·전면부 편집은 있음
+- **현재 구현 상태:** **Implemented**
 - **기존 재사용 코드:** `section.cover`, `image-slot`, rewriteFront
 - **Entry Condition:** S10 표지 탭
 - **Exit Condition:** 다른 탭
@@ -423,7 +442,7 @@ MVP에서 하지 않음: 컴포넌트별 색 픽커 풀세트, 폰트 파일 업
 
 - **화면명:** PDF Export
 - **목적:** 전자책 PDF를 만든다
-- **현재 구현 상태:** Existing. 지금 라벨은 “내보내기”
+- **현재 구현 상태:** **Existing engine / Product UX implemented**
 - **기존 재사용 코드:** `book_tools.js`, `/__pdf`, `server/pdf.mjs`
 - **Entry Condition:** S10/S14 PDF
 - **Exit Condition:** 성공 → S16. 실패 → Workspace
@@ -447,7 +466,7 @@ MVP에서 하지 않음: 컴포넌트별 색 픽커 풀세트, 폰트 파일 업
 
 - **화면명:** 출력 완료
 - **목적:** 성공, 다운로드, 복귀, 재Export
-- **현재 구현 상태:** New (지금은 바로 다운로드)
+- **현재 구현 상태:** **Implemented** — Workspace 완료 패널
 - **기존 재사용 코드:** PDF 바이트/캐시
 - **Entry Condition:** F-EXPORT-01 성공
 - **Exit Condition:** S10 또는 재Export S15
@@ -483,16 +502,16 @@ MVP에서 하지 않음: 컴포넌트별 색 픽커 풀세트, 폰트 파일 업
 
 | Screen | Function IDs |
 |---|---|
-| S01 | F-LAND-01 |
-| S02 | F-AUTH-01 |
+| S01 | F-LAND-01, F-AUTH-03 |
+| S02 | F-AUTH-01, F-AUTH-02, F-AUTH-03, F-AUTH-04, F-AUTH-05 |
 | S03 | F-LIB-01, F-LIB-02, F-LIB-03, F-LIB-04, F-LIB-05, F-LIB-06, F-LIB-07, F-LIB-08, F-LIB-09, F-LIB-10 |
-| S04 | F-NEW-01, F-NEW-02 |
+| S04 | F-NEW-01, F-NEW-02, F-NEW-03, F-NEW-04, F-NEW-05 |
 | S05 | F-IMPORT-01, F-IMPORT-02, F-IMPORT-03, F-IMPORT-04, F-IMPORT-07 |
 | S06 | F-META-01, F-META-02, F-META-03, F-META-04 |
 | S07 | F-STRUCT-01, F-STRUCT-02, F-STRUCT-03, F-STRUCT-04, F-STRUCT-05, F-STRUCT-06, F-IMPORT-06 |
 | S08 | F-THEME-01, F-THEME-02, F-THEME-03, F-THEME-04 |
 | S09 | F-GEN-01, F-GEN-02, F-GEN-03, F-GEN-04, F-GEN-05, F-IMPORT-05, F-THEME-04 |
-| S10 | F-WS-01, F-WS-02, F-WS-03, F-EDITOR-01, F-EDITOR-02, F-EDITOR-03, F-EDITOR-04, F-EDITOR-08, F-STRUCT-07, F-EXPORT-01 |
+| S10 | F-WS-01, F-WS-02, F-WS-03, F-EDITOR-01, F-EDITOR-02, F-EDITOR-03, F-EDITOR-04, F-EDITOR-08, F-EDITOR-09, F-EDITOR-10, F-EDITOR-11, F-STRUCT-07, F-EXPORT-01 |
 | S11 | F-THEME-01, F-THEME-02, F-THEME-03, F-THEME-04, F-WS-02 |
 | S12 | F-COVER-01, F-COVER-02, F-COVER-03, F-COVER-04, F-META-01, F-META-02, F-META-03 |
 | S13 | F-AICOVER-01 |
@@ -501,16 +520,23 @@ MVP에서 하지 않음: 컴포넌트별 색 픽커 풀세트, 폰트 파일 업
 | S16 | F-DONE-01, F-DONE-02, F-EXPORT-02, F-EXPORT-03 |
 | S17 | F-PAY-01 |
 
-Background / HIDE (화면 없음): F-EXPORT-04…07, F-HIST-01, F-LINT-01, F-EDITOR-09.
+Background / HIDE (화면 없음): F-EXPORT-04…07, F-HIST-01, F-LINT-01. Auto Save/Recovery는 S10 current 기능이다.
 
 ---
 
 ## 23. MVP Navigation Flow
 
+Entry:
+
+```text
+비로그인: S01 → S02 → returnTo
+로그인:   S01 → S03 또는 S04
+```
+
 Happy path (원고):
 
 ```text
-S03 → S04(import) → S05 → S06 → S07 → S08 → S09 → S10
+S01 → S02(필요 시) → S04(import) → S05 → S06 → S07 → S08 → S09 → S10
   원고 편집 → 디자인 S11 / 표지 S12 / 미리보기 S14
   → S15 → S16 → S10
 ```
@@ -518,13 +544,13 @@ S03 → S04(import) → S05 → S06 → S07 → S08 → S09 → S10
 Happy path (빈 책):
 
 ```text
-S03 → S04(empty) → S06 → S08 → S09 → S10 → …
+S01 → S02(필요 시) → S04(empty) → S06 → S08 → S09 → S10 → …
 ```
 
 기존 책:
 
 ```text
-S03 → S10 → S14 → S15 → S16
+S01 → S03 → S10 → S14 → S15 → S16
 ```
 
 실패:
@@ -535,3 +561,19 @@ S07 → 원고 다시 선택 → S05
 S09 ERROR → 재시도 또는 S03 (책 없음)
 S15 ERROR → S10
 ```
+
+
+---
+
+## 24. Phase 15 Route Gap
+
+Current branch at this document revision:
+
+- `GET /__auth` = implemented
+- Auth client/session UI = implemented
+- `GET /` still serves Library until Entry Routing implementation
+- `GET /library` = target, not yet implemented
+- S01 Landing = target, not yet implemented
+- Chagok Web Supabase config = pending
+
+Phase 15 Runtime QA는 이 gap을 구현하고 전용 Supabase를 연결한 뒤 수행한다.
