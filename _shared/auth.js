@@ -8,9 +8,31 @@
   const STORAGE_KEY = 'chagok-auth-v1';
   let client = null;
 
+  function isConfigured() {
+    return !!(CONFIG.url && CONFIG.publishableKey);
+  }
+
+  function safeReturnTo(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '/library';
+    if (!raw.startsWith('/') || raw.startsWith('//') || raw.includes('\\')) return '/library';
+    try {
+      const url = new URL(raw, window.location.origin);
+      if (url.origin !== window.location.origin) return '/library';
+      if (!['/library', '/__wizard', '/__workspace'].includes(url.pathname)) return '/library';
+      return url.pathname + url.search + url.hash;
+    } catch {
+      return '/library';
+    }
+  }
+
+  function getReturnTo() {
+    return safeReturnTo(new URLSearchParams(window.location.search).get('returnTo'));
+  }
+
   function getClient() {
     if (client) return client;
-    if (!CONFIG.url || !CONFIG.publishableKey) {
+    if (!isConfigured()) {
       throw new Error('차곡 웹 Supabase 연결이 아직 설정되지 않았습니다.');
     }
     if (!window.supabase || typeof window.supabase.createClient !== 'function') {
@@ -63,6 +85,9 @@
   }
 
   window.ChagokAuth = Object.freeze({
+    isConfigured,
+    safeReturnTo,
+    getReturnTo,
     getClient,
     getSession,
     signIn,
