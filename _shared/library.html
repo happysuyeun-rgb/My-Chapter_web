@@ -258,6 +258,9 @@
 
   .spin { width: 12px; height: 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  .auth-area { display:flex; align-items:center; gap:8px; }
+  .auth-email { max-width:190px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink-2); font-size:12px; }
+  @media (max-width:760px) { .auth-email { display:none; } }
 </style>
 </head>
 <body>
@@ -269,6 +272,11 @@
     <input id="search" type="search" placeholder="제목·저자 검색" autocomplete="off">
   </label>
   <button class="btn accent" id="open-new" type="button">+ 새 책 만들기</button>
+  <div class="auth-area">
+    <a class="btn small" id="auth-login" href="/__auth">로그인</a>
+    <span class="auth-email" id="auth-email" hidden></span>
+    <button class="btn small" id="auth-logout" type="button" hidden>로그아웃</button>
+  </div>
 </header>
 
 <main>
@@ -352,6 +360,8 @@
 
 <div class="toast" id="toast" role="status"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/_shared/auth.js"></script>
 <script>
 const LIB = __LIBRARY__;
 const BOOKS = LIB.books;
@@ -789,6 +799,40 @@ if (sessionStorage.getItem('lib-toast')) {
 
 const es = new EventSource('/__live');
 es.addEventListener('reload', () => { if (!busy && !document.querySelector('dialog[open]') && !openMenu) location.reload(); });
+</script>
+<script>
+(() => {
+  const login = document.querySelector('#auth-login');
+  const email = document.querySelector('#auth-email');
+  const logout = document.querySelector('#auth-logout');
+
+  function paint(session) {
+    const userEmail = session && session.user && session.user.email;
+    login.hidden = !!userEmail;
+    email.hidden = !userEmail;
+    logout.hidden = !userEmail;
+    email.textContent = userEmail || '';
+  }
+
+  MyChapterAuth.getSession().then(paint).catch((err) => {
+    console.warn('auth session load failed', err);
+    paint(null);
+  });
+
+  MyChapterAuth.onAuthStateChange(({ session }) => paint(session));
+  logout.addEventListener('click', async () => {
+    logout.disabled = true;
+    try {
+      await MyChapterAuth.signOut();
+      paint(null);
+    } catch (err) {
+      console.warn('logout failed', err);
+      alert(err.message || err);
+    } finally {
+      logout.disabled = false;
+    }
+  });
+})();
 </script>
 </body>
 </html>
