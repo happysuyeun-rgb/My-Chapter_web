@@ -1,6 +1,6 @@
-# My Chapter
+# 차곡
 
-원고를 전자책으로 구성·편집·미리보기·PDF 출력하는 AI publishing studio MVP.
+원고를 차곡차곡 정리해 구성·편집·미리보기·PDF 출력까지 완성하는 AI publishing studio MVP.
 
 로컬 엔진은 Node + Vanilla HTML/JS + Paged.js이다. 런타임 코드는 `_shared/`, `_template/`, `server/`, `preview-server.mjs`이다.
 
