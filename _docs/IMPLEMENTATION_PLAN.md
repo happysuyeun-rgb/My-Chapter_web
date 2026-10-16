@@ -178,7 +178,7 @@ Phase 15 완료 전까지 CURRENT와 TARGET의 차이를 명시적으로 유지�
 | Phase 14 | Editor Autosave / Recovery | ✅ COMPLETE |
 | Phase 15A | Entry Routing + Auth UI + Local/Guest fallback | ✅ COMPLETE |
 | Phase 15B | Real Supabase Auth Runtime | ⏸ HOLD |
-| Phase 16 | Ownership + DB + Storage + API Authorization | ⏸ HOLD |
+| Phase 16 | Ownership + DB + Storage + API Authorization | ⏸ HOLD (Phase 15B 이후) |
 | Phase 17+ | Deployment / PDF Worker / AI / Payment | ⏳ LATER |
 
 ---
@@ -527,33 +527,37 @@ Wizard 취소 / 복귀
 
 ---
 
-## 15.4 Phase 15 Merge Gate
+## 15.4 Phase 15A Merge Gate
 
-다음이 모두 TRUE일 때만 PR merge 가능.
+Phase 15A는 실제 Supabase Runtime인 Phase 15B와 분리한다.
 
-- Chagok Web Supabase 연결
-- Landing 구현
-- `/library` route 구현
-- returnTo 구현
-- logout routing 구현
-- Workspace / Wizard routing 정리
-- Runtime Auth QA PASS
+다음이 모두 TRUE일 때 Phase 15A PR merge 가능:
+
+- Landing / `/library` 구현
+- Local/Guest fallback 구현
+- safe `returnTo` + configured Auth path 보존
+- logout / Workspace / Wizard routing 정리
+- Local E2E QA PASS
+- 핵심 회귀 QA PASS
 - `npm run check` PASS
 - protected hash unchanged
 - 앱용 MyChapter Supabase 접근 없음
 - user books / stash 영향 없음
 
+Phase 15B의 Chagok Web Supabase 연결과 Runtime Auth QA는 **Phase 15A merge blocker가 아니다.**
+
 ### STOP
 
-위 Gate 전에는:
+Phase 15A Gate 전에는:
 
 - main merge 금지
 - Phase 16 코드 금지
 - DB table 생성 금지
 - Storage migration 금지
 - RLS 구현 금지
-- Vercel 배포 금지
 - Payment 금지
+
+Phase 15B는 외부 사용자 테스트/서비스 배포 필요 시 별도 착수한다.
 
 ---
 
