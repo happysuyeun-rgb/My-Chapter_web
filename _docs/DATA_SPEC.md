@@ -97,7 +97,7 @@ version = sha1(원본 문자열).
 
 없는 필드 (만들지 않음): `themeId`, `canonicalContent`, `userId`, `slug`.
 
-`themeId`가 MVP에 필요하면 §10 TARGET_MVP. 지금 스키마에 넣지 않는다.
+`themeId`는 Wizard의 transient state / draft recovery 값으로 사용한다. 생성된 Book의 persisted theme은 `book.css` marker/layer이며 `book.json.themeId`는 만들지 않는다.
 
 관련: S03, F-LIB-10, F-COVER-04.
 
