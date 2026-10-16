@@ -71,7 +71,7 @@ F-<AREA>-<NN>
 | `F-GEN` | Book generation |
 | `F-WS` | Workspace shell |
 | `F-EDITOR` | Manuscript editor |
-| `F-DESIGN` | Design tab |
+| `F-DESIGN` | Fine-grained design controls (reserved / Later) |
 | `F-COVER` | Cover |
 | `F-PREVIEW` | Preview |
 | `F-EXPORT` | Export |
@@ -655,7 +655,7 @@ Existing = 현재 엔진에 있음. New = 제품 흐름에 새로 필요. WRAP =
 
 ---
 
-## 7. Metadata Functions
+## 8. Metadata Functions
 
 ### F-META-01 제목
 
@@ -739,7 +739,7 @@ Existing = 현재 엔진에 있음. New = 제품 흐름에 새로 필요. WRAP =
 
 ---
 
-## 8. Structure Functions
+## 9. Structure Functions
 
 S07 전용. AI 필수 아님. 확정 전 `book.html` 금지.
 
@@ -891,7 +891,7 @@ S07 전용. AI 필수 아님. 확정 전 `book.html` 금지.
 
 ---
 
-## 9. Theme Functions
+## 10. Theme Functions
 
 S08과 S11은 같은 Theme System.
 
@@ -977,7 +977,7 @@ S08과 S11은 같은 Theme System.
 
 ---
 
-## 10. Generation Functions
+## 11. Generation Functions
 
 가짜 % 금지. 실제 단계만.
 
@@ -1085,7 +1085,7 @@ S08과 S11은 같은 Theme System.
 
 ---
 
-## 11. Workspace / Editor Functions
+## 12. Workspace / Editor Functions
 
 ### F-WS-01 Workspace Shell
 
@@ -1309,7 +1309,7 @@ S08과 S11은 같은 Theme System.
 
 ---
 
-## 12. Cover Functions
+## 13. Cover Functions
 
 ### F-COVER-01 기존 표지 표시
 
@@ -1397,7 +1397,7 @@ S08과 S11은 같은 Theme System.
 
 ---
 
-## 13. Preview Functions
+## 14. Preview Functions
 
 ### F-PREVIEW-01 Single
 
@@ -1443,7 +1443,7 @@ S08과 S11은 같은 Theme System.
 
 ---
 
-## 14. Export Functions
+## 15. Export Functions
 
 ### F-EXPORT-01 전자책 PDF
 
