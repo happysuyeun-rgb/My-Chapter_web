@@ -1,6 +1,6 @@
-# My Chapter Data Specification
+# 차곡 Data Specification
 
-- Product: My Chapter
+- Product: 차곡
 - Stage: Development Specification — Data
 - Version: 1.0
 - Date: 2026-10-03
