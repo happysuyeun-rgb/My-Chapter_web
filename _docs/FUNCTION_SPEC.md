@@ -2,10 +2,10 @@
 
 - Product: 차곡
 - Stage: Development Specification — Function
-- Version: **1.1**
+- Version: **1.2**
 - Date: 2026-10-16
 - Status: **CURRENT / IMPLEMENTATION BASELINE**
-- Basis: `MY_CHAPTER_PRODUCT_SPEC.md` v1.4, `_docs/IA.md`, `_docs/TASK_FLOW.md`, Phase 13~15 implementation
+- Basis: `MY_CHAPTER_PRODUCT_SPEC.md` v1.5, `_docs/IA.md`, `_docs/TASK_FLOW.md`, Phase 13~15A implementation + Commerce target specs
 - Pair: `_docs/FUNCTION_DEFINITION.md`, `_docs/SCREEN_SPEC.md`
 
 이 문서는 **사용자가 어떤 기능을 사용할 수 있는가**만 정한다. API·DB·엔진 내부·구현 순서는 다음 단계다.
@@ -22,9 +22,9 @@ MVP에서 사용자가 할 수 있는 일을 Function ID로 고정한다. 화면
 
 **상세 명세 (Current / MVP):** Landing, Auth Foundation, Library, New Book, Import, Wizard Recovery, Metadata, Structure, Theme, Generation, Workspace, Editor, Autosave/Recovery, Design, Cover, Preview, Ebook PDF, Export Complete.
 
-**Later:** AI Cover, Pricing/Payment. History / Inspection / Print / EPUB / Web ZIP은 엔진 KEEP, 제품에서는 HIDE 또는 Later.
+**Later / HOLD:** AI Cover. Pricing/Payment는 정책·화면·Data/API TARGET 명세까지 완료했지만 구현은 HOLD다. History / Inspection / Print / EPUB / Web ZIP은 엔진 KEEP, 제품에서는 HIDE 또는 Later.
 
-**Phase 15 경계:** Auth session과 Entry Routing은 현재 범위다. Book ownership, DB books, Supabase Storage, RLS/API authorization은 Phase 16 범위다.
+**Phase 경계:** Phase 15A Entry + Local/Guest fallback은 COMPLETE. Real Supabase Auth Runtime은 Phase 15B HOLD. Book ownership, DB books, Supabase Storage, RLS/API authorization은 Phase 16 HOLD다.
 
 작성하지 않음: API 내부 구현, Phase 16 DB/RLS 상세, Engine 내부 재설계, CSS Token 상세, Deployment Architecture.
 
@@ -47,9 +47,10 @@ MVP에서 사용자가 할 수 있는 일을 Function ID로 고정한다. 화면
 - 생성 진행률은 가짜 Percentage를 만들지 않음
 - Wizard Draft Recovery = Phase 13 IMPLEMENTED
 - Editor Auto Save / Recovery = Phase 14 IMPLEMENTED
-- Auth session foundation = Phase 15 IMPLEMENTED, 전용 Chagok Web 연결/Runtime QA pending
-- Entry Routing target = `/` Landing, `/library` Library, `/__auth` Auth
-- Auth ≠ Book ownership. Ownership/security boundary는 Phase 16
+- Auth UI/client foundation + Local fallback = Phase 15A IMPLEMENTED / QA PASS
+- Real Chagok Web Supabase Runtime = Phase 15B HOLD
+- Entry Routing CURRENT = `/` Landing, `/library` Library, `/__auth` Auth/Local fallback
+- Auth ≠ Book ownership. Ownership/security boundary = Phase 16 HOLD
 - AI는 필수 아님. AI Cover = Later
 
 ---
@@ -103,8 +104,8 @@ Existing = 현재 엔진에 있음. New = 제품 흐름에 새로 필요. WRAP =
 - **Existing Engine Dependency:** New UI. Core book engine과 분리
 - **Side Effect:** 없음
 - **Edge Cases:** 로그인 사용자를 `/`에서 자동으로 Library로 강제 redirect하지 않는다.
-- **MVP / Later:** **Phase 15 Current**
-- **Acceptance Summary:** `/`가 Library가 아니라 Landing이고, session에 맞는 CTA가 보인다.
+- **MVP / Later:** **Phase 15A Current**
+- **Acceptance Summary:** `/`가 Library가 아니라 Landing이고, Local/configured 상태에 맞는 CTA가 보인다.
 
 ### F-AUTH-01 회원가입
 
@@ -120,10 +121,10 @@ Existing = 현재 엔진에 있음. New = 제품 흐름에 새로 필요. WRAP =
 - **Failure Result:** Auth 화면 유지 + 오류 메시지
 - **Validation:** Supabase Auth 규칙 + 비어 있는 값 거부
 - **Persistence Timing:** Supabase Auth session
-- **Existing Engine Dependency:** Phase 15 — `_shared/auth.js`
+- **Existing Engine Dependency:** Phase 15A client foundation / Phase 15B runtime — `_shared/auth.js`
 - **Side Effect:** 책 파일/DB ownership 변경 없음
-- **Edge Cases:** Phase 15에서는 계정 생성이 곧 Book ownership 생성이 아니다.
-- **MVP / Later:** **Phase 15 Current**
+- **Edge Cases:** Phase 15B에서도 계정 생성 자체가 Book ownership을 의미하지 않는다.
+- **MVP / Later:** **Phase 15B HOLD — configured path foundation exists**
 - **Acceptance Summary:** 신규 계정을 만들 수 있고 기존 책 엔진은 변하지 않는다.
 
 ### F-AUTH-02 로그인
@@ -140,10 +141,10 @@ Existing = 현재 엔진에 있음. New = 제품 흐름에 새로 필요. WRAP =
 - **Failure Result:** Auth 화면 유지 + 오류 메시지
 - **Validation:** 인증 실패를 성공처럼 처리하지 않음
 - **Persistence Timing:** Supabase browser session
-- **Existing Engine Dependency:** Phase 15
+- **Existing Engine Dependency:** Phase 15A client foundation / Phase 15B runtime
 - **Side Effect:** 없음
 - **Edge Cases:** 앱용 MyChapter Supabase project를 사용하면 안 됨.
-- **MVP / Later:** **Phase 15 Current**
+- **MVP / Later:** **Phase 15B HOLD — configured path foundation exists**
 - **Acceptance Summary:** 로그인 후 session이 생성된다.
 
 ### F-AUTH-03 Session 유지
@@ -160,10 +161,10 @@ Existing = 현재 엔진에 있음. New = 제품 흐름에 새로 필요. WRAP =
 - **Failure Result:** 비로그인 상태로 안전하게 표시
 - **Validation:** storage key = `chagok-auth-v1`
 - **Persistence Timing:** browser auth storage
-- **Existing Engine Dependency:** Phase 15
+- **Existing Engine Dependency:** Phase 15A client foundation / Phase 15B runtime
 - **Side Effect:** 없음
 - **Edge Cases:** Editor/Wizard recovery legacy localStorage key와 Auth storage key를 혼동하지 않는다.
-- **MVP / Later:** **Phase 15 Current**
+- **MVP / Later:** **Phase 15B HOLD — configured path foundation exists**
 - **Acceptance Summary:** 새로고침 후 이메일/세션이 유지된다.
 
 ### F-AUTH-04 로그아웃
@@ -179,10 +180,10 @@ Existing = 현재 엔진에 있음. New = 제품 흐름에 새로 필요. WRAP =
 - **Success Result:** Landing 비로그인 상태
 - **Failure Result:** 오류 표시, 현재 책 파일은 변경하지 않음
 - **Persistence Timing:** Auth session 제거
-- **Existing Engine Dependency:** Phase 15
+- **Existing Engine Dependency:** Phase 15A client foundation / Phase 15B runtime
 - **Side Effect:** local books 삭제/이동 금지
 - **Edge Cases:** Logout은 local book cleanup 명령이 아니다.
-- **MVP / Later:** **Phase 15 Current**
+- **MVP / Later:** **Phase 15B HOLD — configured path foundation exists**
 - **Acceptance Summary:** 로그아웃하면 Landing으로 이동하고 session이 사라진다.
 
 ### F-AUTH-05 returnTo
@@ -199,10 +200,10 @@ Existing = 현재 엔진에 있음. New = 제품 흐름에 새로 필요. WRAP =
 - **Failure Result:** 외부/프로토콜 상대 URL은 거부하고 `/library` fallback
 - **Validation:** `/`로 시작하는 내부 경로만 허용. `http://`, `https://`, `//` 거부
 - **Persistence Timing:** 없음
-- **Existing Engine Dependency:** Phase 15 Entry Routing
+- **Existing Engine Dependency:** Phase 15A client foundation / Phase 15B runtime Entry Routing
 - **Side Effect:** 없음
 - **Edge Cases:** Open Redirect 금지
-- **MVP / Later:** **Phase 15 Current**
+- **MVP / Later:** **Phase 15B HOLD — configured path foundation exists**
 - **Acceptance Summary:** 로그인 후 원래 내부 작업으로 안전하게 복귀한다.
 
 ---
@@ -1533,7 +1534,7 @@ S08과 S11은 같은 Theme System.
 | ID | 기능 | Screen | 메모 |
 |---|---|---|---|
 | F-AICOVER-01 | AI 표지 | S13 | S12 수동 표지를 대체하지 않음 |
-| F-PAY-01 | Pricing / Payment | S17 | Ownership / usage state 이후 |
+| F-PAY-01 | Pricing / Payment | S17/P01~P11 | Policy + target specs defined; implementation HOLD after Phase 15B/16 |
 | F-HIST-01 | History UI | — | KEEP / HIDE |
 | F-LINT-01 | Inspection UI | — | KEEP / HIDE |
 | F-EXPORT-04..07 | 고급보내기 | S15 | KEEP / HIDE |
@@ -1617,12 +1618,12 @@ Phase 16의 Ownership / DB / Storage / API authorization은 “Later product fea
 | F-EXPORT-07 | Web ZIP | — | Later / HIDE | Existing |
 | F-DONE-01 | 출력 완료 | S16 | MVP | New |
 | F-DONE-02 | Book으로 | S16→S10 | MVP | New |
-| F-LAND-01 | Landing | S01 | Phase 15 | Implemented |
-| F-AUTH-01 | 회원가입 | S02 | Phase 15 | Implemented / infra pending |
-| F-AUTH-02 | 로그인 | S02 | Phase 15 | Implemented / infra pending |
-| F-AUTH-03 | Session 유지 | S01~S03 | Phase 15 | Implemented / infra pending |
-| F-AUTH-04 | 로그아웃 | S03→S01 | Phase 15 | Implemented / runtime QA pending |
-| F-AUTH-05 | returnTo | S01→S02→Target | Phase 15 | Implemented / runtime QA pending |
+| F-LAND-01 | Landing | S01 | Phase 15A | Implemented / QA PASS |
+| F-AUTH-01 | 회원가입 | S02 | Phase 15B HOLD | Client foundation / runtime HOLD |
+| F-AUTH-02 | 로그인 | S02 | Phase 15B HOLD | Client foundation / runtime HOLD |
+| F-AUTH-03 | Session 유지 | S01~S03 | Phase 15B HOLD | Client foundation / runtime HOLD |
+| F-AUTH-04 | 로그아웃 | S03→S01 | Phase 15A/15B | Local/configured routing foundation implemented |
+| F-AUTH-05 | returnTo | S01→S02→Target | Phase 15A | Implemented / QA PASS |
 | F-AICOVER-01 | AI Cover | S13 | Later | New |
 | F-PAY-01 | Pricing | S17 | Later | New |
 | F-HIST-01 | History | — | Later / HIDE | Existing |
