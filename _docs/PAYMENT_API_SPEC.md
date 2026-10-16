@@ -1,11 +1,11 @@
 # 차곡 Payment API Specification
 
 - Product: 차곡 (Chagok)
-- Version: **v1.0**
+- Version: **v1.1**
 - Date: 2026-10-16
 - Status: **TARGET / COMMERCE API CONTRACT**
 - Depends on:
-  - `_docs/PAYMENT_DATA_SPEC.md` v1.0
+  - `_docs/PAYMENT_DATA_SPEC.md` v1.1
   - `_docs/PAYMENT_SCREEN_SPEC.md` v1.0
   - `_docs/PRICING_POLICY.md` v1.1
 - Implementation: **DO NOT IMPLEMENT YET**
@@ -30,6 +30,8 @@
 8. provider webhook은 signature 검증 + dedup 처리한다.
 9. payment success와 PDF generation success는 별도 API/상태다.
 10. API가 실패해도 기존 Book content를 destructive하게 변경하지 않는다.
+11. SaaS Payment go-live 전에 direct PDF route/cache/static URL 우회를 차단한다.
+12. 결제 성공 후 entitlement grant 부분 실패는 reconciliation으로 복구 가능해야 한다.
 
 ---
 
@@ -284,6 +286,7 @@ Idempotency-Key: <opaque unique value>
     "currency": "KRW",
     "amount": 14900,
     "status": "READY",
+    "expiresAt": "ISO",
     "checkout": {
       "provider": "TBD",
       "clientPayload": {}
@@ -429,6 +432,7 @@ POST /api/commerce/webhooks/:provider
 
 - raw body signature 검증 요구사항은 provider 문서 우선.
 - signature 실패 → 4xx, state mutation 없음.
+- Provider가 timestamp/freshness 검증을 지원하면 허용 시간창을 검증해 replay를 줄인다.
 - duplicate event → state 중복 변경 없이 2xx 가능.
 - webhook endpoint에 사용자-facing HTML 반환하지 않는다.
 
@@ -520,6 +524,12 @@ Support/Admin controlled logical operation:
 POST /api/commerce/orders/:orderId/refund
 ~~~
 
+### Headers
+
+~~~text
+Idempotency-Key: <opaque unique value>
+~~~
+
 ### Auth
 
 Admin/support restricted.
@@ -568,7 +578,96 @@ GET /api/commerce/orders/:orderId/receipt
 
 ---
 
-## 16. API-EXPORT Integration
+## 16. API-COMMERCE-11 Reconciliation — Internal
+
+사용자-facing endpoint가 아니라 내부 job/worker/service operation 후보다.
+
+### Purpose
+
+다음 불일치 탐지/복구:
+
+- Provider SUCCEEDED인데 order가 PAID 아님
+- payment SUCCEEDED인데 entitlement ACTIVE 아님
+- refund SUCCEEDED/chargeback인데 entitlement ACTIVE
+- PENDING/PROCESSING이 비정상적으로 오래 지속
+- webhook 누락/지연
+
+### Logical Operation
+
+~~~text
+reconcile(orderId?)
+reconcileStalePayments(before?)
+~~~
+
+### Rules
+
+- Provider server API 또는 신뢰 가능한 payment record로 재검증
+- idempotent
+- 이미 정상인 상태를 역행시키지 않음
+- 자동 repair 가능 범위와 admin review 범위를 분리
+- repair audit event 필수
+
+구체적인 cron/queue 주기는 Deployment Architecture에서 결정한다.
+
+---
+
+## 17. API-COMMERCE-12 Admin / Compensation Grant — Restricted
+
+정상 구매가 아닌 보상 entitlement를 위한 운영자 전용 계약.
+
+### Logical Path
+
+~~~text
+POST /api/admin/commerce/books/:bookId/entitlements
+~~~
+
+실제 admin namespace는 구현 시 결정한다.
+
+### Request
+
+~~~json
+{
+  "sourceType": "COMPENSATION",
+  "reason": "pdf_generation_incident"
+}
+~~~
+
+### Rules
+
+- 일반 사용자 접근 금지
+- admin/support authorization 필수
+- sourceType = ADMIN_GRANT | COMPENSATION
+- source_order_id 없이 grant 가능
+- grant_reason 필수
+- audit event 필수
+- entitlement transfer 대용 금지
+
+---
+
+## 18. SaaS PDF Export Bypass Launch Gate
+
+현재 Local Core Engine에는:
+
+~~~text
+GET /__pdf?file=...
+~~~
+
+가 존재한다.
+
+**Payment go-live 전 반드시 다음을 만족해야 한다.**
+
+1. 외부 SaaS 사용자가 `/__pdf?file=`를 직접 호출해 LOCKED 책 PDF를 받을 수 없어야 한다.
+2. PDF cache 파일이 예측 가능한 public/static URL로 직접 노출되면 안 된다.
+3. Authorized Export boundary에서 session + ownership + ACTIVE entitlement를 검증한다.
+4. worker/storage signed URL을 사용한다면 짧은 만료와 권한 검증을 적용한다.
+5. Preview용 리소스가 원본 PDF 다운로드 경로가 되면 안 된다.
+6. LOCKED/UNKNOWN entitlement에서 direct URL 우회 테스트를 P0 QA로 둔다.
+
+이 Gate가 닫히지 않으면 Payment 기능을 출시하지 않는다.
+
+---
+
+## 19. API-EXPORT Integration
 
 현재 Local:
 
@@ -600,7 +699,7 @@ Phase 16 이후 API authorization 구조를 설계한 뒤 WRAP한다.
 
 ---
 
-## 17. Authorized Export Target — Conceptual
+## 20. Authorized Export Target — Conceptual
 
 최종 후보:
 
@@ -631,7 +730,7 @@ Free/LOCKED는 402/403 성격 중 제품 표준을 구현 시 결정한다.
 
 ---
 
-## 18. Idempotency
+## 21. Idempotency
 
 적용 대상:
 
@@ -656,7 +755,7 @@ client가 생성한 opaque idempotency key 사용.
 
 ---
 
-## 19. Concurrency
+## 22. Concurrency
 
 대표 race:
 
@@ -680,7 +779,7 @@ authorization check 시 entitlement 현재 상태를 기준으로 처리.
 
 ---
 
-## 20. State Transition Guard
+## 23. State Transition Guard
 
 ### Order
 
@@ -713,7 +812,7 @@ ACTIVE → REFUNDED / REVOKED
 
 ---
 
-## 21. Price Change Handling
+## 24. Price Change Handling
 
 Paywall은 14,900을 봤지만 order 생성 시 canonical price가 바뀌었다면:
 
@@ -740,7 +839,7 @@ Response 후보:
 
 ---
 
-## 22. Security Requirements
+## 25. Security Requirements
 
 - HTTPS only
 - provider secret server-only
@@ -757,7 +856,7 @@ Response 후보:
 
 ---
 
-## 23. Observability
+## 26. Observability
 
 최소 structured log:
 
@@ -782,7 +881,7 @@ Response 후보:
 
 ---
 
-## 24. API → Screen Mapping
+## 27. API → Screen Mapping
 
 | API | Screen |
 |---|---|
@@ -799,7 +898,7 @@ Response 후보:
 
 ---
 
-## 25. API → Data Mapping
+## 28. API → Data Mapping
 
 | API | Primary Data |
 |---|---|
@@ -815,7 +914,7 @@ Response 후보:
 
 ---
 
-## 26. Current vs Target
+## 29. Current vs Target
 
 | API | State |
 |---|---|
@@ -832,7 +931,7 @@ Response 후보:
 
 ---
 
-## 27. Provider Selection Impact
+## 30. Provider Selection Impact
 
 Payment Provider가 결정되면 다음만 provider-specific appendix로 추가한다.
 
@@ -848,7 +947,7 @@ Core Commerce API/Entitlement model은 Provider에 종속되지 않게 유지한
 
 ---
 
-## 28. Implementation Gate
+## 31. Implementation Gate
 
 이 API를 지금 만들지 않는다.
 
@@ -866,9 +965,9 @@ Core Commerce API/Entitlement model은 Provider에 종속되지 않게 유지한
 
 ---
 
-## 29. Done Criteria
+## 32. Done Criteria
 
-Payment API Spec v1.0 완료 기준:
+Payment API Spec v1.1 완료 기준:
 
 - canonical price API
 - entitlement API
@@ -881,3 +980,8 @@ Payment API Spec v1.0 완료 기준:
 - error/status model
 - security/observability
 - provider-agnostic architecture
+- direct PDF bypass launch gate
+- reconciliation/orphan recovery
+- refund idempotency
+- admin/compensation grant
+- webhook replay/freshness protection
