@@ -487,10 +487,6 @@
 │                                                              │
 │ [ Practical ]   [ Minimal ]                                  │
 │                                                              │
-│ 본문 글자 크기   ─────●────                                  │
-│ 행간             ───●──────                                  │
-│ 쪽 여백          ──────●───                                  │
-│                                                              │
 │                         Preview                              │
 │                                                              │
 │                           [ 이 디자인 적용 ]                  │
@@ -499,8 +495,10 @@
 
 ## 규칙
 
-- CSS Token만 변경
+- 현재 구현 범위는 Practical / Minimal Theme 선택·적용
+- CSS Theme layer만 변경
 - HTML 의미 구조 변경 금지
+- 본문 글자 크기·행간·쪽 여백 직접 조절 UI는 Later
 
 ---
 
