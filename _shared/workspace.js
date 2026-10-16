@@ -90,7 +90,7 @@
     const title = editorDoc()?.title?.trim();
     if (title) {
       titleEl.textContent = title;
-      document.title = title + ' · My Chapter';
+      document.title = title + ' · 차곡';
     }
     syncSave();
     setPreviewChrome(tab === 'preview');
