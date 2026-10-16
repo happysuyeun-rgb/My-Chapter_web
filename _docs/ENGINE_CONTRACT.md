@@ -448,7 +448,7 @@ Phase 16 전까지:
 
 - Library/New-book/Editor를 셸로 감싸기
 - `/__new-book`을 S09에서만 호출
-- parse-only TARGET API 추가 (기존 create 유지)
+- parse-only `POST /__parse` 유지 (기존 create 유지)
 - `book.css` 토큰 세트 추가
 - blocks 타입 소수 추가
 - 제품에서 History/고급 Export 숨김
