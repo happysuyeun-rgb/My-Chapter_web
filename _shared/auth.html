@@ -29,7 +29,7 @@
 </head>
 <body>
 <main class="card">
-  <div class="brand"><b>차곡</b><a href="/">서재로 돌아가기</a></div>
+  <div class="brand"><b>차곡</b><a href="/">홈으로</a></div>
   <h1 id="title">로그인</h1>
   <p class="lead" id="lead">계정으로 로그인하면 이후 내 책을 계정과 연결할 수 있습니다.</p>
   <div class="tabs" role="tablist" aria-label="계정">
@@ -60,6 +60,7 @@
   const password = $('#password');
   const submit = $('#submit');
   const message = $('#message');
+  const returnTo = ChagokAuth.getReturnTo();
 
   function setMessage(text, error = false) {
     message.textContent = text || '';
@@ -91,13 +92,13 @@
       if (mode === 'signup') {
         const data = await ChagokAuth.signUp(email.value, password.value);
         if (data.session) {
-          location.href = '/';
+          location.href = returnTo;
           return;
         }
         setMessage('가입 요청이 완료되었습니다. 확인 이메일이 필요한 설정이라면 메일의 안내를 완료한 뒤 로그인해 주세요.');
       } else {
         await ChagokAuth.signIn(email.value, password.value);
-        location.href = '/';
+        location.href = returnTo;
       }
     } catch (err) {
       setMessage(err && err.message ? err.message : String(err), true);
@@ -107,7 +108,7 @@
   });
 
   ChagokAuth.getSession().then((session) => {
-    if (session) setMessage('이미 로그인되어 있습니다. 서재로 돌아가도 됩니다.');
+    if (session) location.href = returnTo;
   }).catch((err) => setMessage(err.message || String(err), true));
 })();
 </script>
