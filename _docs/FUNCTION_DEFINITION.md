@@ -123,7 +123,7 @@
 | FD-EDIT-04 | 원고 | Autosave | 변경 내용을 일정 시간 후 자동 저장한다. | Yes |
 | FD-EDIT-05 | 원고 | Recovery | 비정상 종료 시 로컬 복구본을 제안한다. | Yes |
 | FD-DESIGN-01 | 디자인 | Theme 변경 | Practical/Minimal 디자인을 변경한다. | Yes |
-| FD-DESIGN-02 | 디자인 | 읽기 설정 | 본문 크기·행간·여백을 조정한다. | Yes |
+| FD-DESIGN-02 | 디자인 | 세부 읽기 설정 | 본문 크기·행간·여백을 직접 조정한다. | Later |
 | FD-COVER-01 | 표지 | 이미지 관리 | 표지 이미지를 추가·교체·제거한다. | Yes |
 | FD-COVER-02 | 표지 | 표지 정보 | 제목·부제·저자를 편집한다. | Yes |
 | FD-PREVIEW-01 | 미리보기 | Single | 한 쪽씩 미리본다. | Yes |
@@ -380,9 +380,11 @@ Workspace
 - 구조 변경
 - `book.html` 의미 변경
 
-### FD-DESIGN-02 읽기 설정
+### FD-DESIGN-02 세부 읽기 설정 — Later
 
-MVP 조정 항목:
+현재 Workspace Design 탭은 Practical / Minimal Theme 선택·적용만 제공한다.
+
+직접 조정 컨트롤은 Later:
 - 본문 글자 크기
 - 행간
 - 쪽 여백
