@@ -547,7 +547,7 @@ Phase 15에서 추가되는 것은 이 Wizard API 자체가 아니라 Entry/Auth
 | 제목 없음 | 책 제목을 입력해 주세요 | 400 |
 | 상태 오류 | 알 수 없는 상태입니다 | 400 |
 | 색 오류 | 고를 수 없는 색입니다 | 400 |
-| 표지 형식 | PNG, JPEG, WebP 이미지만 | 400 |
+| 표지 형식 | PNG, JPEG, WebP, AVIF 이미지만 | 400 |
 | 미지원 Import | TXT, MD, PDF, DOCX 파일만 | 400/Error |
 | 본문 없음 | 파일에서 본문 글을 찾지 못했습니다 | Error |
 | 스캔 PDF | PDF에서 글자를 찾지 못했습니다… | Error |
