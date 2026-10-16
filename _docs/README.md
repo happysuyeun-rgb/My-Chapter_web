@@ -15,19 +15,20 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 
 ```text
 1. MY_CHAPTER_PRODUCT_SPEC.md
-2. _docs/IA.md
-3. _docs/TASK_FLOW.md
-4. _docs/FUNCTION_DEFINITION.md
-5. _docs/FUNCTION_SPEC.md
-6. _docs/SCREEN_DESIGN.md
-7. _docs/SCREEN_SPEC.md
-8. _docs/API_SPEC.md
-9. _docs/DATA_SPEC.md
-10. _docs/ENGINE_CONTRACT.md
-11. _docs/QA_ACCEPTANCE.md
-12. _docs/IMPLEMENTATION_PLAN.md
-13. active Phase document
-14. current audit / release evidence
+2. _docs/SERVICE_POLICY.md
+3. _docs/IA.md
+4. _docs/TASK_FLOW.md
+5. _docs/FUNCTION_DEFINITION.md
+6. _docs/FUNCTION_SPEC.md
+7. _docs/SCREEN_DESIGN.md
+8. _docs/SCREEN_SPEC.md
+9. _docs/API_SPEC.md
+10. _docs/DATA_SPEC.md
+11. _docs/ENGINE_CONTRACT.md
+12. _docs/QA_ACCEPTANCE.md
+13. _docs/IMPLEMENTATION_PLAN.md
+14. active Phase document
+15. current audit / release evidence
 ```
 
 ---
@@ -37,6 +38,7 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 | Document | Role | Version / State |
 |---|---|---|
 | `MY_CHAPTER_PRODUCT_SPEC.md` | Product + Development baseline | v1.4 / CURRENT |
+| `_docs/SERVICE_POLICY.md` | 사용자-facing 서비스 범위 / 권리 / 저장 / 출력 / AI 정책 | v1.0 / CURRENT |
 | `_docs/IA.md` | Information Architecture | v1.0 / CURRENT |
 | `_docs/TASK_FLOW.md` | User task flow | v1.0 / CURRENT |
 | `_docs/FUNCTION_DEFINITION.md` | 기능 범위 정의 | v1.0 / CURRENT |
