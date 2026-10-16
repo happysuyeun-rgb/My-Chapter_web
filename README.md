@@ -35,3 +35,8 @@ JSON 요청 본문은 기본 32MB로 제한한다. 로컬 환경에서 조정이
 | `design_handoff_portfolio_ebook/` | Frozen reference. 제품 코드가 아님 |
 
 `books/**/source/` 와 생성된 PDF는 개인 원고·캐시다. 공개 저장소에 다시 올리지 않는다. 현재 브랜치에서 제거해도 Git 과거 이력에 남아 있을 수 있으므로, 외부 공개 전에는 저장소 비공개 전환과 history 정리를 별도로 수행해야 한다.
+
+
+## Documentation
+
+현재 제품/개발 기준과 문서 우선순위는 `_docs/README.md`에서 시작한다.
