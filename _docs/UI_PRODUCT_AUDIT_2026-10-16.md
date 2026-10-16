@@ -15,14 +15,16 @@
 Local MVP 핵심 흐름(Landing → Library → Wizard → Workspace → Preview → PDF)은 **실제로 동작**하며, Phase 15A Local/Guest 진입도 자연스럽다. 엔진·보호 책·recovery 계약은 유지된다.
 
 완성도 점수 (초기 감사): **84 / 100**  
-완성도 점수 (후속 polish 후): **87 / 100**
+완성도 점수 (Post-15A polish): **87 / 100**  
+완성도 점수 (Final P2 polish): **89 / 100**
 
 판정:
 
-- **포트폴리오 공개: YES (조건부)** — Local MVP 데모로 충분
+- **포트폴리오 공개: YES** — Local MVP 데모로 충분
+- **Local MVP UI 개발 종료: YES** — P0/P1 없음, 계획된 P2 마감 완료
 - **P0: 0**
-- **P1: 0** (Preview mode bar → RESOLVED)
-- 남은 이슈는 P2 polish / Idea / HOLD
+- **P1: 0**
+- 남은 항목은 Idea / HOLD 또는 미세 backlog만
 
 ---
 
@@ -209,14 +211,15 @@ horizontal overflow는 주요 화면에서 관찰되지 않음.
 
 ### P2
 
-1. Landing Hero `로그인 준비 중` 중복 → **RESOLVED** (header 1회만)
-2. Library legacy create dialog → **RESOLVED** (`openDialog` 미호출 dead DOM/JS 제거, 진입은 `/__wizard` 유지)
-3. Doc drift Phase 15A status → **RESOLVED** (`_docs/README.md`, `IA.md`, `TASK_FLOW.md`)
-4. Auth Local 문구의 `Supabase` 기술 용어 — backlog
-5. Wizard S07 CTA copy 긴장 (`이 구조로 책 만들기` → S08) — backlog (이번 작업에서 수정 안 함)
-6. Wizard Theme 좁은 폭 카드 잘림 — backlog
-7. Workspace/Library mobile header density — backlog
-8. Design sample pane이 좁은 폭에서 아래로 밀림 — backlog
+1. Landing Hero `로그인 준비 중` 중복 → **RESOLVED**
+2. Library legacy create dialog → **RESOLVED**
+3. Doc drift Phase 15A status → **RESOLVED**
+4. Auth Local `Supabase` 용어 → **RESOLVED** (사용자 문구로 교체)
+5. Wizard S07 CTA → **RESOLVED** (`디자인 선택하기`)
+6. Wizard Theme mobile density → **RESOLVED**
+7. Workspace/Library mobile header density → **RESOLVED**
+8. SCREEN_DESIGN Product Preview doc drift → **RESOLVED**
+9. Design sample pane이 좁은 폭에서 아래로 밀림 — backlog (기능 영향 없음, 의도적 1열 스택)
 
 ### Idea / HOLD
 
@@ -233,10 +236,10 @@ horizontal overflow는 주요 화면에서 관찰되지 않음.
 |---|---|---|
 | `_docs/README.md` Phase 15A status | B | **RESOLVED** |
 | `IA.md` / `TASK_FLOW.md` “`/` = Library” phase note | B | **RESOLVED** |
-| IA Landing Product Preview 구역 | B | KEEP — MVP 축소 허용, SCREEN_DESIGN 후속 |
-| TASK_FLOW Auth-first happy path | B/C | KEEP — Local skip은 제품 결정, Configured path는 유지 |
-| SCREEN_DESIGN Product Preview wireframe | B | KEEP — 후속 wireframe sync |
-| S07 CTA 문구 | C/정상 | KEEP — SCREEN_SPEC·QA 계약 |
+| IA Landing Product Preview 구역 | B | **RESOLVED via SCREEN_DESIGN** — MVP 축소 명시 |
+| TASK_FLOW Auth-first happy path | B/C | KEEP — Local skip은 제품 결정 |
+| SCREEN_DESIGN Product Preview wireframe | B | **RESOLVED** — value props로 sync |
+| S07 CTA 문구 | B | **RESOLVED** — `디자인 선택하기` |
 | S13 AI Cover 없음 | C | Later |
 
 ---
@@ -247,20 +250,30 @@ horizontal overflow는 주요 화면에서 관찰되지 않음.
 |---|---|
 | Preview P1 | RESOLVED |
 | Landing duplicate Local status | RESOLVED |
-| Library legacy create dialog | RESOLVED (dead code removed) |
+| Library legacy create dialog | RESOLVED |
 | Doc Phase 15A sync | RESOLVED |
-| Wizard S07 CTA | backlog (not changed) |
-| Mobile density | backlog (not changed) |
-| Revised score | **87 / 100** |
+| Revised score (then) | **87 / 100** |
 
 ---
 
-## Recommended fixes (남은 backlog)
+## Final P2 polish (2026-10-16)
 
-1. Auth Local 문구에서 `Supabase` 제거/완화
-2. Wizard S07 CTA copy polish (전체 copy 단계에서)
-3. Mobile header / Theme card density polish
-4. SCREEN_DESIGN Product Preview wireframe sync
+| Item | Result |
+|---|---|
+| Auth Local Supabase terminology | RESOLVED |
+| S07 CTA copy | RESOLVED → `디자인 선택하기` |
+| Mobile header density | RESOLVED |
+| Theme card density | RESOLVED |
+| SCREEN_DESIGN Product Preview sync | RESOLVED |
+| Revised score | **89 / 100** |
+| Local MVP UI development | **CLOSED** |
+
+---
+
+## Remaining backlog (not blocking)
+
+1. Design sample pane narrow-width stack (의도된 1열, polish only)
+2. Idea/HOLD: Auth Runtime, Ownership, AI Cover, Payment
 
 ---
 
@@ -283,16 +296,22 @@ horizontal overflow는 주요 화면에서 관찰되지 않음.
 - Auth Runtime / cloud sync는 “다음 단계”로 명시
 - 보호 책(168p) 무결성 유지
 
+**Local MVP UI 추가 개발 권장: NO**  
+P0/P1이 없고 계획된 P2를 마감했으므로 UI 기능 개발은 여기서 종료한다.
+
 ---
 
-## Changes in this audit / follow-up
+## Changes in this audit / follow-up / final P2
 
 | File | Change |
 |---|---|
-| `_shared/workspace.css` | Preview chrome을 iframe 위로 (`order: -1`) |
-| `_shared/landing.js` | Local mode Hero status 숨김, header 1회만 |
-| `_shared/library.html` | unused `#new-dialog` + create handlers 제거 |
-| `_docs/README.md` / `IA.md` / `TASK_FLOW.md` | Phase 15A COMPLETE + HOLD sync |
-| `_docs/UI_PRODUCT_AUDIT_2026-10-16.md` | 본 감사 + follow-up 상태 |
+| `_shared/workspace.css` | Preview chrome 상단 + mobile header/design density |
+| `_shared/landing.js` | Local Hero status 숨김 |
+| `_shared/library.html` | legacy create dialog 제거 + mobile header density |
+| `_shared/auth.html` | Local 사용자 문구 |
+| `_shared/wizard.html` / `wizard.js` / `wizard.css` | S07 CTA + Theme mobile density |
+| `_docs/README.md` / `IA.md` / `TASK_FLOW.md` | Phase 15A COMPLETE |
+| `_docs/SCREEN_DESIGN.md` / `SCREEN_SPEC.md` / `FUNCTION_SPEC.md` / `QA_ACCEPTANCE.md` | CTA + Landing/Auth sync |
+| `_docs/UI_PRODUCT_AUDIT_2026-10-16.md` | 감사 + Final P2 상태 |
 
 엔진 / 보호 책 / recovery keys / Supabase 설정 변경 없음.
