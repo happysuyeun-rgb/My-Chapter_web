@@ -151,16 +151,30 @@ mychapter:editor-recovery:v1:<file>
 
 ---
 
-## 7. Next Document
+## 7. Payment Implementation Plan
 
-다음 Commerce 문서 작업 후보:
+완료:
 
 ~~~text
-_docs/PAYMENT_IMPLEMENTATION_PLAN.md
+_docs/PAYMENT_IMPLEMENTATION_PLAN.md v1.0
 ~~~
 
-목적은 **실행 순서 / dependency / Go-Live Gate 정의**다.
+정의 완료:
 
-이 문서를 작성해도 Payment 구현 승인이 되는 것은 아니다.
+- Phase 15B → Phase 16 → Authorized PDF Export → Payment 순서
+- Provider / Legal / Ops Gate
+- Commerce schema/API/UI build order
+- Reconciliation / Refund / Compensation
+- Full Commerce QA
+- Rollback / Observability
+- Staged Launch
 
-현재 제품 우선순위는 먼저 Portfolio Case Study / Demo / 사용자 검증이다.
+이 문서가 생겼어도 Payment 구현 승인이 된 것은 아니다.
+
+현재 제품 우선순위는 계속:
+
+~~~text
+Portfolio Case Study
+→ Representative Demo
+→ 사용자 3~5명 검증
+~~~
