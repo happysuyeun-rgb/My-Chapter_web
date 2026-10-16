@@ -2,10 +2,11 @@
 
 - Product: 차곡
 - Stage: Development Specification — QA / Acceptance
-- Version: 1.0
-- Date: 2026-10-03
-- Basis: Product Spec v1.3, FUNCTION_SPEC, SCREEN_SPEC, ENGINE_CONTRACT, DATA_SPEC, API_SPEC, M0.5-A/B
-- Pair: 기존 명세만 참조. 이 문서가 Architecture를 바꾸지 않는다.
+- Version: **1.1**
+- Date: 2026-10-16
+- Status: **CURRENT / IMPLEMENTATION BASELINE**
+- Basis: Product Spec v1.4, FUNCTION_SPEC v1.1, SCREEN_SPEC v1.1, ENGINE_CONTRACT v1.1, DATA_SPEC v1.1, API_SPEC v1.1, M0.5-A/B, Phase 13~15
+- Pair: 현재 상세 명세와 활성 Phase 문서를 참조한다. 이 문서가 Architecture를 바꾸지 않는다.
 
 MVP를 구현한 뒤 **완료되었다고 판단하는 검수 기준**이다. 테스트 코드·자동화·구현은 이 문서의 범위가 아니다.
 
@@ -23,7 +24,8 @@ QA가 요구하지 않는 것:
 - Paged.js / Viewer / PDF / Editor 교체
 - 168쪽 설계본 Migration
 - Structured Book JSON
-- React / Vite / Supabase
+- React / Vite Core 전환
+- Supabase DB / Storage / Ownership을 Phase 15 QA에서 강제
 - WCAG 전체 인증
 - Preview와 PDF의 픽셀 동일
 - 임의 ms 성능 목표
@@ -34,9 +36,9 @@ QA가 요구하지 않는 것:
 
 | 구분 | 의미 | 출시 조건 |
 |---|---|---|
-| CURRENT Regression | 지금 엔진이 이미 하는 일. Product WRAP 후에도 동일해야 함 | 포함 |
-| TARGET_MVP Acceptance | 아직 없는 제품 흐름 (S04–S09, S11, S16 등) | 포함 |
-| LATER | Landing, Auth, AI Cover, Pricing, Auto Save, History UI, Print/EPUB/ZIP | 제외 |
+| CURRENT Regression | 기존 엔진 + 이미 구현된 Phase 1~14 기능 | 포함 |
+| PHASE15 Acceptance | Landing / Auth / Entry Routing / session | Phase 15 merge gate |
+| LATER | AI Cover, Pricing/Payment, History UI, Print/EPUB/ZIP 제품 노출 | 제외 |
 
 **검증 책 (읽기 전용):** `books/내 포트폴리오, AI로 직접 만들기`
 
@@ -103,7 +105,9 @@ QA-<AREA>-<NN>
 7. **Data Loss** (QA-LOSS-01…07) 통과
 8. 핵심 CURRENT Regression: 목록·열기·저장·블록·Viewer 세 모드·History snapshot (제품 UI HIDE여도 엔진)
 
-Gate에 넣지 않음: S01/S02/S13/S17, Auto Save, History 제품 UI, Print/EPUB/ZIP, AI Cover, Safari 보장, 픽셀 PDF 동일, 가짜 % 외의 시각 polish.
+Gate에 넣지 않음: S13/S17, History 제품 UI, Print/EPUB/ZIP 제품 노출, AI Cover, Safari 보장, 픽셀 PDF 동일, 가짜 % 외의 시각 polish.
+
+**현재 추가 Gate:** Phase 13 Wizard Recovery와 Phase 14 Editor Autosave/Recovery는 회귀 필수. Phase 15 branch는 Landing/Auth/Entry Routing QA까지 통과해야 merge 가능.
 
 ---
 
@@ -114,7 +118,7 @@ Gate에 넣지 않음: S01/S02/S13/S17, Auto Save, History 제품 UI, Print/EPUB
 - **Test Name:** 원고 → 구조 → 디자인 → 표지 → PDF
 - **Related Screen:** S03 → S04 → S05 → S06 → S07 → S08 → S09 → S10 → S11 → S12 → S14 → S15 → S16
 - **Related Function ID:** F-LIB-03, F-NEW-01, F-IMPORT-01, F-IMPORT-04, F-META-01, F-STRUCT-01, F-STRUCT-06, F-THEME-02, F-GEN-01, F-GEN-03, F-WS-01, F-THEME-04, F-COVER-02, F-PREVIEW-01, F-EXPORT-01, F-DONE-01
-- **Related API:** (없음 S04) → API-IMPORT-02 TARGET → 세션 → API-STRUCT-02 TARGET → 세션 → API-BOOK-03 WRAP (S09만) → API-BOOK-11 → API-THEME-01 TARGET 또는 CSS write → API-STATE-01 → Viewer JS → API-EXPORT-01
+- **Related API:** client state → API-IMPORT-02 `/__parse` → client structure state → API-BOOK-03 (S09만) → API-BOOK-11 → API-THEME-01..02 → API-STATE-01 → Viewer JS → API-EXPORT-01
 - **Priority:** P0
 - **Preconditions:** 서버 기동. 기존 168쪽 책 존재. 테스트용 TXT/MD 원고 1개. Chrome 사용 가능
 - **Test Data:** 장 2개 이상·소제목 있는 짧은 원고. 제목 `QA E2E 테스트`. 테마 Minimal. 표지 PNG 1장
@@ -1362,9 +1366,159 @@ Preview와 PDF는 PARTIAL shared rules. 픽셀 동일 요구 없음.
 
 ---
 
-## 19. History Regression QA
+## 19. Wizard Recovery QA
 
-제품 UI HIDE 가능. 엔진 Route는 CURRENT. Auto Save = Later (이 절에서 요구하지 않음).
+### QA-NEW-R01 Draft 새로고침 복구
+
+- **Related Screen:** S04~S08
+- **Related Function:** F-NEW-03, F-NEW-04
+- **Priority:** P1
+- **Steps:** Wizard 중 메타/구조/Theme 진행 → 새로고침 → 다시 진입
+- **Expected:** “작성 중이던 책이 있습니다.” 표시. 이어서 하기 선택 시 이전 step/state 복구
+- **Failure:** draft 유실 또는 새 book folder 생성
+- **Automatable:** Manual + storage assertion
+
+### QA-NEW-R02 같은 파일 재선택
+
+- **Related Function:** F-NEW-05
+- **Priority:** P1
+- **Steps:** 파일 Import → 구조 수정 → 새로고침 → 같은 파일 재선택
+- **Expected:** fingerprint 일치, parseResult/structureDraft/confirmed 상태 보존
+- **Failure:** 구조 초기화 또는 다른 파일로 오인
+
+### QA-NEW-R03 다른 파일 재선택
+
+- **Priority:** P0
+- **Steps:** recovery 후 다른 fingerprint 파일 선택
+- **Expected:** 기존 parse/structure clear 후 재분석, “다른 파일이라 다시 분석합니다…” 처리
+- **Failure:** 이전 파일 구조를 새 파일에 적용
+
+### QA-NEW-R04 Draft 안전성
+
+- **Priority:** P0
+- **Expected:** File object/base64 미저장, TTL 7일, corrupt/expired draft 안전 제거, 생성 실패 시 draft 보존, 생성 성공/새로 시작 시 clear
+- **Failure:** localStorage 예외로 Wizard 중단 또는 사용자 파일 데이터 과도 저장
+
+---
+
+## 20. Editor Autosave / Recovery QA
+
+### QA-EDITOR-R01 Autosave
+
+- **Related Screen:** S10
+- **Related Function:** F-EDITOR-09
+- **Related API:** API-EDIT-01
+- **Priority:** P0
+- **Steps:** 문장 수정 후 별도 Save 없이 대기
+- **Expected:** 약 1500ms debounce 후 저장. 재오픈 시 최신 문장
+- **Failure:** 미저장 또는 매 키 입력마다 commit
+
+### QA-EDITOR-R02 Save race
+
+- **Priority:** P0
+- **Steps:** autosave 요청 진행 중 같은 eid를 다시 수정
+- **Expected:** 첫 응답이 두 번째 수정을 clean 처리하지 않음. pending 수정이 다음 save로 이어짐
+- **Failure:** 최신 수정 손실
+
+### QA-EDITOR-R03 Recovery match
+
+- **Related Function:** F-EDITOR-10
+- **Priority:** P0
+- **Steps:** dirty 생성 → recovery write → 저장 전 종료 → 동일 baseVersion으로 재진입
+- **Expected:** 복구 제안. 복구하기 → dirty 복원 → autosave
+- **Failure:** 자동 덮어쓰기 또는 recovery 유실
+
+### QA-EDITOR-R04 Stale recovery
+
+- **Priority:** P0
+- **Steps:** recovery 작성 후 server book version 변경 → 재진입
+- **Expected:** 자동 적용 금지. 현재 서버 내용 유지/복구 내용 버리기 선택
+- **Failure:** stale draft 자동 적용
+
+### QA-EDITOR-R05 409 Conflict
+
+- **Related Function:** F-EDITOR-11
+- **Priority:** P0
+- **Steps:** version 충돌 유도
+- **Expected:** autosave pause, dirty/recovery 보존, 경고 1회, reload 전 auto/manual 재전송 금지
+- **Failure:** 반복 재전송 또는 최신 내용 덮어쓰기
+
+### QA-EDITOR-R06 Block/Structure flush
+
+- **Priority:** P0
+- **Steps:** dirty 상태에서 block/structure operation
+- **Expected:** dirty flush 먼저. save 실패하면 operation 중단
+- **Failure:** save 실패 후 구조 operation 진행
+
+---
+
+## 21. Phase 15 Landing / Auth / Entry Routing QA
+
+> 전용 `Chagok Web` Supabase 연결 후 실행한다. 기존 MyChapter 앱 Supabase project는 사용하지 않는다.
+
+### QA-AUTH-01 Landing route
+
+- **Priority:** P1
+- **Expected:** `GET /` → S01 Landing
+- **Failure:** Library가 `/`에 계속 노출
+
+### QA-AUTH-02 Library route
+
+- **Priority:** P1
+- **Expected:** `GET /library` → 기존 S03 Library 기능 그대로
+- **Failure:** 목록/복제/휴지통/검색 회귀
+
+### QA-AUTH-03 회원가입 / 로그인
+
+- **Related Function:** F-AUTH-01, F-AUTH-02
+- **Priority:** P1
+- **Expected:** 신규 이메일 회원가입, 로그인 성공
+- **Failure:** 잘못된 Supabase project 접근 또는 Auth UI 성공 오판
+
+### QA-AUTH-04 Session persistence
+
+- **Related Function:** F-AUTH-03
+- **Priority:** P1
+- **Expected:** 새로고침 후 session 유지, Library에 이메일 표시
+- **Failure:** 매 새로고침 로그아웃
+
+### QA-AUTH-05 Logout
+
+- **Related Function:** F-AUTH-04
+- **Priority:** P1
+- **Expected:** signOut 후 `/` Landing. local books/recovery 삭제 없음
+- **Failure:** book/recovery cleanup 또는 Library 잔류
+
+### QA-AUTH-06 returnTo
+
+- **Related Function:** F-AUTH-05
+- **Priority:** P0
+- **Expected:** `/library`, `/__wizard`, 내부 `/__workspace?... ` 허용. 외부 `http://`, `https://`, `//` 거부 후 `/library` fallback
+- **Failure:** Open Redirect
+
+### QA-AUTH-07 Landing CTA by session
+
+- **Priority:** P1
+- **Expected:** 비로그인 = 로그인/새 책 만들기, 로그인 = 내 서재/새 책 만들기. 로그인 사용자를 자동 Library redirect하지 않음
+- **Failure:** CTA 상태 오류 또는 강제 redirect
+
+### QA-AUTH-08 Wrong Supabase project guard
+
+- **Priority:** P0
+- **Expected:** 차곡 Auth 코드/빌드에 앱용 project ref `rdrafwfdwfzgcfiqkgug` 없음. release check PASS
+- **Failure:** 앱용 project 접근
+
+### QA-AUTH-09 Existing engine regression
+
+- **Priority:** P0
+- **Expected:** Wizard / Editor / Autosave / Recovery / Preview / PDF / 보호 책 hash 모두 불변
+- **Failure:** Auth/route 변경이 book engine에 영향
+
+---
+
+## 22. History Regression QA
+
+제품 UI HIDE 가능. 엔진 Route는 CURRENT. Phase 14 Auto Save가 edit history를 과도하게 폭증시키지 않는지 회귀 확인한다.
 
 테스트 책은 사본.
 
@@ -1379,7 +1533,7 @@ Preview와 PDF는 PARTIAL shared rules. 픽셀 동일 요구 없음.
 - **Steps:** 저장. `.history/*__edit.html` 또는 `GET /__history`
 - **Expected Result:** 직전 HTML 스냅샷. reason=edit
 - **Failure Condition:** 스냅샷 없음 (commit 경로 제거)
-- **Regression Risk:** Auto Save 선도입
+- **Regression Risk:** Auto Save debounce/commit 변경
 - **Manual / Automatable:** Automatable
 - **MVP / Later:** MVP 엔진 — CURRENT / 제품 Later
 - **Test Name:** edit history
@@ -1422,7 +1576,7 @@ Preview와 PDF는 PARTIAL shared rules. 픽셀 동일 요구 없음.
 
 ---
 
-## 20. Existing 168-page Book Regression
+## 23. Existing 168-page Book Regression
 
 대상: `books/내 포트폴리오, AI로 직접 만들기`
 
@@ -1524,7 +1678,7 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 
 ---
 
-## 21. Data Loss Prevention
+## 24. Data Loss Prevention
 
 모두 P0. Gate 항목.
 
@@ -1558,7 +1712,7 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 
 ---
 
-## 22. Performance / Scale
+## 25. Performance / Scale
 
 임의 ms SLA 없음. **실행 불가 수준의 Freeze / Crash / Timeout / 무응답**이면 FAIL.
 
@@ -1628,7 +1782,7 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 
 ---
 
-## 23. Browser / Accessibility
+## 26. Browser / Accessibility
 
 제품 명세에 공식 브라우저 매트릭스가 없다. **새 보장 범위를 만들지 않는다.**
 
@@ -1708,7 +1862,7 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 
 ---
 
-## 24. Negative / Error Cases
+## 27. Negative / Error Cases
 
 현재 엔진 메시지를 우선한다. 새 Error Code를 발명하지 않음.
 
@@ -1810,7 +1964,7 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 
 ---
 
-## 25. QA Traceability Matrix
+## 28. QA Traceability Matrix
 
 | QA ID | Screen | Function | API | Priority | MVP/Later | Manual/Auto |
 |---|---|---|---|---|---|---|
@@ -1918,11 +2072,13 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 | QA-NEG-05 | S12 | F-COVER-02 | API-BOOK-06 | P2 | MVP CURRENT | Manual |
 | QA-NEG-06 | S03 | F-LIB-06 | API-BOOK-09 | P2 | MVP CURRENT | Auto |
 
-LATER (출시 제외, 케이스 없음): S01 F-LAND-01, S02 F-AUTH-01, S13 F-AICOVER-01, S17 F-PAY-01, F-EDITOR-09 Auto Save.
+CURRENT 추가 Gate: S01/F-LAND-01, S02/F-AUTH-01..05, F-NEW-03..05 Wizard Recovery, F-EDITOR-09..11 Autosave/Recovery.
+
+LATER (출시 제외): S13 F-AICOVER-01, S17 F-PAY-01, History 제품 UI, Print/EPUB/ZIP 제품 노출.
 
 ---
 
-## 26. Known Limitations
+## 29. Known Limitations
 
 QA가 실패로 보지 않는 현재 엔진/제품 한계. Architecture를 바꾸라는 뜻이 아니다.
 
@@ -1932,16 +2088,17 @@ QA가 실패로 보지 않는 현재 엔진/제품 한계. Architecture를 바�
 4. **Import는 기본 구조만.** prompt/checklist/figure/STEP/flow 미생성은 PASS.
 5. **blocks는 10종.** 설계본 28종 삽입 불가는 PASS. 기존 HTML 삭제가 아니면 FAIL 아님.
 6. **검증 도서에 sidecar/`book.json`이 없을 수 있다.** placeholder·상태 없음은 PASS.
-7. **Theme id Persistence는 미정.** 실체는 `book.css`. id 파일 없음은 CURRENT PASS.
-8. **S07/parse-only는 TARGET_MVP.** 구현 전에는 CURRENT `#new-book` 즉시 생성이 코드 사실이다. **제품 완료 판정은 TARGET을 기준으로 한다.**
+7. **Theme id는 book.json이 아니라 book.css 주석에 있음.** `GET/POST /__theme` 현재 계약.
+8. **S07/parse-only는 CURRENT.** `POST /__parse` + client structure state + S09 write.
 9. **`import` history reason은 create가 호출하지 않음.** 없어도 엔진 FAIL 아님.
 10. **Live Reload / watch는 sidecar·book.json을 무시.** 그림만 바꿔도 HTML reload 없음.
-11. **Auto Save 없음.** 수동 저장만. History 폭증 테스트를 MVP에 넣지 않음.
-12. **Print / EPUB / ZIP / Lint / History UI**는 HIDE. 삭제가 아니면 PASS.
+11. **Autosave/Recovery는 CURRENT.** debounce와 conflict-safe 동작을 회귀 기준으로 본다.
+12. **Auth는 Phase 15에서 session만.** Book ownership / server authorization이 없는 것은 현재 한계이며 Phase 16 범위.
+13. **Print / EPUB / ZIP / Lint / History UI**는 HIDE. 삭제가 아니면 PASS.
 
 ---
 
-## 27. Release Checklist
+## 30. Release Checklist
 
 구현 후 이 목록을 위에서 아래로 닫는다. 새 수치를 추가하지 않는다.
 
@@ -1954,7 +2111,9 @@ QA가 실패로 보지 않는 현재 엔진/제품 한계. Architecture를 바�
 - [ ] 붙여넣기·미지원·빈 본문·스캔 PDF (QA-IMPORT-05…08)
 - [ ] Practical / Minimal. HTML 의미 불변 (QA-THEME-02, QA-THEME-04)
 - [ ] Theme 후 Preview 재나눔 (QA-THEME-05)
-- [ ] Editor 저장·409·eid·블록·구조 (QA-EDITOR-01…05, QA-EDITOR-07)
+- [ ] Editor 저장·eid·블록·구조 기존 회귀
+- [ ] Wizard Draft Recovery / 같은 파일·다른 파일 / TTL (QA-NEW-R01…04)
+- [ ] Editor Autosave / save race / recovery / 409 conflict / flush (QA-EDITOR-R01…06)
 - [ ] Image slot id ↔ sidecar (QA-COVER-05)
 - [ ] Viewer Single / Spread / Grid (QA-PREVIEW-01…03, QA-REGRESSION-02)
 - [ ] 전자책 PDF. HTML 불변 (QA-EXPORT-01, QA-LOSS-07)
@@ -1963,7 +2122,12 @@ QA가 실패로 보지 않는 현재 엔진/제품 한계. Architecture를 바�
 - [ ] History 엔진 snapshot/restore (QA-HIST-01…03) — UI 숨김 허용
 - [ ] Print/EPUB/ZIP Route 삭제 아님 (QA-EXPORT-05)
 - [ ] Chrome 또는 Edge에서 핵심 흐름 (QA-BROWSER-01)
-- [ ] Data Loss 7항 (QA-LOSS-01…07)
+- [ ] Data Loss 기존 항목 + recovery/auth 안전 규칙
+- [ ] Phase 15: `/` Landing, `/library` Library
+- [ ] Phase 15: 회원가입/로그인/session refresh/logout
+- [ ] Phase 15: returnTo 내부 경로 + external redirect 차단
+- [ ] Phase 15: 앱용 MyChapter Supabase project ref 미사용
+- [ ] Phase 15: Wizard/Editor/Preview/PDF 회귀 + 보호 책 hash 불변
 
 닫지 않아도 출시 가능:
 
@@ -1971,7 +2135,9 @@ QA가 실패로 보지 않는 현재 엔진/제품 한계. Architecture를 바�
 - A11Y P2
 - 검색/정렬 P2
 - History 제품 화면
-- Auto Save / AI Cover / Auth / Payment
+- AI Cover
+- Pricing / Payment
+- Phase 16 Ownership / DB / Storage / RLS
 
 이 문서로 Development Specification QA는 끝난다. Implementation Plan·테스트 코드·구현은 포함하지 않는다.
 
