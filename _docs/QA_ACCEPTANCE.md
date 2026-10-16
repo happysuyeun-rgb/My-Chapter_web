@@ -1,6 +1,6 @@
-# My Chapter QA & Acceptance Specification
+# 차곡 QA & Acceptance Specification
 
-- Product: My Chapter
+- Product: 차곡
 - Stage: Development Specification — QA / Acceptance
 - Version: 1.0
 - Date: 2026-10-03
