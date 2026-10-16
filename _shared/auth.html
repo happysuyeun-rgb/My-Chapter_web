@@ -89,14 +89,14 @@
     setMessage(mode === 'signup' ? '계정을 만드는 중…' : '로그인 중…');
     try {
       if (mode === 'signup') {
-        const data = await MyChapterAuth.signUp(email.value, password.value);
+        const data = await ChagokAuth.signUp(email.value, password.value);
         if (data.session) {
           location.href = '/';
           return;
         }
         setMessage('가입 요청이 완료되었습니다. 확인 이메일이 필요한 설정이라면 메일의 안내를 완료한 뒤 로그인해 주세요.');
       } else {
-        await MyChapterAuth.signIn(email.value, password.value);
+        await ChagokAuth.signIn(email.value, password.value);
         location.href = '/';
       }
     } catch (err) {
@@ -106,7 +106,7 @@
     }
   });
 
-  MyChapterAuth.getSession().then((session) => {
+  ChagokAuth.getSession().then((session) => {
     if (session) setMessage('이미 로그인되어 있습니다. 서재로 돌아가도 됩니다.');
   }).catch((err) => setMessage(err.message || String(err), true));
 })();
