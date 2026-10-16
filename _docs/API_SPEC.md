@@ -1,6 +1,6 @@
-# My Chapter API Specification
+# 차곡 API Specification
 
-- Product: My Chapter
+- Product: 차곡
 - Stage: Development Specification — API
 - Version: 1.0
 - Date: 2026-10-03
