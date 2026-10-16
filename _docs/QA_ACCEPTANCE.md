@@ -2,10 +2,10 @@
 
 - Product: 차곡
 - Stage: Development Specification — QA / Acceptance
-- Version: **1.1**
+- Version: **1.2**
 - Date: 2026-10-16
 - Status: **CURRENT / IMPLEMENTATION BASELINE**
-- Basis: Product Spec v1.4, FUNCTION_SPEC v1.1, SCREEN_SPEC v1.1, ENGINE_CONTRACT v1.1, DATA_SPEC v1.1, API_SPEC v1.1, M0.5-A/B, Phase 13~15
+- Basis: Product Spec v1.5, FUNCTION_SPEC v1.2, SCREEN_SPEC v1.2, ENGINE_CONTRACT v1.1, DATA_SPEC v1.2, API_SPEC v1.2, Payment target specs v1.1, M0.5-A/B, Phase 13~15A
 - Pair: 현재 상세 명세와 활성 Phase 문서를 참조한다. 이 문서가 Architecture를 바꾸지 않는다.
 
 MVP를 구현한 뒤 **완료되었다고 판단하는 검수 기준**이다. 테스트 코드·자동화·구현은 이 문서의 범위가 아니다.
@@ -36,9 +36,10 @@ QA가 요구하지 않는 것:
 
 | 구분 | 의미 | 출시 조건 |
 |---|---|---|
-| CURRENT Regression | 기존 엔진 + 이미 구현된 Phase 1~14 기능 | 포함 |
-| PHASE15 Acceptance | Landing / Auth / Entry Routing / session | Phase 15 merge gate |
-| LATER | AI Cover, Pricing/Payment, History UI, Print/EPUB/ZIP 제품 노출 | 제외 |
+| CURRENT Regression | 기존 엔진 + Phase 1~15A Local MVP | 포함 |
+| PHASE15B Acceptance | Real Chagok Web Auth Runtime | HOLD 해제 시 |
+| COMMERCE TARGET QA | Pricing/Payment/Entitlement/PDF authorization | 구현 후 별도 launch gate |
+| LATER | AI Cover, History UI, Print/EPUB/ZIP 제품 노출 | 제외 |
 
 **검증 책 (읽기 전용):** `books/내 포트폴리오, AI로 직접 만들기`
 
@@ -2086,7 +2087,61 @@ LATER (출시 제외): S13 F-AICOVER-01, S17 F-PAY-01, History 제품 UI, Print/
 
 ---
 
-## 29. Known Limitations
+## 29. Future Commerce Go-Live Gate — NOT CURRENT MVP
+
+Payment 구현 시 아래는 P0 launch gate다. 현재 Local MVP release gate에는 적용하지 않는다.
+
+### QA-PAY-01 Direct PDF bypass
+
+- LOCKED 책에서 UI Paywall을 우회해 `/__pdf?file=` 또는 public PDF cache URL을 직접 호출
+- **Expected:** SaaS 외부 경로에서는 PDF 획득 불가
+- **Failure:** 결제 없이 완성 PDF 다운로드 가능
+
+### QA-PAY-02 Verified payment → entitlement
+
+- Provider 결제 성공
+- **Expected:** server verification 후 Order PAID + Entitlement ACTIVE
+- **Failure:** client callback만으로 ACTIVE
+
+### QA-PAY-03 Orphan reconciliation
+
+- Payment SUCCEEDED 이후 entitlement grant를 인위적으로 실패
+- **Expected:** reconciliation이 불일치를 탐지하고 idempotent 복구 또는 admin review
+- **Failure:** 돈은 결제됐지만 영구 LOCKED
+
+### QA-PAY-04 Duplicate verify/webhook
+
+- verify와 webhook을 동시에/반복 전달
+- **Expected:** order/payment/entitlement 1회만 유효 전이
+- **Failure:** 중복 entitlement/order 상태 손상
+
+### QA-PAY-05 Refund / chargeback revoke
+
+- 환불/chargeback 확정
+- **Expected:** entitlement REFUNDED/REVOKED, 과거 구매 기록 보존
+- **Failure:** ACTIVE 유지 또는 기록 삭제
+
+### QA-PAY-06 Compensation grant
+
+- 운영자 보상 entitlement
+- **Expected:** source_type + reason + audit 필수, source_order_id 없이 가능
+- **Failure:** 가짜 주문 생성 강제 또는 audit 없음
+
+### QA-PAY-07 Canonical money
+
+- client가 임의 amount 전송
+- **Expected:** 서버 canonical KRW 정수 금액 사용
+- **Failure:** client amount 결제
+
+### QA-PAY-08 Purchase recovery
+
+- 결제 성공 직후 브라우저 종료/redirect 실패
+- **Expected:** server order/payment/entitlement로 복구
+- **Failure:** local state 없으면 구매 유실
+
+---
+
+## 30. Known Limitations
 
 QA가 실패로 보지 않는 현재 엔진/제품 한계. Architecture를 바꾸라는 뜻이 아니다.
 
@@ -2106,7 +2161,7 @@ QA가 실패로 보지 않는 현재 엔진/제품 한계. Architecture를 바�
 
 ---
 
-## 30. Release Checklist
+## 31. Release Checklist
 
 구현 후 이 목록을 위에서 아래로 닫는다. 새 수치를 추가하지 않는다.
 
@@ -2145,7 +2200,7 @@ QA가 실패로 보지 않는 현재 엔진/제품 한계. Architecture를 바�
 - 검색/정렬 P2
 - History 제품 화면
 - AI Cover
-- Pricing / Payment
+- Payment implementation (정책/Target Spec은 완료)
 - Phase 16 Ownership / DB / Storage / RLS
 
 이 문서로 Development Specification QA는 끝난다. Implementation Plan·테스트 코드·구현은 포함하지 않는다.
