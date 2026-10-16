@@ -1,11 +1,11 @@
 # 차곡 Product Spec
 
 - Product: 차곡
-- Version: **v1.4**
+- Version: **v1.5**
 - Date: 2026-10-16
 - Status: **CURRENT / Product + Development Baseline**
-- Basis: M0.5-A/B Audit + MVP Release Gate + Phase 13 Wizard Recovery + Phase 14 Editor Autosave/Recovery + Phase 15 Auth/Entry Routing
-- Prior baseline: v1.3 (2026-10-03)
+- Basis: M0.5-A/B Audit + MVP Release Gate + Phase 13 Wizard Recovery + Phase 14 Editor Autosave/Recovery + Phase 15A Local/Guest Entry + Final Local MVP UI QA + Service/Pricing Policy v1.1
+- Prior baseline: v1.4 (2026-10-16)
 - Legacy filename note: 파일명은 참조 안정성을 위해 유지하며 제품명은 차곡이다.
 
 이 문서는 제품/개발 기준이다. 구현 명세가 아니다.
@@ -13,7 +13,7 @@
 충돌 시 우선순위:
 
 1. **엔진 불변 계약** — M0.5-A/B Audit에서 확정한 KEEP / WRAP / SoT 결정
-2. **현재 제품 기준** — 본 v1.4 + `_docs/IA.md` + `_docs/TASK_FLOW.md`
+2. **현재 제품 기준** — 본 v1.5 + `_docs/SERVICE_POLICY.md` + `_docs/PRICING_POLICY.md` + `_docs/IA.md` + `_docs/TASK_FLOW.md`
 3. **현재 Phase 기준** — `_docs/PHASE_15_AUTH_FOUNDATION.md` 등 활성 Phase 문서
 4. **현재 실제 코드** — 아직 목표 구조를 구현 중일 수 있으므로 CURRENT와 TARGET을 구분
 5. 과거 가정 / Historical 문서
@@ -49,20 +49,24 @@ Audit에서 기각된 가정은 다시 살리지 않는다. Historical Release G
 
 ---
 
-## 2. What Changed in v1.4
+## 2. What Changed in v1.5
 
-v1.4는 엔진 아키텍처를 뒤집는 버전이 아니라, **Phase 13~15에서 실제로 추가된 제품 기반과 최신 Entry Flow를 상위 기준에 반영하는 버전**이다.
+v1.5는 Core Engine을 바꾸는 버전이 아니라, **Phase 15A 완료·Local MVP UI 마감·서비스/가격정책 확정 상태를 상위 Product baseline에 동기화하는 버전**이다.
 
-| Area | v1.4 |
+| Area | v1.5 |
 |---|---|
 | Product name | 현재 브랜드는 **차곡 (Chagok)**. legacy filename은 참조 안정성을 위해 유지 |
 | Wizard recovery | **IMPLEMENTED (Phase 13)** — 새로고침/탭 종료 후 draft recovery |
 | Editor autosave | **IMPLEMENTED (Phase 14)** — debounce autosave + local recovery + conflict safety |
-| Auth | **Phase 15 구현 중** — Supabase Auth client/session foundation 구현, 전용 Chagok Web 연결·runtime QA pending |
-| Entry | **TARGET 확정** — `/` Landing, `/library` Library, `/__auth` Auth |
-| Auth return | 내부 `returnTo` 지원, 잘못된 값은 `/library` fallback |
-| Ownership | **Phase 16** — Auth와 Book ownership은 아직 같은 것이 아님 |
-| Persistence | 책 Content는 여전히 local `book.html`; Supabase DB/Storage는 아직 도입하지 않음 |
+| Entry | **IMPLEMENTED (Phase 15A)** — `/` Landing, `/library` Library, `/__auth` Local/Auth foundation |
+| Local/Guest | **IMPLEMENTED / QA PASS** — Supabase 미연결에서도 Wizard → Workspace → Preview → PDF 핵심 흐름 사용 가능 |
+| Auth | Configured Auth foundation + safe `returnTo`는 유지. **Real Supabase Auth Runtime = Phase 15B HOLD** |
+| Ownership | **Phase 16 HOLD** — Auth와 Book ownership은 아직 같은 것이 아님 |
+| Persistence | 책 Content는 여전히 local `book.html`; Supabase DB/Storage는 도입하지 않음 |
+| UI quality | Final P2 polish 완료. Local MVP 기준 P0/P1 = 0 |
+| Service policy | `_docs/SERVICE_POLICY.md` v1.1 CURRENT |
+| Pricing | Free + Book Pass **₩14,900/책 1권** 정책 확정. Payment 구현은 HOLD |
+| Payment UX | `_docs/PAYMENT_PRICING_UI_REQUIREMENTS.md` v1.1 TARGET DEFINED |
 | Engine | Editor / Viewer / Paged.js / PDF / Theme 계약 유지 |
 
 ### v1.3 Historical Architecture Decisions
@@ -92,7 +96,7 @@ M0.5-A가 확정한 사실이다.
 | Stack | Node 내장 HTTP + Vanilla HTML/JS + Paged.js + Headless Chrome |
 | React | NOT USED |
 | Vite | NOT USED |
-| Supabase | **Core Engine에는 NOT USED.** Service/Auth layer에서 Phase 15 Supabase Auth를 사용하며 전용 Chagok Web 연결은 pending. DB/Storage는 아직 없음 |
+| Supabase | **Core Engine에는 NOT USED.** Phase 15A는 Auth UI/client foundation + Local fallback까지 완료. Real Chagok Web Auth Runtime은 Phase 15B HOLD, DB/Storage는 Phase 16 HOLD |
 | Content Source | `book.html` |
 | Metadata | 제목/저자 등 일부는 HTML. 서재 상태는 `book.json` |
 | Image State | `.image-slots.state.json` |
@@ -378,7 +382,7 @@ blocks layer는 필요 기능에 따라 **점진적으로** 확장한다. 28종 
 
 책 Content 지속성은 현재도 로컬 파일시스템이다. `book.html` / `book.css` / `book.json` 계약은 유지한다.
 
-Phase 15에서는 **Supabase Auth만 서비스 계층에 추가**한다. Supabase DB / Storage는 아직 사용하지 않으며, 사용자별 Book ownership과 클라우드 저장 경계는 Phase 16에서 설계한다.
+Phase 15A에서는 **Auth UI/client foundation + Local/Guest fallback**까지 구현했다. 실제 Chagok Web Supabase Runtime은 Phase 15B HOLD다. Supabase DB / Storage는 사용하지 않으며, 사용자별 Book ownership과 클라우드 저장 경계는 Phase 16 HOLD 범위다.
 
 ---
 
@@ -388,8 +392,8 @@ Phase 15에서는 **Supabase Auth만 서비스 계층에 추가**한다. Supabas
 
 | ID | Screen | Current / Target | Strategy |
 |---|---|---|---|
-| S01 | Landing | **Phase 15 IMPLEMENTED / runtime QA pending** | 신규 진입 화면. `/` |
-| S02 | Auth | **Phase 15 PARTIAL IMPLEMENTED** | `_shared/auth.html/js`; Chagok Web 연결·runtime QA pending |
+| S01 | Landing | **IMPLEMENTED (Phase 15A)** | 신규 진입 화면. `/` |
+| S02 | Auth | **LOCAL FALLBACK IMPLEMENTED / CONFIGURED FOUNDATION READY** | `_shared/auth.html/js`; Real Chagok Web runtime = Phase 15B HOLD |
 | S03 | Library | **IMPLEMENTED / `/library` route current** | 기존 서재 KEEP / WRAP |
 | S04 | New Book Method | **IMPLEMENTED** | Wizard |
 | S05 | Manuscript Input | **IMPLEMENTED** | TXT / MD / PDF / DOCX / paste |
@@ -404,7 +408,7 @@ Phase 15에서는 **Supabase Auth만 서비스 계층에 추가**한다. Supabas
 | S14 | Preview | **IMPLEMENTED** | Single / Spread / Grid KEEP |
 | S15 | PDF Export | **IMPLEMENTED** | 기존 PDF Engine KEEP |
 | S16 | Export Complete | **IMPLEMENTED** | 제품 완료 상태 |
-| S17 | Pricing / Payment | **LATER** | Auth/ownership/usage 이후 |
+| S17 | Pricing / Payment | **POLICY + UI TARGET DEFINED / IMPLEMENTATION HOLD** | Phase 15B/16 + Payment prerequisites 이후 |
 
 ### 9.1 Target Entry Routing
 
@@ -417,15 +421,16 @@ Phase 15에서는 **Supabase Auth만 서비스 계층에 추가**한다. Supabas
 /__pdf?file=... → S15
 ```
 
-Phase 15 Entry Routing 코드는 구현되었다. 남은 Phase 15 gap은 전용 Chagok Web Supabase 연결과 Runtime Auth QA다.
+Phase 15A Entry Routing과 Local/Guest fallback은 구현·QA 완료다. 전용 Chagok Web Supabase 연결과 Runtime Auth QA는 **Phase 15B HOLD**이며 현재 즉시 작업이 아니다.
 
 ### 9.2 Auth vs Ownership
 
-S02 Auth가 동작해도 Phase 15에서는 아직 사용자별 Book ownership을 보장하지 않는다.
+Phase 15A의 Auth UI/client foundation이 존재해도 아직 사용자별 Book ownership을 보장하지 않는다.
 
 ```text
-Phase 15: Auth Session + Entry Routing
-Phase 16: Auth User → Book Ownership → DB Metadata → Storage → API Authorization
+Phase 15A: Local/Guest Entry + Auth UI/client foundation ✅
+Phase 15B: Real Supabase Auth Runtime ⏸ HOLD
+Phase 16 : Auth User → Book Ownership → DB Metadata → Storage → API Authorization ⏸ HOLD
 ```
 
 ---
@@ -458,42 +463,106 @@ History / Restore / Inspection / EPUB / Print는 엔진에 있다. 제품 화면
 
 ## 11. Current Phase Model
 
-과거 M1 후보 체계는 더 이상 현재 실행 로드맵이 아니다. 현재는 실제 구현 Phase를 기준으로 관리한다.
+현재는 실제 구현 Phase를 기준으로 관리한다.
 
 ```text
 Phase 12  Full Regression / MVP Release Gate ✅
 Phase 13  Wizard Draft Recovery ✅
 Phase 14  Editor Autosave / Recovery ✅
-Phase 15  Auth + Entry Routing Foundation 🚧
-Phase 16  Ownership + DB Metadata + Storage Boundary + API Authorization ⏳
-Later     Deployment / PDF Worker / AI / Payment
+Phase 15A Local MVP Entry + Auth UI Foundation + Guest fallback ✅
+Phase 15B Real Supabase Auth Runtime ⏸ HOLD
+Phase 16  Ownership + DB Metadata + Storage + RLS/API Authorization ⏸ HOLD
+Later     Deployment / PDF Worker / AI
+Payment   Policy + UI requirements defined, implementation HOLD
 ```
 
-### Phase 15 Completion Gate
+### 11.1 Phase 15A Completion
 
-Phase 15는 다음이 모두 끝나야 완료다.
+완료 기준:
 
-- 전용 `Chagok Web` Supabase 연결
 - `/` Landing
 - `/library` Library
-- Auth `returnTo`
-- logout → Landing
-- Workspace/Wizard의 Library 복귀 route 정리
-- Runtime Auth QA PASS
-- 기존 Wizard / Editor / Viewer / PDF 회귀 없음
-- 보호 책## 13. Out of Scope for This Document
+- `/__auth` Local/Auth UI foundation
+- Local/Guest 새 책 진입
+- safe `returnTo`
+- Wizard / Editor / Preview / PDF regression PASS
+- Final UI polish 완료
+- 보호 책 hash 불변
+- P0 / P1 = 0
+
+### 11.2 Phase 15B Start Gate
+
+Phase 15B는 지금 즉시 시작하지 않는다.
+
+다음과 같은 실제 외부 사용자/배포 필요가 생길 때 재개한다.
+
+- 계정 로그인이 실제 서비스 진입에 필요
+- 구매 entitlement 복구가 필요
+- 다기기/클라우드 사용이 필요
+- 외부 사용자 테스트를 Local 환경 밖에서 진행
+
+그때 전용 Chagok Web Supabase Auth Runtime을 연결하고 runtime QA를 수행한다.
+
+### 11.3 Phase 16 Start Gate
+
+Phase 16은 Phase 15B 이후다.
+
+범위:
+
+- immutable service-layer book identity
+- user → book ownership
+- DB metadata
+- Storage boundary
+- RLS / API authorization
+- Guest → Account migration
+
+Payment 구현은 이 ownership 기반 없이 시작하지 않는다.
+
+---
+
+## 12. Service / Pricing / Commerce Baseline
+
+현재 제품 정책 문서:
+
+- `_docs/SERVICE_POLICY.md` v1.1 — CURRENT
+- `_docs/PRICING_POLICY.md` v1.1 — CURRENT
+- `_docs/PAYMENT_PRICING_UI_REQUIREMENTS.md` v1.1 — TARGET DEFINED
+
+초기 가격 기준:
+
+```text
+Free
+  → 원고 입력 / 구조 / 디자인 / 표지 / 편집 / Preview
+
+Book Pass
+  → ₩14,900 / 책 1권
+  → 해당 책 프로젝트 PDF Export entitlement
+  → 같은 책 수정 후 재출력 추가 결제 없음
+```
+
+중요:
+
+- Pricing Policy 확정 ≠ Payment 구현 시작
+- 현재 Local MVP PDF는 기존 엔진 기능으로 유지
+- SaaS 결제벽은 아직 연결하지 않음
+- Payment는 Auth/Ownership/stable identity/server verification 전제 후 별도 Phase로 구현
+
+---
+
+## 13. Out of Scope for This Document
 
 이 Product Spec 자체는 구현 코드를 작성하지 않는다.
 
-현재 별도 Phase로 남겨 두는 것:
+현재 별도 Phase 또는 Later로 남겨 두는 것:
 
-- Phase 16 Ownership / DB / Storage / RLS 상세 스키마
+- Phase 15B Real Supabase Auth Runtime
+- Phase 16 Ownership / DB / Storage / RLS
 - Vercel 배포 구조
 - SaaS PDF worker / queue
+- Payment provider / 실제 Checkout 구현
 - AI manuscript assist
 - AI Cover
 - Usage / Credit model
-- Payment
 - Structured Book JSON SoT
 - React/Vite 전환
 - 기존 168쪽 Book migration
@@ -501,14 +570,16 @@ Phase 15는 다음이 모두 끝나야 완료다.
 보호 원칙:
 
 - 168쪽 기준책과 실제 사용자 책을 Product Spec 갱신 때문에 수정하지 않는다.
-- Core Engine KEEP / WRAP 결정을 리브랜딩이나 Auth 도입 때문에 뒤집지 않는다.
+- Core Engine KEEP / WRAP 결정을 Auth/Payment/리브랜딩 때문에 뒤집지 않는다.
+- Commerce stable identity는 Core `file` identity를 덮어쓰는 방식으로 만들지 않는다.
 
 ---
 
-# Architecture Decision Summary v1.4
+# Architecture Decision Summary v1.5
 
 - Product = **차곡 (Chagok)**
 - Content SoT = `book.html`
+- Core book identity = `file`
 - Structured Overlay = eid + editable + htmltree + blocks
 - Separate Book JSON Content Model = NOT NOW
 - Theme = CSS Token Layer
@@ -520,8 +591,13 @@ Phase 15는 다음이 모두 끝나야 완료다.
 - Existing Engine = KEEP / WRAP
 - Wizard Draft Recovery = IMPLEMENTED
 - Editor Autosave / Recovery = IMPLEMENTED
-- Supabase = Auth service layer only in Phase 15; **DB/Storage NOT YET**
-- Target Entry = `/` Landing, `/library` Library, `/__auth` Auth
-- Phase 15 = Auth + Entry Routing Foundation
-- Phase 16 = Ownership + DB Metadata + Storage + API Authorization
-- Next Step = **align detailed specs, then finish Phase 15 runtime implementation/QA**
+- Phase 15A = **COMPLETE**
+- Phase 15B = **HOLD**
+- Phase 16 = **HOLD**
+- Supabase DB/Storage = **NOT YET**
+- Service Policy v1.1 = **CURRENT**
+- Pricing Policy v1.1 = **CURRENT**
+- Book Pass = **₩14,900 / 책 1권**
+- Payment UI requirements v1.1 = **TARGET DEFINED**
+- Payment implementation = **HOLD**
+- Next product work = **portfolio case study → representative demo → small user validation**, not backend expansion
