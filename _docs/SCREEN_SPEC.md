@@ -1,6 +1,6 @@
-# My Chapter Screen Specification
+# 차곡 Screen Specification
 
-- Product: My Chapter
+- Product: 차곡
 - Stage: Development Specification — Screen
 - Version: 1.0
 - Date: 2026-10-03
