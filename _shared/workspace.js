@@ -84,7 +84,7 @@
     let path = '';
     try { path = frame.contentWindow.location.pathname; } catch { return; }
     if (path === '/' || path === '/index.html') {
-      location.href = '/';
+      location.href = '/library';
       return;
     }
     const title = editorDoc()?.title?.trim();
