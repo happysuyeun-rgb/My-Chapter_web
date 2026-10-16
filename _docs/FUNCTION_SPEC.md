@@ -1017,7 +1017,7 @@ S08과 S11은 같은 Theme System.
 - **Failure Result:** 해당 단계에서 멈춤 + 오류
 - **Validation:** 없음
 - **Persistence Timing:** 없음
-- **Existing Engine Dependency:** New UI. 현재 Job UI 없음
+- **Existing Engine Dependency:** Phase 6 Implemented — generation UI wrapping existing create engine
 - **Side Effect:** 없음
 - **Edge Cases:** PDF 파싱이 길면 “원고 읽는 중”이 유지된다.
 - **MVP / Later:** MVP
