@@ -7,11 +7,23 @@
   if (!info) return;
 
   const PAGED_ATTR_RE = /^data-(ref|split-|break-|align-|previous-|next-|page-|target-|string-|counter-|eid$|etag$)/;
+  const AUTOSAVE_MS = 1500;
+  const RECOVERY_MS = 400;
+  const RECOVERY_VERSION = 1;
   const dirty = new Set();
+  const dirtyRevision = new Map();
+  let editRevision = 0;
   let editing = false;
   let saving = false;
   let tocSynced = false;
   let ui = null;
+  let autosaveTimer = null;
+  let recoveryTimer = null;
+  let pendingAutosave = false;
+  let autosavePaused = false;
+  let networkRetryUsed = false;
+  let conflictAlerted = false;
+  let recoveryBanner = null;
 
   // Paged.js가 스타일시트의 position: fixed를 "모든 쪽에 반복"으로 바꿔 버리므로,
   // 떠 있는 도구 막대·메뉴의 position은 요소에 직접 넣습니다.
@@ -29,6 +41,16 @@
     .pbv-library-btn { text-decoration: none; white-space: nowrap; color: var(--pbv-muted, #6b6b6b); }
     .pbv-edit-status { font-size: 12px; color: var(--pbv-muted, #6b6b6b); white-space: nowrap; }
     body:not(.pbv-editing) .pbv-save-btn, body:not(.pbv-editing) .pbv-edit-status { display: none; }
+    .pbv-recovery { position: fixed; z-index: 60; left: 50%; top: 56px; transform: translateX(-50%);
+      width: min(440px, calc(100vw - 24px)); padding: 14px 16px; background: #fff; border-radius: 10px;
+      box-shadow: 0 16px 40px -12px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.08);
+      font: 13px/1.45 Pretendard, system-ui, sans-serif; color: #1c1b19; }
+    .pbv-recovery h2 { margin: 0 0 6px; font-size: 15px; font-weight: 700; }
+    .pbv-recovery p { margin: 0 0 12px; color: #5c5852; }
+    .pbv-recovery .pbv-recovery-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .pbv-recovery button { border: 1px solid rgba(0,0,0,.12); background: #fff; border-radius: 6px;
+      padding: 7px 12px; font: inherit; font-weight: 600; cursor: pointer; }
+    .pbv-recovery button.primary { background: #2f55d4; border-color: #2f55d4; color: #fff; }
     .pbv-blockbar { position: fixed; z-index: 50; display: flex; gap: 2px; padding: 3px; background: #1c1b19; border-radius: 8px;
       box-shadow: 0 8px 22px -6px rgba(0,0,0,.45); font: 12px/1 Pretendard, system-ui, sans-serif; letter-spacing: normal; }
     .pbv-blockbar[hidden] { display: none; }
@@ -52,7 +74,12 @@
   };
 
   window.addEventListener('beforeunload', (e) => {
+    writeRecoveryNow();
     if (dirty.size) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  window.addEventListener('pagehide', () => {
+    writeRecoveryNow();
   });
 
   const waitToolbar = setInterval(() => {
@@ -70,7 +97,10 @@
     save.className = 'pbv-btn pbv-save-btn';
     save.textContent = '저장';
     save.disabled = true;
-    save.addEventListener('click', () => saveChanges());
+    save.addEventListener('click', () => {
+      cancelAutosaveTimer();
+      saveChanges({ flush: true, manual: true });
+    });
 
     const toggle = document.createElement('button');
     toggle.className = 'pbv-btn pbv-edit-btn';
@@ -92,7 +122,7 @@
     bar.insertBefore(save, anchor);
     bar.insertBefore(toggle, anchor);
     ui = { status, save, toggle };
-    resumeFromAnchor();
+    offerRecovery(() => resumeFromAnchor());
   }
 
   // 블록 작업 뒤에는 페이지를 새로 나눠야 하므로 새로고침합니다. 새로고침 전에 바뀐 블록 번호를
@@ -156,7 +186,8 @@
   }
 
   async function exitEditing() {
-    if (dirty.size && !(await saveChanges())) return;
+    cancelAutosaveTimer();
+    if (dirty.size && !(await saveChanges({ flush: true, manual: true }))) return;
     editing = false;
     location.reload();
   }
@@ -164,11 +195,20 @@
   function onInput(e) {
     const el = e.target.closest && e.target.closest('[data-eid]');
     if (!el) return;
-    const eid = el.dataset.eid;
+    const eid = String(el.dataset.eid);
+    editRevision += 1;
     dirty.add(eid);
+    dirtyRevision.set(eid, editRevision);
+    networkRetryUsed = false;
     scroller().querySelectorAll(`[data-eid="${eid}"]`).forEach((f) => f.classList.add('pbv-edited'));
-    setStatus(`저장 안 한 수정 ${dirty.size}곳`);
     refreshSave();
+    scheduleRecoveryWrite();
+    if (autosavePaused) {
+      setStatus('다른 곳에서 변경됨 · 새로고침 필요');
+      return;
+    }
+    setStatus(saving ? '저장 중…' : `저장 대기 · ${dirty.size}곳`);
+    scheduleAutosave();
   }
 
   // Enter can't create a new paragraph here (the source position of every
@@ -207,7 +247,8 @@
     const k = e.key.toLowerCase();
     if (k === 's') {
       e.preventDefault();
-      saveChanges();
+      cancelAutosaveTimer();
+      saveChanges({ flush: true, manual: true });
     } else if ((k === 'b' || k === 'k') && e.target.isContentEditable) {
       e.preventDefault();
       const el = e.target.closest('[data-eid]');
@@ -455,13 +496,16 @@
   }
 
   async function structureOp(el, op) {
-    if (saving) return;
-    if (dirty.size && !(await saveChanges())) return;
+    if (saving || autosavePaused) return;
+    cancelAutosaveTimer();
+    if (dirty.size && !(await saveChanges({ flush: true }))) return;
     setStatus('바꾸는 중…');
     try {
       const data = await post({ op, eid: Number(el.dataset.eid) }, '/__structure');
       sessionStorage.setItem(ANCHOR_KEY, JSON.stringify({ file: info.file, eid: data.anchor, select: data.select }));
       dirty.clear();
+      dirtyRevision.clear();
+      clearRecovery();
       location.reload();
     } catch (err) {
       setStatus('');
@@ -481,15 +525,18 @@
   }
 
   async function blockOp(el, op, type) {
-    if (saving) return;
+    if (saving || autosavePaused) return;
     closeMenu();
-    if (dirty.size && !(await saveChanges())) return;
+    cancelAutosaveTimer();
+    if (dirty.size && !(await saveChanges({ flush: true }))) return;
     setStatus('바꾸는 중…');
     try {
       const data = await post({ op, eid: Number(el.dataset.eid), type }, '/__blocks');
       info.version = data.version;
       sessionStorage.setItem(ANCHOR_KEY, JSON.stringify({ file: info.file, eid: data.anchor, select: data.select }));
       dirty.clear();
+      dirtyRevision.clear();
+      clearRecovery();
       location.reload();
     } catch (err) {
       setStatus('');
@@ -504,40 +551,273 @@
       body: JSON.stringify(Object.assign({ file: info.file, version: info.version }, body)),
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || ('저장 실패 (' + res.status + ')'));
+    if (!res.ok) {
+      const err = new Error(data.error || ('저장 실패 (' + res.status + ')'));
+      err.status = res.status;
+      throw err;
+    }
     return data;
   }
 
-  async function saveChanges() {
-    if (saving) return false;
-    if (!dirty.size) return true;
+  function cancelAutosaveTimer() {
+    clearTimeout(autosaveTimer);
+    autosaveTimer = null;
+  }
+
+  function scheduleAutosave() {
+    if (autosavePaused || !dirty.size) return;
+    cancelAutosaveTimer();
+    autosaveTimer = setTimeout(() => {
+      autosaveTimer = null;
+      if (saving) {
+        pendingAutosave = true;
+        return;
+      }
+      saveChanges();
+    }, AUTOSAVE_MS);
+  }
+
+  function scheduleRecoveryWrite() {
+    clearTimeout(recoveryTimer);
+    recoveryTimer = setTimeout(() => {
+      recoveryTimer = null;
+      writeRecoveryNow();
+    }, RECOVERY_MS);
+  }
+
+  function recoveryStorageKey() {
+    return 'mychapter:editor-recovery:v1:' + encodeURIComponent(info.file);
+  }
+
+  function clearRecovery() {
+    try { localStorage.removeItem(recoveryStorageKey()); } catch (err) {
+      console.warn('editor recovery clear failed', err);
+    }
+  }
+
+  function writeRecoveryNow() {
+    try {
+      // dirty가 없을 때는 지우지 않는다. pagehide/beforeunload가
+      // 아직 복구 배너를 보지 않은 draft까지 삭제하는 것을 막는다.
+      if (!dirty.size) return;
+      const changes = collectChanges(Array.from(dirty));
+      localStorage.setItem(recoveryStorageKey(), JSON.stringify({
+        version: RECOVERY_VERSION,
+        file: info.file,
+        baseVersion: info.version,
+        savedAt: new Date().toISOString(),
+        changes
+      }));
+    } catch (err) {
+      console.warn('editor recovery save failed', err);
+    }
+  }
+
+  function readRecovery() {
+    let raw = '';
+    try { raw = localStorage.getItem(recoveryStorageKey()) || ''; } catch (_) { return null; }
+    if (!raw) return null;
+    try {
+      const data = JSON.parse(raw);
+      if (!data || data.version !== RECOVERY_VERSION || !Array.isArray(data.changes)) {
+        clearRecovery();
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.warn('editor recovery ignored', err);
+      clearRecovery();
+      return null;
+    }
+  }
+
+  function applyRecoveryChange(change) {
+    const eid = String(change.eid);
+    const frags = Array.from(scroller().querySelectorAll(`[data-eid="${eid}"]`));
+    if (!frags.length) return false;
+    frags[0].innerHTML = change.html;
+    for (let i = 1; i < frags.length; i++) frags[i].innerHTML = '';
+    editRevision += 1;
+    dirty.add(eid);
+    dirtyRevision.set(eid, editRevision);
+    frags.forEach((f) => f.classList.add('pbv-edited'));
+    return true;
+  }
+
+  function hideRecoveryBanner() {
+    if (recoveryBanner) recoveryBanner.remove();
+    recoveryBanner = null;
+  }
+
+  function showRecoveryBanner(kind, draft, done) {
+    hideRecoveryBanner();
+    const banner = document.createElement('div');
+    banner.className = 'pbv-recovery';
+    const match = kind === 'match';
+    banner.innerHTML =
+      '<h2>' + (match ? '저장되지 않은 편집 내용이 있습니다.' : '책이 다른 곳에서 변경되어 자동 복구할 수 없습니다.') + '</h2>' +
+      '<p>' + (match
+        ? '이전에 저장되지 않은 수정 ' + draft.changes.length + '곳을 복구할 수 있습니다.'
+        : '복구 내용을 버리고 현재 서버 내용을 유지하세요.') + '</p>' +
+      '<div class="pbv-recovery-actions"></div>';
+    const actions = banner.querySelector('.pbv-recovery-actions');
+    if (match) {
+      const restore = document.createElement('button');
+      restore.type = 'button';
+      restore.className = 'primary';
+      restore.textContent = '복구하기';
+      restore.addEventListener('click', () => {
+        hideRecoveryBanner();
+        if (!editing) enterEditing();
+        let applied = 0;
+        draft.changes.forEach((change) => { if (applyRecoveryChange(change)) applied += 1; });
+        writeRecoveryNow();
+        refreshSave();
+        setStatus(applied ? `복구됨 · 저장 대기 · ${dirty.size}곳` : '복구할 블록을 찾지 못했습니다');
+        if (dirty.size) scheduleAutosave();
+        done();
+      });
+      actions.appendChild(restore);
+    }
+    const discard = document.createElement('button');
+    discard.type = 'button';
+    discard.textContent = match ? '버리기' : '복구 내용 버리기';
+    discard.addEventListener('click', () => {
+      clearRecovery();
+      hideRecoveryBanner();
+      setStatus(match ? '복구 내용을 버렸습니다' : '현재 서버 내용을 유지합니다');
+      done();
+    });
+    actions.appendChild(discard);
+    if (!match) {
+      const keep = document.createElement('button');
+      keep.type = 'button';
+      keep.className = 'primary';
+      keep.textContent = '현재 서버 내용 유지';
+      keep.addEventListener('click', () => {
+        clearRecovery();
+        hideRecoveryBanner();
+        setStatus('현재 서버 내용을 유지합니다');
+        done();
+      });
+      actions.appendChild(keep);
+    }
+    document.body.appendChild(banner);
+    recoveryBanner = banner;
+  }
+
+  function offerRecovery(done) {
+    const draft = readRecovery();
+    if (!draft) {
+      done();
+      return;
+    }
+    if (draft.file !== info.file || !draft.changes.length) {
+      clearRecovery();
+      done();
+      return;
+    }
+    if (String(draft.baseVersion) === String(info.version)) {
+      showRecoveryBanner('match', draft, done);
+      return;
+    }
+    showRecoveryBanner('stale', draft, done);
+  }
+
+  function formatSavedTime() {
+    return new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  async function saveOnce(manual) {
+    cancelAutosaveTimer();
     saving = true;
     refreshSave();
     setStatus('저장 중…');
+
     const eids = Array.from(dirty);
+    const submitted = new Map(eids.map((eid) => [eid, dirtyRevision.get(eid) || 0]));
+
     try {
       const data = await post({ changes: collectChanges(eids) });
       info.version = data.version;
       if (data.tocSynced) tocSynced = true;
       eids.forEach((eid) => {
+        if ((dirtyRevision.get(eid) || 0) !== submitted.get(eid)) return;
         dirty.delete(eid);
+        dirtyRevision.delete(eid);
         scroller().querySelectorAll(`[data-eid="${eid}"]`).forEach((f) => f.classList.remove('pbv-edited'));
       });
-      setStatus(`저장했습니다 (${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })})${tocSynced ? ' · 차례도 함께 고침, 편집을 끝내면 반영' : ''}`);
+      if (dirty.size) writeRecoveryNow();
+      else clearRecovery();
+      networkRetryUsed = false;
+      const time = formatSavedTime();
+      const tocNote = tocSynced ? ' · 차례도 함께 고침, 편집을 끝내면 반영' : '';
+      setStatus(dirty.size
+        ? `저장됨 ${time} · 저장 대기 · ${dirty.size}곳${tocNote}`
+        : `저장됨 ${time}${tocNote}`);
       return true;
     } catch (err) {
-      setStatus('저장 실패');
-      alert(err.message || err);
+      writeRecoveryNow();
+      if (err.status === 409) {
+        autosavePaused = true;
+        cancelAutosaveTimer();
+        pendingAutosave = false;
+        setStatus('다른 곳에서 변경됨 · 새로고침 필요');
+        if (!conflictAlerted) {
+          conflictAlerted = true;
+          alert('다른 곳에서 책이 변경되었습니다. 페이지를 새로고침한 뒤 다시 편집해 주세요.');
+        }
+        return false;
+      }
+      setStatus('저장 실패 · 다시 시도');
+      if (manual) alert(err.message || err);
+      else if (!networkRetryUsed) {
+        networkRetryUsed = true;
+        cancelAutosaveTimer();
+        autosaveTimer = setTimeout(() => {
+          autosaveTimer = null;
+          if (!autosavePaused && dirty.size && !saving) saveChanges();
+        }, AUTOSAVE_MS);
+      }
       return false;
     } finally {
       saving = false;
       refreshSave();
+      if (pendingAutosave && dirty.size && !autosavePaused) {
+        pendingAutosave = false;
+        scheduleAutosave();
+      }
     }
+  }
+
+  async function saveChanges(opts = {}) {
+    const flush = !!opts.flush;
+    const manual = !!opts.manual;
+    if (autosavePaused) {
+      setStatus('다른 곳에서 변경됨 · 새로고침 필요');
+      if (manual && !conflictAlerted) {
+        conflictAlerted = true;
+        alert('다른 곳에서 책이 변경되었습니다. 페이지를 새로고침한 뒤 다시 편집해 주세요.');
+      }
+      return false;
+    }
+    if (saving) {
+      pendingAutosave = true;
+      return false;
+    }
+    if (!dirty.size) return true;
+
+    let ok = await saveOnce(manual || flush);
+    while (ok && flush && dirty.size && !autosavePaused && !saving) {
+      ok = await saveOnce(manual || flush);
+    }
+    if (ok && dirty.size && !autosavePaused) scheduleAutosave();
+    return ok;
   }
 
   function refreshSave() {
     if (!ui) return;
-    ui.save.disabled = saving || !dirty.size;
+    ui.save.disabled = saving || autosavePaused || !dirty.size;
     ui.save.textContent = dirty.size ? `저장 (${dirty.size})` : '저장';
   }
 
@@ -547,7 +827,11 @@
 
   window.__bookEditor = {
     collectChanges, post, editableBlocks, saveChanges,
-    discard: () => dirty.clear(),
+    discard: () => {
+      dirty.clear();
+      dirtyRevision.clear();
+      clearRecovery();
+    },
     isEditing: () => editing,
   };
 })();
