@@ -54,23 +54,28 @@ Phase 16 Ownership/DB/Storage/RLS도 HOLD다.
 
 ## 3. Actual Phase 15 Code Gaps
 
-### P0 / must close before merge
+### P0 / Phase 15A merge 전 닫을 것
 
 완료:
 1. S01 Landing
 2. `GET /` → Landing
 3. `GET /library` → existing Library
 4. safe `returnTo`
-5. login/signup success → returnTo
+5. Local/Guest fallback
 6. logout → `/`
 7. Workspace / Wizard → `/library`
-8. Library login → `/__auth?returnTo=/library`
+8. Library login configured path 보존
 9. wrong MyChapter Supabase ref static guard
+10. release static gate
 
 남음:
-10. Chagok Web Supabase 연결
-11. runtime signup/login/session/logout QA
+11. Local E2E 전체 1회
 12. protected book final regression
+
+Phase 15B HOLD:
+- Chagok Web Supabase 연결
+- runtime signup/login/session/logout QA
+- configured session Landing CTA QA
 
 ### P1 / Phase 15 robustness
 
@@ -163,15 +168,15 @@ D. Phase 15 Entry Routing code ✅
    ↓
 E. static release gate update ✅
    ↓
-F. Chagok Web Supabase creation/config ← NEXT
+F. Local E2E + PDF quality QA ← NEXT
    ↓
-G. Runtime Auth QA
+G. Full regression + protected hashes
    ↓
-H. Full regression + protected hashes
+H. Phase 15A PR merge
    ↓
-I. PR merge
+I. Phase 15B Chagok Web Supabase ← HOLD
    ↓
-J. Phase 16 design
+J. Phase 16 design ← HOLD
 ```
 
 각 단계 후 다시 gap check를 하고 다음 단계로 이동한다.
