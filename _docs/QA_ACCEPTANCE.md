@@ -140,7 +140,7 @@ Gate에 넣지 않음: S13/S17, History 제품 UI, Print/EPUB/ZIP 제품 노출,
 - **Failure Condition:** S05–S08에서 `books/` 신규 폴더. S05에서 API-BOOK-03 호출. 생성 실패인데 목록에 유령 카드. PDF 실패를 S16 SUCCESS로 표시. 원본 설계본 수정
 - **Regression Risk:** `/__new-book`을 마법사 초기에 재사용하면 제품 규칙 파괴
 - **Manual / Automatable:** Manual (흐름) + 폴더/파일 존재는 Automatable
-- **MVP / Later:** MVP — TARGET_MVP Acceptance
+- **MVP / Later:** MVP — CURRENT
 
 단계별 계약:
 
@@ -154,7 +154,7 @@ Gate에 넣지 않음: S13/S17, History 제품 UI, Print/EPUB/ZIP 제품 노출,
 | 테마 | S08 | F-THEME-01..03 | 없음 | CSS preview, HTML 불변 |
 | 생성 | S09 | F-GEN-01 | API-BOOK-03 | 첫 destructive write |
 | 편집 | S10 | F-EDITOR-02 | API-EDIT-01 | Editor KEEP |
-| 디자인 | S11 | F-THEME-04 | API-THEME-01 또는 CSS | Token Layer |
+| 디자인 | S11 | F-THEME-04 | API-THEME-02 | Token Layer |
 | 표지 | S12 | F-COVER-02 | API-STATE-01 | sidecar MUST USE |
 | 미리보기 | S14 | F-PREVIEW-01 | API-BOOK-11 | Viewer KEEP |
 | PDF | S15 | F-EXPORT-01 | API-EXPORT-01 | PDF KEEP, HTML 불변 |
@@ -174,7 +174,7 @@ Gate에 넣지 않음: S13/S17, History 제품 UI, Print/EPUB/ZIP 제품 노출,
 - **Failure Condition:** S04/S06에서 create. Import 파서 필수화
 - **Regression Risk:** `#new-dialog` 즉시 생성 잔존
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ---
 
@@ -228,7 +228,7 @@ CURRENT Regression + WRAP.
 - **Failure Condition:** 즉시 `/__new-book`
 - **Regression Risk:** 기존 `#new-dialog`가 Primary로 남음
 - **Manual / Automatable:** Automatable (폴더) + Manual (화면)
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-LIB-04 복제
 
@@ -346,7 +346,7 @@ CURRENT Regression + WRAP.
 
 ## 8. Creation Wizard QA
 
-TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
+CURRENT 제품 규칙. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 
 ### QA-NEW-01 방식 선택
 
@@ -362,7 +362,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** create 호출
 - **Regression Risk:** 한 장 대화상자
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-NEW-02 취소
 
@@ -378,7 +378,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** 빈 폴더/유령 카드
 - **Regression Risk:** create-then-delete
 - **Manual / Automatable:** Automatable (폴더)
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ---
 
@@ -398,7 +398,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** 즉시 책 생성. 고급 prompt 강요 실패
 - **Regression Risk:** create 묶음 Import
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-IMPORT-02 MD
 
@@ -414,7 +414,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** 즉시 책 생성
 - **Regression Risk:** create 묶음 Import
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-IMPORT-03 PDF (텍스트)
 
@@ -430,7 +430,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** PDF를 미지원으로 거부. 즉시 create
 - **Regression Risk:** 기획서 구버전(DOCX/TXT/MD만)으로 PDF 제거
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-IMPORT-04 DOCX
 
@@ -446,7 +446,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** 즉시 책 생성. 표/그림을 못 만들어 FAIL 처리
 - **Regression Risk:** create 묶음 Import
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-IMPORT-05 붙여넣기
 
@@ -462,7 +462,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** 파일 필수. 빈 텍스트 통과
 - **Regression Risk:** 없음 (현재 Gap)
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-IMPORT-06 미지원 형식
 
@@ -526,7 +526,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** API-BOOK-03
 - **Regression Risk:** CURRENT create 경로
 - **Manual / Automatable:** Automatable
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ---
 
@@ -546,7 +546,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** 빈 제목으로 create
 - **Regression Risk:** 기존 400 메시지
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-META-02 부제 선택
 
@@ -594,7 +594,7 @@ TARGET_MVP. S04–S08에서 `books/` 신규 폴더 = **P0 FAIL**.
 - **Failure Condition:** HTML/json 생성
 - **Regression Risk:** 없음
 - **Manual / Automatable:** Automatable
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ---
 
@@ -616,7 +616,7 @@ S07은 세션. `structureOp`(API-STRUCT-01)가 아니다.
 - **Failure Condition:** 고급 상자 없다고 ERROR. 디스크 HTML
 - **Regression Risk:** S10 Editor를 S07에 재사용
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-STRUCT-02 제목 수정
 
@@ -696,7 +696,7 @@ S07은 세션. `structureOp`(API-STRUCT-01)가 아니다.
 - **Failure Condition:** create
 - **Regression Risk:** CTA 라벨이 생성으로 오인
 - **Manual / Automatable:** Automatable (폴더)
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-STRUCT-07 원고 다시 선택
 
@@ -712,7 +712,7 @@ S07은 세션. `structureOp`(API-STRUCT-01)가 아니다.
 - **Failure Condition:** 기존 책 생성/삭제
 - **Regression Risk:** 없음
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-STRUCT-08 S05–S08 통합 가드
 
@@ -728,7 +728,7 @@ S07은 세션. `structureOp`(API-STRUCT-01)가 아니다.
 - **Failure Condition:** 어떤 단계든 write
 - **Regression Risk:** CURRENT `/__new-book`
 - **Manual / Automatable:** Automatable
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ---
 
@@ -754,7 +754,7 @@ Theme = CSS Token Layer. HTML 의미 구조 DO NOT REPLACE.
 - **Failure Condition:** 세 번째 필수 테마. HTML 테마 파일
 - **Regression Risk:** 없음
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-THEME-02 선택과 본문
 
@@ -793,7 +793,7 @@ Theme = CSS Token Layer. HTML 의미 구조 DO NOT REPLACE.
 - **Test Name:** Theme 적용은 CSS만
 - **Related Screen:** S11 (또는 S09 생성 시)
 - **Related Function ID:** F-THEME-04
-- **Related API:** API-THEME-01 TARGET 또는 CSS write
+- **Related API:** API-THEME-02
 - **Priority:** P0
 - **Preconditions:** 열린 책 사본. `book.html` 해시
 - **Test Data:** slot id 목록, TOC href, chapter id
@@ -802,7 +802,7 @@ Theme = CSS Token Layer. HTML 의미 구조 DO NOT REPLACE.
 - **Failure Condition:** HTML 본문 변경 = P0
 - **Regression Risk:** 설계본 변환
 - **Manual / Automatable:** Automatable (해시/id)
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-THEME-05 재Pagination
 
@@ -872,14 +872,14 @@ S09만 실제 Book 생성. API-BOOK-03 WRAP.
 - **Failure Condition:** 원본 파서 결과만 쓰고 S07을 버림
 - **Regression Risk:** source를 재파싱하며 수정 손실
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ### QA-GEN-03 Theme 반영
 
 - **Test Name:** 선택 테마가 CSS에 있음
 - **Related Screen:** S09
 - **Related Function ID:** F-THEME-04, F-GEN-01
-- **Related API:** API-BOOK-03 ± API-THEME-01
+- **Related API:** API-BOOK-03 (`themeId`를 create 내부에서 적용)
 - **Priority:** P1
 - **Preconditions:** S08 Minimal
 - **Test Data:** 세션 themeId
@@ -920,7 +920,7 @@ S09만 실제 Book 생성. API-BOOK-03 WRAP.
 - **Failure Condition:** 세션 소실로 원고 재업로드 강제(만료 아닌데). 유령 폴더
 - **Regression Risk:** 없음
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP
+- **MVP / Later:** MVP — CURRENT
 
 ---
 
@@ -1314,7 +1314,7 @@ Preview와 PDF는 PARTIAL shared rules. 픽셀 동일 요구 없음.
 - **Failure Condition:** 실패 PDF를 SUCCESS
 - **Regression Risk:** 다운로드만 되고 실패를 삼킴
 - **Manual / Automatable:** Manual
-- **MVP / Later:** MVP — TARGET_MVP UI
+- **MVP / Later:** MVP — CURRENT UI
 
 ### QA-DONE-02 다시 다운로드
 
@@ -1684,7 +1684,7 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 
 ### QA-LOSS-01 확정 전 write 없음
 
-- Screen S04–S08. Function F-NEW/F-IMPORT/F-STRUCT/F-THEME. API TARGET only. Steps: 마법사 중 `books/` diff. Expected: 0 신규. Failure: create. CURRENT `/__new-book`을 S05에서 쓰면 FAIL. Automatable. MVP TARGET.
+- Screen S04–S08. Function F-NEW/F-IMPORT/F-STRUCT/F-THEME. API TARGET only. Steps: 마법사 중 `books/` diff. Expected: 0 신규. Failure: create. CURRENT `/__new-book`을 S05에서 쓰면 FAIL. Automatable. MVP CURRENT.
 
 ### QA-LOSS-02 기존 Book overwrite 없음
 
@@ -1968,11 +1968,11 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 
 | QA ID | Screen | Function | API | Priority | MVP/Later | Manual/Auto |
 |---|---|---|---|---|---|---|
-| QA-E2E-01 | S03–S16 | F-LIB-03 … F-DONE-01 | API-IMPORT-02, API-BOOK-03, API-EDIT-01, API-STATE-01, API-EXPORT-01 | P0 | MVP TARGET | Manual+Auto |
-| QA-E2E-02 | S03–S10 | F-NEW-02, F-GEN-01 | API-BOOK-03 | P1 | MVP TARGET | Manual |
+| QA-E2E-01 | S03–S16 | F-LIB-03 … F-DONE-01 | API-IMPORT-02, API-BOOK-03, API-EDIT-01, API-STATE-01, API-EXPORT-01 | P0 | MVP CURRENT | Manual+Auto |
+| QA-E2E-02 | S03–S10 | F-NEW-02, F-GEN-01 | API-BOOK-03 | P1 | MVP CURRENT | Manual |
 | QA-LIB-01 | S03 | F-LIB-01 | API-BOOK-01, API-BOOK-02 | P0 | MVP CURRENT | Auto |
 | QA-LIB-02 | S03→S10 | F-LIB-02, F-WS-01 | API-BOOK-11 | P1 | MVP CURRENT | Manual |
-| QA-LIB-03 | S03→S04 | F-LIB-03 | 없음 | P0 | MVP TARGET | Manual+Auto |
+| QA-LIB-03 | S03→S04 | F-LIB-03 | 없음 | P0 | MVP CURRENT | Manual+Auto |
 | QA-LIB-04 | S03 | F-LIB-04 | API-BOOK-07 | P1 | MVP CURRENT | Auto |
 | QA-LIB-05 | S03 | F-LIB-05 | API-BOOK-08 | P1 | MVP CURRENT | Manual |
 | QA-LIB-06 | S03 | F-LIB-06 | API-BOOK-09 | P1 | MVP CURRENT | Manual |
@@ -1980,41 +1980,41 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 | QA-LIB-08 | S03 | F-LIB-08 | API-BOOK-01 | P2 | MVP CURRENT | Manual |
 | QA-LIB-09 | S03 | F-LIB-09 | API-BOOK-01 | P2 | MVP CURRENT | Manual |
 | QA-LIB-10 | S03 | F-LIB-10 | API-BOOK-05 | P2 | MVP CURRENT | Auto |
-| QA-NEW-01 | S04 | F-NEW-01, F-NEW-02 | 없음 | P1 | MVP TARGET | Manual |
-| QA-NEW-02 | S04–S08 | F-LIB-03 | 없음 | P0 | MVP TARGET | Auto |
-| QA-IMPORT-01 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP TARGET | Manual |
-| QA-IMPORT-02 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP TARGET | Manual |
-| QA-IMPORT-03 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP TARGET | Manual |
-| QA-IMPORT-04 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP TARGET | Manual |
-| QA-IMPORT-05 | S05 | F-IMPORT-02 | API-IMPORT-02 | P1 | MVP TARGET | Manual |
+| QA-NEW-01 | S04 | F-NEW-01, F-NEW-02 | 없음 | P1 | MVP CURRENT | Manual |
+| QA-NEW-02 | S04–S08 | F-LIB-03 | 없음 | P0 | MVP CURRENT | Auto |
+| QA-IMPORT-01 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP CURRENT | Manual |
+| QA-IMPORT-02 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP CURRENT | Manual |
+| QA-IMPORT-03 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP CURRENT | Manual |
+| QA-IMPORT-04 | S05 | F-IMPORT-01,03,04 | API-IMPORT-02 | P1 | MVP CURRENT | Manual |
+| QA-IMPORT-05 | S05 | F-IMPORT-02 | API-IMPORT-02 | P1 | MVP CURRENT | Manual |
 | QA-IMPORT-06 | S05 | F-IMPORT-03,07 | API-IMPORT-03 | P1 | MVP | Manual |
 | QA-IMPORT-07 | S05 | F-IMPORT-07 | API-IMPORT-02 | P1 | MVP | Manual |
 | QA-IMPORT-08 | S05 | F-IMPORT-07 | API-IMPORT-02 | P1 | MVP | Manual |
-| QA-IMPORT-09 | S05 | F-IMPORT-01,04,05 | API-IMPORT-02 | P0 | MVP TARGET | Auto |
-| QA-META-01 | S06 | F-META-01 | 세션 | P1 | MVP TARGET | Manual |
-| QA-META-02 | S06 | F-META-02 | 세션 | P2 | MVP TARGET | Manual |
+| QA-IMPORT-09 | S05 | F-IMPORT-01,04,05 | API-IMPORT-02 | P0 | MVP CURRENT | Auto |
+| QA-META-01 | S06 | F-META-01 | 세션 | P1 | MVP CURRENT | Manual |
+| QA-META-02 | S06 | F-META-02 | 세션 | P2 | MVP CURRENT | Manual |
 | QA-META-03 | S06 | F-META-03 | API-BOOK-03 | P1 | MVP | Manual |
-| QA-META-04 | S06 | F-META-01..04 | 없음 | P0 | MVP TARGET | Auto |
-| QA-STRUCT-01 | S07 | F-STRUCT-01 | API-STRUCT-02 | P1 | MVP TARGET | Manual |
-| QA-STRUCT-02 | S07 | F-STRUCT-02 | API-STRUCT-02 | P1 | MVP TARGET | Manual |
-| QA-STRUCT-03 | S07 | F-STRUCT-03 | API-STRUCT-02 | P1 | MVP TARGET | Manual |
-| QA-STRUCT-04 | S07 | F-STRUCT-04 | API-STRUCT-02 | P1 | MVP TARGET | Manual |
-| QA-STRUCT-05 | S07 | F-STRUCT-05 | API-STRUCT-02 | P1 | MVP TARGET | Manual |
-| QA-STRUCT-06 | S07→S08 | F-STRUCT-06 | 없음 | P0 | MVP TARGET | Auto |
-| QA-STRUCT-07 | S07→S05 | F-IMPORT-06 | 없음 | P1 | MVP TARGET | Manual |
-| QA-STRUCT-08 | S05–S08 | F-IMPORT-*, F-STRUCT-*, F-THEME-* | TARGET only | P0 | MVP TARGET | Auto |
-| QA-THEME-01 | S08, S11 | F-THEME-01 | 없음 | P1 | MVP TARGET | Manual |
-| QA-THEME-02 | S08 | F-THEME-02 | 없음 | P0 | MVP TARGET | Manual |
-| QA-THEME-03 | S08, S11 | F-THEME-03 | Viewer WRAP | P1 | MVP TARGET | Manual |
-| QA-THEME-04 | S11, S09 | F-THEME-04 | API-THEME-01 TARGET | P0 | MVP TARGET | Auto |
-| QA-THEME-05 | S11→S14 | F-THEME-04, F-PREVIEW-01 | API-BOOK-11 | P1 | MVP TARGET | Manual |
+| QA-META-04 | S06 | F-META-01..04 | 없음 | P0 | MVP CURRENT | Auto |
+| QA-STRUCT-01 | S07 | F-STRUCT-01 | API-STRUCT-02 | P1 | MVP CURRENT | Manual |
+| QA-STRUCT-02 | S07 | F-STRUCT-02 | API-STRUCT-02 | P1 | MVP CURRENT | Manual |
+| QA-STRUCT-03 | S07 | F-STRUCT-03 | API-STRUCT-02 | P1 | MVP CURRENT | Manual |
+| QA-STRUCT-04 | S07 | F-STRUCT-04 | API-STRUCT-02 | P1 | MVP CURRENT | Manual |
+| QA-STRUCT-05 | S07 | F-STRUCT-05 | API-STRUCT-02 | P1 | MVP CURRENT | Manual |
+| QA-STRUCT-06 | S07→S08 | F-STRUCT-06 | 없음 | P0 | MVP CURRENT | Auto |
+| QA-STRUCT-07 | S07→S05 | F-IMPORT-06 | 없음 | P1 | MVP CURRENT | Manual |
+| QA-STRUCT-08 | S05–S08 | F-IMPORT-*, F-STRUCT-*, F-THEME-* | TARGET only | P0 | MVP CURRENT | Auto |
+| QA-THEME-01 | S08, S11 | F-THEME-01 | 없음 | P1 | MVP CURRENT | Manual |
+| QA-THEME-02 | S08 | F-THEME-02 | 없음 | P0 | MVP CURRENT | Manual |
+| QA-THEME-03 | S08, S11 | F-THEME-03 | Viewer WRAP | P1 | MVP CURRENT | Manual |
+| QA-THEME-04 | S11, S09 | F-THEME-04 | S11=API-THEME-02 / S09=API-BOOK-03 themeId | P0 | MVP CURRENT | Auto |
+| QA-THEME-05 | S11→S14 | F-THEME-04, F-PREVIEW-01 | API-BOOK-11 | P1 | MVP CURRENT | Manual |
 | QA-THEME-06 | S11 | F-THEME-04 | CSS | P0 | MVP | Auto |
 | QA-GEN-01 | S09 | F-GEN-01, F-IMPORT-05 | API-BOOK-03 | P0 | MVP WRAP | Auto |
-| QA-GEN-02 | S09→S10 | F-STRUCT-02, F-GEN-01 | API-BOOK-03 | P1 | MVP TARGET | Manual |
-| QA-GEN-03 | S09 | F-THEME-04, F-GEN-01 | API-BOOK-03 | P1 | MVP TARGET | Manual |
-| QA-GEN-04 | S09 | F-GEN-04 | API-BOOK-03 | P0 | MVP TARGET | Manual |
-| QA-GEN-05 | S09 | F-GEN-05 | API-BOOK-03 | P1 | MVP TARGET | Manual |
-| QA-WS-01 | S10 | F-WS-01, F-WS-02 | API-BOOK-11 | P1 | MVP TARGET | Manual |
+| QA-GEN-02 | S09→S10 | F-STRUCT-02, F-GEN-01 | API-BOOK-03 | P1 | MVP CURRENT | Manual |
+| QA-GEN-03 | S09 | F-THEME-04, F-GEN-01 | API-BOOK-03 | P1 | MVP CURRENT | Manual |
+| QA-GEN-04 | S09 | F-GEN-04 | API-BOOK-03 | P0 | MVP CURRENT | Manual |
+| QA-GEN-05 | S09 | F-GEN-05 | API-BOOK-03 | P1 | MVP CURRENT | Manual |
+| QA-WS-01 | S10 | F-WS-01, F-WS-02 | API-BOOK-11 | P1 | MVP CURRENT | Manual |
 | QA-EDITOR-01 | S10 | F-EDITOR-01..03 | API-EDIT-01 | P0 | MVP CURRENT | Manual |
 | QA-EDITOR-02 | S10 | F-EDITOR-02 | API-EDIT-01 | P0 | MVP CURRENT | Auto |
 | QA-EDITOR-03 | S10 | F-EDITOR-02 | API-EDIT-01 | P0 | MVP CURRENT | Auto |
@@ -2037,10 +2037,10 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 | QA-EXPORT-03 | S15 | F-EXPORT-01 | API-EXPORT-01 | P1 | MVP CURRENT | Manual |
 | QA-EXPORT-04 | S14, S15 | F-PREVIEW-01, F-EXPORT-01 | API-BOOK-11, API-EXPORT-01 | P1 | MVP | Manual |
 | QA-EXPORT-05 | S15 | F-EXPORT-05..07 | API-EXPORT-01..03 | P1 | MVP HIDE | Auto |
-| QA-DONE-01 | S16 | F-DONE-01, F-EXPORT-02 | API-EXPORT-01 | P1 | MVP TARGET | Manual |
-| QA-DONE-02 | S16 | F-EXPORT-02 | 캐시/blob | P1 | MVP TARGET | Manual |
-| QA-DONE-03 | S16→S10 | F-DONE-02 | API-BOOK-11 | P1 | MVP TARGET | Manual |
-| QA-DONE-04 | S16 | F-EXPORT-03 | API-EXPORT-01 | P1 | MVP TARGET | Manual |
+| QA-DONE-01 | S16 | F-DONE-01, F-EXPORT-02 | API-EXPORT-01 | P1 | MVP CURRENT | Manual |
+| QA-DONE-02 | S16 | F-EXPORT-02 | 캐시/blob | P1 | MVP CURRENT | Manual |
+| QA-DONE-03 | S16→S10 | F-DONE-02 | API-BOOK-11 | P1 | MVP CURRENT | Manual |
+| QA-DONE-04 | S16 | F-EXPORT-03 | API-EXPORT-01 | P1 | MVP CURRENT | Manual |
 | QA-HIST-01 | 숨김 | F-HIST-01 | API-HISTORY-01, API-EDIT-01 | P1 | MVP 엔진 / Later UI | Auto |
 | QA-HIST-02 | 숨김 | F-HIST-01 | API-BLOCK-01, API-STRUCT-01 | P1 | MVP 엔진 | Auto |
 | QA-HIST-03 | 숨김 | F-HIST-01 | API-HISTORY-03 | P1 | MVP 엔진 | Manual |
@@ -2050,7 +2050,7 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 | QA-REGRESSION-03 | S14 | F-PREVIEW-04 | API-BOOK-11 | P0 | MVP CURRENT | Manual |
 | QA-REGRESSION-04 | S15 | F-EXPORT-01 | API-EXPORT-01 | P0 | MVP CURRENT | Manual+Auto |
 | QA-REGRESSION-05 | 전 구간 | — | — | P0 | MVP | Auto |
-| QA-LOSS-01 | S04–S08 | F-NEW/IMPORT/STRUCT/THEME | TARGET | P0 | MVP TARGET | Auto |
+| QA-LOSS-01 | S04–S08 | F-NEW/IMPORT/STRUCT/THEME | TARGET | P0 | MVP CURRENT | Auto |
 | QA-LOSS-02 | S09 | F-GEN-01 | API-BOOK-03 | P0 | MVP | Auto |
 | QA-LOSS-03 | S10 | F-EDITOR-02 | API-EDIT-01 | P0 | MVP CURRENT | Auto |
 | QA-LOSS-04 | S11 | F-THEME-04 | CSS | P0 | MVP | Auto |
