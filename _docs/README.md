@@ -34,10 +34,11 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 18. _docs/ENGINE_CONTRACT.md
 19. _docs/QA_ACCEPTANCE.md
 20. _docs/PORTFOLIO_CASE_STUDY.md
-21. _docs/IMPLEMENTATION_STATUS_2026-10-16.md
-22. _docs/IMPLEMENTATION_PLAN.md
-23. active Phase document
-24. current audit / release evidence
+21. _docs/REPRESENTATIVE_DEMO_SCENARIO.md
+22. _docs/IMPLEMENTATION_STATUS_2026-10-16.md
+23. _docs/IMPLEMENTATION_PLAN.md
+24. active Phase document
+25. current audit / release evidence
 ```
 
 ---
@@ -66,6 +67,7 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 | `_docs/ENGINE_CONTRACT.md` | 기존 엔진 보호 계약 | v1.1 / CURRENT |
 | `_docs/QA_ACCEPTANCE.md` | QA / Acceptance + future Commerce Go-Live gates | v1.2 / CURRENT |
 | `_docs/PORTFOLIO_CASE_STUDY.md` | 취업용 문제→판단→설계→검증 케이스스터디 기준 | v1.0 / CURRENT |
+| `_docs/REPRESENTATIVE_DEMO_SCENARIO.md` | 3~5분 대표 Demo + 공개용 원고 + 사용자 검증 기준 | v1.0 / CURRENT |
 | `_docs/IMPLEMENTATION_STATUS_2026-10-16.md` | 현재 Phase/실행 우선순위 override | CURRENT |
 | `_docs/IMPLEMENTATION_PLAN.md` | 실행 Roadmap 본문 | v2.0 / STATUS OVERRIDE 우선 |
 | `_docs/DEV_DOC_ALIGNMENT_AUDIT_2026-10-16.md` | Code ↔ Docs gap audit | CURRENT AUDIT |
