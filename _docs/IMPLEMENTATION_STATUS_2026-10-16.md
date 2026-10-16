@@ -98,9 +98,10 @@ Book Pass
    ✅ COMPLETE
    ↓
 2. Portfolio Case Study
-   ← NEXT
+   ✅ DOCUMENTED
    ↓
 3. Representative Demo Scenario
+   ← NEXT
    ↓
 4. 사용자 3~5명 검증
    ↓
@@ -171,10 +172,10 @@ _docs/PAYMENT_IMPLEMENTATION_PLAN.md v1.0
 
 이 문서가 생겼어도 Payment 구현 승인이 된 것은 아니다.
 
-현재 제품 우선순위는 계속:
+현재 제품 우선순위:
 
 ~~~text
-Portfolio Case Study
-→ Representative Demo
+Portfolio Case Study ✅
+→ Representative Demo ← NEXT
 → 사용자 3~5명 검증
 ~~~
