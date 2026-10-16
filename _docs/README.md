@@ -32,9 +32,10 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 16. _docs/DATA_SPEC.md
 17. _docs/ENGINE_CONTRACT.md
 18. _docs/QA_ACCEPTANCE.md
-19. _docs/IMPLEMENTATION_PLAN.md
-20. active Phase document
-21. current audit / release evidence
+19. _docs/IMPLEMENTATION_STATUS_2026-10-16.md
+20. _docs/IMPLEMENTATION_PLAN.md
+21. active Phase document
+22. current audit / release evidence
 ```
 
 ---
@@ -49,19 +50,20 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 | `_docs/PAYMENT_PRICING_UI_REQUIREMENTS.md` | Pricing / Paywall / Checkout / 결제·복구·환불·삭제 상태 UI 요구사항 | v1.1 / TARGET |
 | `_docs/PAYMENT_SCREEN_DESIGN.md` | P01~P11 결제/가격 화면 배치·wireframe | v1.0 / TARGET |
 | `_docs/PAYMENT_SCREEN_SPEC.md` | P01~P11 상태·CTA·전이·QA 계약 | v1.0 / TARGET |
-| `_docs/PAYMENT_DATA_SPEC.md` | Book Pass Order / Payment / Entitlement / Refund 논리 데이터 계약 | v1.0 / TARGET |
-| `_docs/PAYMENT_API_SPEC.md` | Commerce price / order / verify / webhook / entitlement API 계약 | v1.0 / TARGET |
+| `_docs/PAYMENT_DATA_SPEC.md` | Book Pass Order / Payment / Entitlement / Refund / Reconciliation 논리 데이터 계약 | v1.1 / TARGET |
+| `_docs/PAYMENT_API_SPEC.md` | Commerce price / order / verify / webhook / entitlement / reconciliation API 계약 | v1.1 / TARGET |
 | `_docs/IA.md` | Information Architecture | v1.0 / CURRENT |
 | `_docs/TASK_FLOW.md` | User task flow | v1.0 / CURRENT |
 | `_docs/FUNCTION_DEFINITION.md` | 기능 범위 정의 | v1.0 / CURRENT |
-| `_docs/FUNCTION_SPEC.md` | 상세 기능 계약 | v1.1 / CURRENT |
+| `_docs/FUNCTION_SPEC.md` | 상세 기능 계약 | v1.2 / CURRENT |
 | `_docs/SCREEN_DESIGN.md` | 화면 배치 / wireframe | v1.0 / CURRENT |
-| `_docs/SCREEN_SPEC.md` | 화면 상태 / CTA 계약 | v1.1 / CURRENT |
-| `_docs/API_SPEC.md` | Current/Target API 계약 | v1.1 / CURRENT |
-| `_docs/DATA_SPEC.md` | 데이터 / persistence 계약 | v1.1 / CURRENT |
+| `_docs/SCREEN_SPEC.md` | 화면 상태 / CTA 계약 | v1.2 / CURRENT |
+| `_docs/API_SPEC.md` | Current Core API 계약 / Commerce export boundary | v1.2 / CURRENT |
+| `_docs/DATA_SPEC.md` | Core 데이터 / persistence 계약 / Commerce boundary | v1.2 / CURRENT |
 | `_docs/ENGINE_CONTRACT.md` | 기존 엔진 보호 계약 | v1.1 / CURRENT |
-| `_docs/QA_ACCEPTANCE.md` | QA / Acceptance | v1.1 / CURRENT |
-| `_docs/IMPLEMENTATION_PLAN.md` | 실행 Roadmap | v2.0 / CURRENT |
+| `_docs/QA_ACCEPTANCE.md` | QA / Acceptance + future Commerce Go-Live gates | v1.2 / CURRENT |
+| `_docs/IMPLEMENTATION_STATUS_2026-10-16.md` | 현재 Phase/실행 우선순위 override | CURRENT |
+| `_docs/IMPLEMENTATION_PLAN.md` | 실행 Roadmap 본문 | v2.0 / STATUS OVERRIDE 우선 |
 | `_docs/DEV_DOC_ALIGNMENT_AUDIT_2026-10-16.md` | Code ↔ Docs gap audit | CURRENT AUDIT |
 
 ---
@@ -136,10 +138,12 @@ Historical 문서에 다음과 같은 표현이 남아 있을 수 있다.
    - Product Spec v1.5
 3. **현재 IA / Task Flow**
 4. **현재 Function / Screen / API / Data / Engine / QA**
-5. **Active Phase document**
-6. **현재 실제 코드**
+5. **Current implementation status override**
+   - `_docs/IMPLEMENTATION_STATUS_2026-10-16.md`
+6. **Active Phase document**
+7. **현재 실제 코드**
    - 단, Phase 진행 중이면 TARGET과 CURRENT gap을 허용
-7. **Historical documents**
+8. **Historical documents**
 
 현재 실제 코드가 CURRENT 문서와 다를 경우:
 
@@ -234,7 +238,7 @@ HOLD (다음 즉시 작업 아님):
 - Pricing Policy v1.1 — Free + Book Pass ₩14,900
 - Payment/Pricing UI Requirements v1.1
 - Payment Screen Design / Spec v1.0
-- Payment Data / API Spec v1.0
+- Payment Data / API Spec v1.1 — direct PDF bypass / reconciliation / compensation grant 포함
 
 ---
 
