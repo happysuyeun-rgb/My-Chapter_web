@@ -273,7 +273,7 @@
   </label>
   <button class="btn accent" id="open-new" type="button">+ 새 책 만들기</button>
   <div class="auth-area">
-    <a class="btn small" id="auth-login" href="/__auth">로그인</a>
+    <a class="btn small" id="auth-login" href="/__auth?returnTo=/library">로그인</a>
     <span class="auth-email" id="auth-email" hidden></span>
     <button class="btn small" id="auth-logout" type="button" hidden>로그아웃</button>
   </div>
@@ -814,17 +814,27 @@ es.addEventListener('reload', () => { if (!busy && !document.querySelector('dial
     email.textContent = userEmail || '';
   }
 
+  if (!window.ChagokAuth || !ChagokAuth.isConfigured()) {
+    paint(null);
+    return;
+  }
+
   ChagokAuth.getSession().then(paint).catch((err) => {
     console.warn('auth session load failed', err);
     paint(null);
   });
 
-  ChagokAuth.onAuthStateChange(({ session }) => paint(session));
+  try {
+    ChagokAuth.onAuthStateChange(({ session }) => paint(session));
+  } catch (err) {
+    console.warn('auth subscription failed', err);
+  }
+
   logout.addEventListener('click', async () => {
     logout.disabled = true;
     try {
       await ChagokAuth.signOut();
-      paint(null);
+      location.href = '/';
     } catch (err) {
       console.warn('logout failed', err);
       alert(err.message || err);
