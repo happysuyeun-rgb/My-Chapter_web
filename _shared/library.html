@@ -274,6 +274,7 @@
   <button class="btn accent" id="open-new" type="button">+ 새 책 만들기</button>
   <div class="auth-area">
     <a class="btn small" id="auth-login" href="/__auth?returnTo=/library">로그인</a>
+    <span class="btn small" id="auth-login-ready" hidden aria-disabled="true" style="opacity:.55;cursor:default">로그인 준비 중</span>
     <span class="auth-email" id="auth-email" hidden></span>
     <button class="btn small" id="auth-logout" type="button" hidden>로그아웃</button>
   </div>
@@ -803,6 +804,7 @@ es.addEventListener('reload', () => { if (!busy && !document.querySelector('dial
 <script>
 (() => {
   const login = document.querySelector('#auth-login');
+  const loginReady = document.querySelector('#auth-login-ready');
   const email = document.querySelector('#auth-email');
   const logout = document.querySelector('#auth-logout');
 
@@ -815,9 +817,13 @@ es.addEventListener('reload', () => { if (!busy && !document.querySelector('dial
   }
 
   if (!window.ChagokAuth || !ChagokAuth.isConfigured()) {
-    paint(null);
+    login.hidden = true;
+    if (loginReady) loginReady.hidden = false;
+    email.hidden = true;
+    logout.hidden = true;
     return;
   }
+  if (loginReady) loginReady.hidden = true;
 
   ChagokAuth.getSession().then(paint).catch((err) => {
     console.warn('auth session load failed', err);

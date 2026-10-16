@@ -107,7 +107,7 @@ QA-<AREA>-<NN>
 
 Gate에 넣지 않음: S13/S17, History 제품 UI, Print/EPUB/ZIP 제품 노출, AI Cover, Safari 보장, 픽셀 PDF 동일, 가짜 % 외의 시각 polish.
 
-**현재 추가 Gate:** Phase 13 Wizard Recovery와 Phase 14 Editor Autosave/Recovery는 회귀 필수. Phase 15 branch는 Landing/Auth/Entry Routing QA까지 통과해야 merge 가능.
+**현재 추가 Gate:** Phase 13 Wizard Recovery와 Phase 14 Editor Autosave/Recovery는 회귀 필수. Phase 15A는 Landing/Auth UI/Entry Routing + Local/Guest fallback QA까지 통과해야 한다. Phase 15B Runtime Auth QA는 Supabase 연결 후 HOLD 해제.
 
 ---
 
@@ -1454,7 +1454,15 @@ Preview와 PDF는 PARTIAL shared rules. 픽셀 동일 요구 없음.
 
 ## 21. Phase 15 Landing / Auth / Entry Routing QA
 
-> 전용 `Chagok Web` Supabase 연결 후 실행한다. 기존 MyChapter 앱 Supabase project는 사용하지 않는다.
+> Phase 15A Local/Guest fallback은 Supabase 미연결(blank CONFIG) 상태에서 실행한다.
+> Phase 15B Runtime Auth QA는 전용 `Chagok Web` Supabase 연결 후 실행한다.
+> 기존 MyChapter 앱 Supabase project는 사용하지 않는다.
+
+### QA-AUTH-00 Local/Guest fallback (Phase 15A)
+
+- **Priority:** P0
+- **Expected:** CONFIG blank일 때 Landing 새 책 → `/__wizard`, Library 정상, `/__auth`는 Local 안내(오류 화면 아님), console uncaught 없음
+- **Failure:** Auth 미설정 때문에 Wizard/Library 진입 차단
 
 ### QA-AUTH-01 Landing route
 
@@ -2123,11 +2131,12 @@ QA가 실패로 보지 않는 현재 엔진/제품 한계. Architecture를 바�
 - [ ] Print/EPUB/ZIP Route 삭제 아님 (QA-EXPORT-05)
 - [ ] Chrome 또는 Edge에서 핵심 흐름 (QA-BROWSER-01)
 - [ ] Data Loss 기존 항목 + recovery/auth 안전 규칙
-- [ ] Phase 15: `/` Landing, `/library` Library
-- [ ] Phase 15: 회원가입/로그인/session refresh/logout
-- [ ] Phase 15: returnTo 내부 경로 + external redirect 차단
-- [ ] Phase 15: 앱용 MyChapter Supabase project ref 미사용
-- [ ] Phase 15: Wizard/Editor/Preview/PDF 회귀 + 보호 책 hash 불변
+- [x] Phase 15A: `/` Landing, `/library` Library
+- [x] Phase 15A: Local mode에서 새 책 → `/__wizard`, `/__auth` Local fallback
+- [ ] Phase 15B: 회원가입/로그인/session refresh/logout (HOLD)
+- [x] Phase 15A: returnTo 내부 경로 + external redirect 차단 (configured path 유지)
+- [x] Phase 15A: 앱용 MyChapter Supabase project ref 미사용 + blank CONFIG
+- [x] Phase 15A: Wizard/Editor/Preview/PDF 회귀 + 보호 책 hash 불변
 
 닫지 않아도 출시 가능:
 

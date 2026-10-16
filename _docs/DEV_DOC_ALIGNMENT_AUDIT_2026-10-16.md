@@ -12,9 +12,9 @@
 
 Phase 0~14 핵심 개발은 현재 문서와 대체로 일치한다.
 
-Entry Routing gap은 수정 완료했다. 현재 실제 개발 누락의 중심은 **전용 Chagok Web Supabase runtime 연결 + Runtime Auth QA**다.
-
-추가로 문서 몇 곳이 실제 구현보다 뒤처져 있었고, 일부 코드에는 Phase 15 전환 시 반드시 수정해야 할 navigation / auth robustness 문제가 있다.
+Entry Routing gap과 Phase 15A Local/Guest fallback은 수정 완료했다.
+현재 HOLD 항목의 중심은 **Phase 15B: 전용 Chagok Web Supabase runtime 연결 + Runtime Auth QA**다.
+Phase 16 Ownership/DB/Storage/RLS도 HOLD다.
 
 ---
 

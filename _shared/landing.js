@@ -7,9 +7,24 @@
   const newMain = document.querySelector('#landing-new-main');
   const secondaryLogin = document.querySelector('#landing-secondary-login');
   const secondaryLibrary = document.querySelector('#landing-secondary-library');
+  const loginReady = document.querySelector('#landing-login-ready');
+  const secondaryLoginReady = document.querySelector('#landing-secondary-login-ready');
 
-  function paint(session) {
+  function paintLocal() {
+    login.hidden = true;
+    secondaryLogin.hidden = true;
+    if (loginReady) loginReady.hidden = false;
+    if (secondaryLoginReady) secondaryLoginReady.hidden = false;
+    library.hidden = false;
+    secondaryLibrary.hidden = false;
+    newTop.href = '/__wizard';
+    newMain.href = '/__wizard';
+  }
+
+  function paintConfigured(session) {
     const signedIn = !!(session && session.user);
+    if (loginReady) loginReady.hidden = true;
+    if (secondaryLoginReady) secondaryLoginReady.hidden = true;
     login.hidden = signedIn;
     library.hidden = !signedIn;
     secondaryLogin.hidden = signedIn;
@@ -17,21 +32,26 @@
     const newHref = signedIn ? '/__wizard' : '/__auth?returnTo=/__wizard';
     newTop.href = newHref;
     newMain.href = newHref;
+    login.href = '/__auth?returnTo=/library';
+    secondaryLogin.href = '/__auth?returnTo=/library';
   }
 
-  paint(null);
+  if (!window.ChagokAuth || !ChagokAuth.isConfigured()) {
+    paintLocal();
+    return;
+  }
 
-  if (!window.ChagokAuth || !ChagokAuth.isConfigured()) return;
+  paintConfigured(null);
 
   ChagokAuth.getSession()
-    .then(paint)
+    .then(paintConfigured)
     .catch((err) => {
       console.warn('landing auth session load failed', err);
-      paint(null);
+      paintConfigured(null);
     });
 
   try {
-    ChagokAuth.onAuthStateChange(({ session }) => paint(session));
+    ChagokAuth.onAuthStateChange(({ session }) => paintConfigured(session));
   } catch (err) {
     console.warn('landing auth subscription failed', err);
   }

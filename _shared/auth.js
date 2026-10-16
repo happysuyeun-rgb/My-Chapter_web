@@ -50,6 +50,7 @@
   }
 
   async function getSession() {
+    if (!isConfigured()) return null;
     const { data, error } = await getClient().auth.getSession();
     if (error) throw error;
     return data.session || null;
@@ -79,6 +80,10 @@
   }
 
   function onAuthStateChange(callback) {
+    if (!isConfigured()) {
+      try { callback({ event: 'INITIAL_SESSION', session: null }); } catch (_) {}
+      return { data: { subscription: { unsubscribe() {} } } };
+    }
     return getClient().auth.onAuthStateChange((event, session) => {
       callback({ event, session: session || null });
     });

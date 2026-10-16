@@ -62,12 +62,20 @@ if (!serverText.includes('"GET /library"')) fail("library route is missing");
 if (!serverText.includes("landingPage()")) fail("landing route is missing");
 
 const landingText = fs.readFileSync("_shared/landing.html", "utf8");
-for (const marker of ["/__auth?returnTo=/library", "/__auth?returnTo=/__wizard", "/library", "/_shared/landing.js"]) {
+for (const marker of ["/__auth?returnTo=/library", "/library", "/__wizard", "/_shared/landing.js", "로그인 준비 중"]) {
   if (!landingText.includes(marker)) fail(`landing marker missing: ${marker}`);
 }
 
+const landingJs = fs.readFileSync("_shared/landing.js", "utf8");
+if (!landingJs.includes("paintLocal") || !landingJs.includes("'/__wizard'")) {
+  fail("landing local mode must route new-book CTA to /__wizard");
+}
+if (!landingJs.includes("paintConfigured") || !landingJs.includes("/__auth?returnTo=/__wizard")) {
+  fail("landing configured mode must preserve auth returnTo for new-book CTA");
+}
+
 const libraryText = fs.readFileSync("_shared/library.html", "utf8");
-for (const authMarker of ["/__auth?returnTo=/library", "auth-login", "auth-logout", "/_shared/auth.js"]) {
+for (const authMarker of ["/__auth?returnTo=/library", "auth-login", "auth-logout", "/_shared/auth.js", "isConfigured"]) {
   if (!libraryText.includes(authMarker)) fail(`library auth marker missing: ${authMarker}`);
 }
 
@@ -75,8 +83,15 @@ for (const authMarker of ["safeReturnTo", "getReturnTo", "isConfigured", "raw.st
   if (!authClient.includes(authMarker)) fail(`auth return marker missing: ${authMarker}`);
 }
 
+if (!/url:\s*""/.test(authClient) || !/publishableKey:\s*""/.test(authClient)) {
+  fail("auth config must remain blank until Chagok Web Supabase is connected");
+}
+
 const authHtml = fs.readFileSync("_shared/auth.html", "utf8");
 if (!authHtml.includes("location.href = returnTo")) fail("auth success does not honor returnTo");
+if (!authHtml.includes("auth-local") || !authHtml.includes('href="/__wizard"')) {
+  fail("auth local fallback navigation is missing");
+}
 
 const wizardText = fs.readFileSync("_shared/wizard.js", "utf8");
 if (!wizardText.includes("location.href = '/library'")) fail("wizard cancel does not return to library");
@@ -85,5 +100,6 @@ const workspaceHtml = fs.readFileSync("_shared/workspace.html", "utf8");
 if (!workspaceHtml.includes('href="/library"')) fail("workspace library links are not aligned");
 
 pass("auth + entry routing markers");
+pass("local/guest fallback markers");
 
 console.log("\nRelease static check: PASS");

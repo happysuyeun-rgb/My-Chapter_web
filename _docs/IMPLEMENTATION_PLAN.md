@@ -176,8 +176,9 @@ Phase 15 완료 전까지 CURRENT와 TARGET의 차이를 명시적으로 유지�
 | Phase 12 | Full Regression / Release Gate | ✅ COMPLETE |
 | Phase 13 | Wizard Draft Recovery | ✅ COMPLETE |
 | Phase 14 | Editor Autosave / Recovery | ✅ COMPLETE |
-| Phase 15 | Auth + Entry Routing Foundation | 🚧 IN PROGRESS |
-| Phase 16 | Ownership + DB + Storage + API Authorization | ⏳ NEXT |
+| Phase 15A | Entry Routing + Auth UI + Local/Guest fallback | ✅ COMPLETE |
+| Phase 15B | Real Supabase Auth Runtime | ⏸ HOLD |
+| Phase 16 | Ownership + DB + Storage + API Authorization | ⏸ HOLD |
 | Phase 17+ | Deployment / PDF Worker / AI / Payment | ⏳ LATER |
 
 ---
@@ -747,16 +748,22 @@ Later
    - static release gate
    ↓
 
-5. Chagok Web Supabase 연결 ← NEXT
+5. Phase 15A Local/Guest fallback ✅
+   - Supabase 미연결 시 로컬 MVP 흐름 유지
+   - `/__auth` Local fallback
+   - blank CONFIG 유지
    ↓
 
-6. Phase 15 Runtime QA
+6. Chagok Web Supabase 연결 ← HOLD (Phase 15B)
    ↓
 
-7. PR merge
+7. Phase 15B Runtime Auth QA ← HOLD
    ↓
 
-8. Phase 16 설계
+8. PR merge (15A 또는 15B 완료 기준에 따름)
+   ↓
+
+9. Phase 16 설계 ← HOLD
 ```
 
 ---
@@ -771,7 +778,7 @@ Later
 - parse-only가 TARGET으로 남아 있지 않음
 - Theme API가 미구현으로 남아 있지 않음
 - `/` vs `/library` CURRENT/TARGET 구분 명확
-- Phase 15와 Phase 16 boundary 명확
+- Phase 15A / 15B / Phase 16 boundary 명확
 - Historical 문서는 당시 기록으로 보존
 
 ---
@@ -780,6 +787,6 @@ Later
 
 현재 다음 작업:
 
-> **전용 `Chagok Web` Supabase 프로젝트를 생성/연결하고 Phase 15 Runtime Auth QA를 수행한다.**
+> **Phase 15A는 Local/Guest fallback까지 완료. Phase 15B(실제 Supabase Auth Runtime)와 Phase 16은 HOLD.**
 
-Entry Routing과 static release gate는 구현 및 CI PASS 상태다.
+Supabase URL/key를 연결하기 전에는 Runtime Auth QA를 시작하지 않는다.

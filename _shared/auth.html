@@ -25,28 +25,42 @@
   .message { min-height:22px; margin:15px 0 0; font-size:13px; line-height:1.55; color:var(--ink2); }
   .message.error { color:#9b2c22; }
   .notice { margin-top:22px; padding:12px 14px; border-radius:10px; background:#f7f4ee; color:var(--ink2); font-size:12px; line-height:1.55; }
+  .local-actions { display:grid; gap:10px; margin-top:8px; }
+  .local-actions a { display:flex; align-items:center; justify-content:center; min-height:44px; border-radius:9px; border:1px solid var(--line); text-decoration:none; font-weight:700; background:#fff; color:var(--ink); }
+  .local-actions a.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
 </style>
 </head>
 <body>
-<main class="card">
+<main class="card" id="auth-card">
   <div class="brand"><b>차곡</b><a href="/">홈으로</a></div>
-  <h1 id="title">로그인</h1>
-  <p class="lead" id="lead">계정으로 로그인하면 이후 내 책을 계정과 연결할 수 있습니다.</p>
-  <div class="tabs" role="tablist" aria-label="계정">
-    <button class="on" id="tab-login" type="button">로그인</button>
-    <button id="tab-signup" type="button">회원가입</button>
+  <div id="auth-configured">
+    <h1 id="title">로그인</h1>
+    <p class="lead" id="lead">계정으로 로그인하면 이후 내 책을 계정과 연결할 수 있습니다.</p>
+    <div class="tabs" role="tablist" aria-label="계정">
+      <button class="on" id="tab-login" type="button">로그인</button>
+      <button id="tab-signup" type="button">회원가입</button>
+    </div>
+    <form id="auth-form">
+      <label>이메일
+        <input id="email" type="email" autocomplete="email" required placeholder="you@example.com">
+      </label>
+      <label>비밀번호
+        <input id="password" type="password" minlength="6" autocomplete="current-password" required placeholder="6자 이상">
+      </label>
+      <button class="primary" id="submit" type="submit">로그인</button>
+    </form>
+    <p class="message" id="message" role="status"></p>
+    <div class="notice">Phase 15에서는 로그인 세션만 연결합니다. 기존 로컬 책은 아직 특정 계정 소유로 제한하지 않으며, 소유권과 클라우드 저장은 다음 단계에서 연결합니다.</div>
   </div>
-  <form id="auth-form">
-    <label>이메일
-      <input id="email" type="email" autocomplete="email" required placeholder="you@example.com">
-    </label>
-    <label>비밀번호
-      <input id="password" type="password" minlength="6" autocomplete="current-password" required placeholder="6자 이상">
-    </label>
-    <button class="primary" id="submit" type="submit">로그인</button>
-  </form>
-  <p class="message" id="message" role="status"></p>
-  <div class="notice">Phase 15에서는 로그인 세션만 연결합니다. 기존 로컬 책은 아직 특정 계정 소유로 제한하지 않으며, 소유권과 클라우드 저장은 다음 단계에서 연결합니다.</div>
+  <div id="auth-local" hidden>
+    <h1>지금은 로컬로 사용할 수 있어요</h1>
+    <p class="lead">계정 연결(Supabase)이 아직 준비되지 않았습니다. 로그인 없이 새 책을 만들고 서재를 이용할 수 있습니다.</p>
+    <div class="local-actions">
+      <a class="primary" href="/__wizard">새 책 만들기</a>
+      <a href="/library">내 서재</a>
+      <a href="/">홈으로</a>
+    </div>
+  </div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -54,6 +68,14 @@
 <script>
 (() => {
   const $ = (s) => document.querySelector(s);
+
+  if (!window.ChagokAuth || !ChagokAuth.isConfigured()) {
+    $('#auth-configured').hidden = true;
+    $('#auth-local').hidden = false;
+    document.title = '로컬 사용 · 차곡';
+    return;
+  }
+
   let mode = 'login';
   const form = $('#auth-form');
   const email = $('#email');

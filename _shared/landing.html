@@ -16,6 +16,7 @@
   .btn { min-height:40px; display:inline-flex; align-items:center; justify-content:center; padding:0 15px; border:1px solid var(--line); border-radius:9px; background:#fff; text-decoration:none; font-size:13px; font-weight:700; }
   .btn.primary { background:var(--ink); border-color:var(--ink); color:#fff; }
   .btn.accent { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .btn.ready { opacity:.55; cursor:default; pointer-events:none; color:var(--ink2); }
   .hero { min-height:64vh; display:grid; place-items:center; padding:72px 20px 56px; text-align:center; }
   .hero-inner { width:min(820px,100%); }
   .eyebrow { margin:0 0 16px; font-size:12px; font-weight:800; letter-spacing:.13em; color:var(--accent); }
@@ -46,9 +47,10 @@
 <body>
 <header class="top">
   <a class="brand" href="/">차곡</a>
-  <a class="btn" id="landing-login" href="/__auth?returnTo=/library">로그인</a>
-  <a class="btn" id="landing-library" href="/library" hidden>내 서재</a>
-  <a class="btn accent" id="landing-new-top" href="/__auth?returnTo=/__wizard">새 책 만들기</a>
+  <a class="btn" id="landing-login" href="/__auth?returnTo=/library" hidden>로그인</a>
+  <span class="btn ready" id="landing-login-ready" hidden aria-disabled="true">로그인 준비 중</span>
+  <a class="btn" id="landing-library" href="/library">내 서재</a>
+  <a class="btn accent" id="landing-new-top" href="/__wizard">새 책 만들기</a>
 </header>
 
 <main>
@@ -58,9 +60,10 @@
       <h1>원고가 책이 되는 과정,<br>차곡.</h1>
       <p class="lead">원고를 준비하면 구조를 정리하고, 디자인과 표지를 입히고, 미리보기와 PDF까지 한 흐름으로 완성합니다.</p>
       <div class="hero-actions">
-        <a class="btn primary" id="landing-new-main" href="/__auth?returnTo=/__wizard">새 책 만들기</a>
-        <a class="btn" id="landing-secondary-login" href="/__auth?returnTo=/library">로그인</a>
-        <a class="btn" id="landing-secondary-library" href="/library" hidden>내 서재</a>
+        <a class="btn primary" id="landing-new-main" href="/__wizard">새 책 만들기</a>
+        <a class="btn" id="landing-secondary-login" href="/__auth?returnTo=/library" hidden>로그인</a>
+        <span class="btn ready" id="landing-secondary-login-ready" hidden aria-disabled="true">로그인 준비 중</span>
+        <a class="btn" id="landing-secondary-library" href="/library">내 서재</a>
       </div>
     </div>
   </section>

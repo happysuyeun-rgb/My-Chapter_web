@@ -3,8 +3,11 @@
 - 작성일: 2026-10-16
 - Branch: `phase-15-auth-foundation`
 - Base: `main@2af7924`
-- Status: **AUTH + ENTRY ROUTING IMPLEMENTED / STATIC QA PASS / INFRA CONFIG PENDING / RUNTIME QA PENDING**
-- Supabase project: **PENDING — 새 `Chagok Web` 프로젝트 생성·연결 필요**
+- Status: **Phase 15A COMPLETE / Phase 15B HOLD**
+- Phase 15A: Entry Routing + Auth UI Foundation + Local/Guest fallback
+- Phase 15B: Real Supabase Auth Runtime = **HOLD**
+- Phase 16: Ownership / DB / Storage / RLS = **HOLD**
+- Supabase project: **HOLD — 새 `Chagok Web` 프로젝트 생성·연결 전**
 - 기존 `MyChapter` Supabase 프로젝트는 별도 앱용이므로 차곡 웹에서 사용하지 않는다.
 - Related: `_docs/IA.md`, `_docs/TASK_FLOW.md`, `_docs/SCREEN_DESIGN.md`, `_docs/SCREEN_SPEC.md`
 
@@ -17,7 +20,11 @@ Phase 15의 목표는 두 가지다.
 1. 차곡에 계정 세션 기반을 추가한다.
 2. 최종 제품 진입 구조에 맞게 Landing / Library / Auth의 Entry Routing을 정리한다.
 
-Phase 15 완료 기준은 단순히 로그인 화면이 존재하는 것이 아니다.
+추가로 Phase 15A에서는 Supabase가 아직 연결되지 않아도
+Landing → Wizard → Workspace → Preview → PDF 로컬 MVP 흐름이 막히지 않도록
+Local/Guest fallback을 제공한다.
+
+Phase 15 전체 완료 기준은 단순히 로그인 화면이 존재하는 것이 아니다.
 
 ```text
 /          → Landing
@@ -100,11 +107,20 @@ Phase 15 완료 기준은 단순히 로그인 화면이 존재하는 것이 아�
 - config-missing auth guard
 - release static gate expanded for routing/returnTo
 
-### Pending
+### Implemented in Phase 15A (Local/Guest fallback)
+
+- `ChagokAuth.isConfigured() === false` 일 때 Landing 새 책 CTA → `/__wizard`
+- Landing/Library 로그인 CTA → `로그인 준비 중` (Auth 오류 화면으로 보내지 않음)
+- `/__auth` 직접 접근 시 Local fallback 안내 + Wizard/Library/Home 이동
+- Library는 Auth config 없이도 목록/검색/정렬/열기 정상
+- `auth.js` CONFIG url/publishableKey는 빈 문자열 유지
+- release-check Local mode / blank config / app-Supabase-ref 차단 guard
+
+### Pending (Phase 15B — HOLD)
 
 - 전용 `Chagok Web` Supabase 프로젝트 생성
 - Supabase URL / publishable key 연결
-- Runtime Auth QA
+- Runtime Auth QA (signup/login/session/logout)
 
 ---
 
