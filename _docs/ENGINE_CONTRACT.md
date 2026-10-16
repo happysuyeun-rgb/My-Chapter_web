@@ -2,10 +2,11 @@
 
 - Product: 차곡
 - Stage: Development Specification — Engine Contract
-- Version: 1.0
-- Date: 2026-10-03
-- Basis: Product Spec v1.3, M0.5-A/B, FUNCTION_SPEC, SCREEN_SPEC
-- Pair: `_docs/DATA_SPEC.md`, `_docs/API_SPEC.md`
+- Version: **1.1**
+- Date: 2026-10-16
+- Status: **CURRENT / IMPLEMENTATION BASELINE**
+- Basis: Product Spec v1.4, M0.5-A/B, FUNCTION_SPEC v1.1, SCREEN_SPEC v1.1
+- Pair: `_docs/DATA_SPEC.md`, `_docs/API_SPEC.md`, `_docs/PHASE_15_AUTH_FOUNDATION.md`
 
 신규 Product UI가 **기존 엔진을 깨지 않고** 지켜야 하는 계약이다. Architecture를 바꾸기 위한 문서가 아니다.
 
@@ -25,7 +26,7 @@ Product / Service UI
 
 이 문서의 질문: **무엇을 지키면 엔진이 깨지지 않는가?**
 
-구현·Route 추가·React/Supabase 도입을 여기서 결정하지 않는다.
+이 문서는 엔진 경계를 정의한다. Product/Service Layer의 Route/Auth 추가가 이 계약을 바꾸지는 않는다.
 
 ---
 
@@ -43,7 +44,8 @@ Product / Service UI
 | Existing Book Migration | NO |
 | Import | TXT / MD / PDF / DOCX |
 | Engine | KEEP / WRAP |
-| React / Vite / Supabase | NOT USED |
+| React / Vite | Core Engine에 NOT USED |
+| Supabase | **Core Engine에 NOT USED.** Phase 15 Service/Auth layer에서만 사용하며 DB/Storage는 아직 없음 |
 
 분류 어휘: MUST PRESERVE / MUST USE / MAY WRAP / MAY EXTEND / DO NOT REPLACE / LATER.
 
@@ -219,7 +221,7 @@ MAY WRAP / MAY EXTEND (`book.css` 토큰). HTML SoT DO NOT REPLACE.
 
 Practical = 현재 Template/설계본 토큰. Minimal = 같은 선택자, 다른 토큰.
 
-현재 Theme id Persistence는 없다. 적용 실체는 `book.css` (CURRENT). id 저장은 DATA_SPEC TARGET_MVP.
+Theme 선택은 현재 `book.css`에 CSS 주석 `/* my-chapter-theme: practical|minimal */`로 기록한다. `book.json.themeId`는 사용하지 않는다. `GET/POST /__theme`이 이 계약을 읽고 쓴다.
 
 관련: S08, S11, F-THEME-*.
 
@@ -253,16 +255,31 @@ MUST PRESERVE. 제품 UI는 HIDE 가능 (LATER 노출).
 - 최근 50 + 하루 하나 prune
 - Restore: 스냅샷을 다시 write, reason `restore`
 
-### Auto Save / Live Reload Guardrail
+### Auto Save / Recovery / Live Reload Guardrail
 
-아직 Auto Save는 Later. 붙일 때:
+Phase 14에서 Auto Save / Recovery를 구현했다.
 
-- 매 키 입력마다 `commit`+전체 스냅샷 금지 → History 폭증
-- html write는 watch → `/__live` reload. 편집 중 reload는 dirty 손실. 기존 `suppressReloadUntil` 1.5s를 무시하고 연속 write 하지 말 것
-- sidecar 변경은 History에 안 남음. Auto Save가 HTML만 저장하면 그림과 어긋날 수 있음
-- rename/cover는 현재 suppress가 약함. 제품 자동 저장이 이 경로를 치면 reload 충돌
+현재 계약:
 
-관련: F-HIST-01, F-EDITOR-09 (Later), API-HISTORY-*.
+- Auto Save debounce = 1500ms
+- Local Recovery write debounce = 400ms
+- 한 번에 하나의 `/__edit` 요청만 진행
+- save 요청 이후 발생한 새 수정은 성공 응답으로 잘못 clean 처리하지 않음
+- manual Save / Ctrl/Cmd+S 유지
+- 409 conflict → autosave pause + dirty/recovery 보존 + 자동 재전송 금지
+- stale recovery는 자동 적용하지 않음
+- block/structure op 전에 dirty flush. save 실패 시 해당 op 중단
+
+History guardrail:
+
+- 매 키 입력마다 `commit`+전체 스냅샷 금지
+- autosave는 debounce로 history 폭증을 제한
+- sidecar 변경은 History에 안 남음
+- rename/cover는 별도 경로이며 autosave와 혼합하지 않음
+
+Recovery key는 legacy `mychapter:editor-recovery:v1:<file>`를 사용 중이다. migration 없이 rename/delete 금지.
+
+관련: F-HIST-01, F-EDITOR-09..11, API-HISTORY-*, API-EDIT-01.
 
 ---
 
@@ -303,15 +320,20 @@ Import 역할: Raw Manuscript → **기본 Book Structure**.
 
 표지/속표지/판권은 Template 앞부분.
 
-### CURRENT vs TARGET_MVP
+### CURRENT
 
-| | CURRENT | TARGET_MVP |
-|---|---|---|
-| 호출 | `POST /__new-book` 안에서 파싱+즉시 폴더 write | S05–S07은 파싱만. write는 S09 |
-| 원본 | `source/`에 생성과 동시에 | 확정 후에만 |
-| 구조 수정 | 생성 후 Editor | S07 세션 후 생성 |
+| 단계 | 현재 동작 |
+|---|---|
+| S05 | `POST /__parse`로 parse-only. 디스크 write 없음 |
+| S06 | metadata client state |
+| S07 | structure client state + Phase 13 draft recovery |
+| S08 | theme client state |
+| S09 | `POST /__new-book`에서 첫 실제 book write |
+| 생성 후 Theme | 필요 시 `POST /__theme` |
 
-현재 동작을 TARGET처럼 쓰지 않는다. S07 확정 전 destructive write 금지는 **제품 규칙**이며, 지금 Route는 한 번에 쓴다.
+원본 source 사본은 생성 확정 후에만 책 폴더에 보관한다.
+
+S07 확정 전 destructive write 금지는 이제 **현재 제품 동작 계약**이다.
 
 관련: S05–S09, F-IMPORT-*, F-STRUCT-*, F-GEN-01.
 
@@ -319,7 +341,7 @@ Import 역할: Raw Manuscript → **기본 Book Structure**.
 
 ## 13. Workspace Integration Contract
 
-S10 MAY WRAP.
+S10 Workspace Shell은 구현되었고 기존 엔진을 WRAP한다.
 
 ```text
 셸: 서재 / 제목 / 저장 상태 / PDF / 탭
@@ -342,11 +364,15 @@ S10 MAY WRAP.
 3. 168쪽 책을 migrate하지 않는다.
 4. eid를 디스크에 심지 않는다 (현재 계약).
 5. htmltree를 직렬화 SoT로 쓰지 않는다.
-6. History 전체 스냅샷을 키 단위 Auto Save에 연결하지 않는다.
-7. Import 실패/마법사 취소를 부분 폴더로 남기지 않는다 (제품). 현재 create는 성공 시에만 폴더가 남는 경로다.
-8. Print/EPUB/ZIP/History/Lint를 삭제하지 않는다. HIDE만.
-9. PDF가 HTML/sidecar를 쓰지 않는다.
-10. Theme가 class 의미를 지우지 않는다.
+6. History 전체 스냅샷을 키 입력 단위 저장에 연결하지 않는다. Auto Save는 debounce 계약을 유지한다.
+7. 409 conflict 후 자동 재전송으로 덮어쓰지 않는다.
+8. Recovery legacy key를 migration 없이 rename/delete하지 않는다.
+9. Import 실패/마법사 취소를 부분 폴더로 남기지 않는다.
+10. Print/EPUB/ZIP/History/Lint를 삭제하지 않는다. HIDE만.
+11. PDF가 HTML/sidecar를 쓰지 않는다.
+12. Theme가 class 의미를 지우지 않는다.
+13. Phase 15 Auth 도입 때문에 book.html/file identity 계약을 바꾸지 않는다.
+14. Auth session을 Book ownership으로 취급하지 않는다.
 
 ---
 
@@ -373,12 +399,37 @@ S10 MAY WRAP.
 | Library | library.html | MAY WRAP | S03 | F-LIB-* |
 | Theme tokens | CSS only | MAY EXTEND | S08, S11 | F-THEME-* |
 | Live Reload | SSE | MUST PRESERVE (로컬) | S10 | — |
-| Auto Save | — | LATER | S10 | F-EDITOR-09 |
+| Auto Save | book_editor.js | MUST PRESERVE / MAY WRAP | S10 | F-EDITOR-09 |
+| Editor Recovery | localStorage recovery | MUST PRESERVE until migration | S10 | F-EDITOR-10, F-EDITOR-11 |
 | AI Cover | — | LATER | S13 | F-AICOVER-01 |
 
 ---
 
-## 16. Breaking Change Definition
+## 16. Service/Auth Boundary
+
+Phase 15의 Landing / Auth / Library routing은 Product/Service Layer 변화다.
+
+엔진 관점에서 유지되는 것:
+
+- book identity = `file`
+- local book folder contract
+- book.html SoT
+- Editor / Viewer / Paged.js / PDF
+- Theme / sidecar / history
+
+Phase 15의 Supabase Auth는 browser session만 추가한다.
+
+Phase 16 전까지:
+- Book ownership 없음
+- DB metadata 없음
+- Supabase Storage 없음
+- server API authorization 없음
+
+따라서 Auth 도입을 이유로 엔진 파일 구조나 SoT를 변경하면 안 된다.
+
+---
+
+## 17. Breaking Change Definition
 
 다음을 하면 계약을 깨는 것이다.
 
