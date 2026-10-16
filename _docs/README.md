@@ -39,10 +39,10 @@ Cursor / 개발 작업에서 문서가 충돌하면 이 Index의 분류와 우�
 
 | Document | Role | Version / State |
 |---|---|---|
-| `MY_CHAPTER_PRODUCT_SPEC.md` | Product + Development baseline | v1.4 / CURRENT |
-| `_docs/SERVICE_POLICY.md` | 사용자-facing 서비스 범위 / 권리 / 저장 / 출력 / AI 정책 | v1.0 / CURRENT |
-| `_docs/PRICING_POLICY.md` | Free / Book Pass 가격·권리·과금 경계 | v1.0 / CURRENT |
-| `_docs/PAYMENT_PRICING_UI_REQUIREMENTS.md` | Pricing / Paywall / Checkout / 결제 상태 UI 요구사항 | v1.0 / TARGET |
+| `MY_CHAPTER_PRODUCT_SPEC.md` | Product + Development baseline | v1.5 / CURRENT |
+| `_docs/SERVICE_POLICY.md` | 사용자-facing 서비스 범위 / 권리 / 저장 / 출력 / AI 정책 | v1.1 / CURRENT |
+| `_docs/PRICING_POLICY.md` | Free / Book Pass 가격·권리·과금 경계 | v1.1 / CURRENT |
+| `_docs/PAYMENT_PRICING_UI_REQUIREMENTS.md` | Pricing / Paywall / Checkout / 결제·복구·환불·삭제 상태 UI 요구사항 | v1.1 / TARGET |
 | `_docs/IA.md` | Information Architecture | v1.0 / CURRENT |
 | `_docs/TASK_FLOW.md` | User task flow | v1.0 / CURRENT |
 | `_docs/FUNCTION_DEFINITION.md` | 기능 범위 정의 | v1.0 / CURRENT |
@@ -125,7 +125,7 @@ Historical 문서에 다음과 같은 표현이 남아 있을 수 있다.
 1. **보호/엔진 불변 계약**
    - M0.5에서 확정된 Content SoT / KEEP / WRAP 원칙
 2. **현재 Product baseline**
-   - Product Spec v1.4
+   - Product Spec v1.5
 3. **현재 IA / Task Flow**
 4. **현재 Function / Screen / API / Data / Engine / QA**
 5. **Active Phase document**
@@ -218,6 +218,13 @@ HOLD (다음 즉시 작업 아님):
 
 - Phase 15B: Chagok Web Supabase project/config + runtime Auth QA
 - Phase 16: Ownership / DB / Storage / RLS
+- Payment implementation: Auth/Ownership/stable commerce identity/server verification 이후
+
+정책은 확정됐지만 구현은 HOLD:
+
+- Service Policy v1.1
+- Pricing Policy v1.1 — Free + Book Pass ₩14,900
+- Payment/Pricing UI Requirements v1.1
 
 ---
 
@@ -245,10 +252,12 @@ mychapter:editor-recovery:v1:<file>
 
 ```text
 1. _docs/README.md
-2. _docs/IMPLEMENTATION_PLAN.md
-3. active Phase document
-4. 관련 상세 spec
-5. 실제 코드
+2. MY_CHAPTER_PRODUCT_SPEC.md
+3. 관련 Service / Pricing policy (해당 작업일 때)
+4. _docs/IMPLEMENTATION_PLAN.md
+5. active Phase document
+6. 관련 상세 spec
+7. 실제 코드
 ```
 
 를 확인한다.
