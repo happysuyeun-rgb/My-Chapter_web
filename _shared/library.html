@@ -814,16 +814,16 @@ es.addEventListener('reload', () => { if (!busy && !document.querySelector('dial
     email.textContent = userEmail || '';
   }
 
-  MyChapterAuth.getSession().then(paint).catch((err) => {
+  ChagokAuth.getSession().then(paint).catch((err) => {
     console.warn('auth session load failed', err);
     paint(null);
   });
 
-  MyChapterAuth.onAuthStateChange(({ session }) => paint(session));
+  ChagokAuth.onAuthStateChange(({ session }) => paint(session));
   logout.addEventListener('click', async () => {
     logout.disabled = true;
     try {
-      await MyChapterAuth.signOut();
+      await ChagokAuth.signOut();
       paint(null);
     } catch (err) {
       console.warn('logout failed', err);
