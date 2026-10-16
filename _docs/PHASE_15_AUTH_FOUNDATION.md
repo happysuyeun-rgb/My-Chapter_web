@@ -1,14 +1,15 @@
-# My Chapter Phase 15 — Auth Foundation
+# 차곡 Phase 15 — Auth Foundation
 
 - 작성일: 2026-10-16
 - Branch: `phase-15-auth-foundation`
 - Base: `main@2af7924`
 - Status: IMPLEMENTED / RUNTIME QA PENDING
-- Supabase project: `MyChapter` (`rdrafwfdwfzgcfiqkgug`)
+- Supabase project: **PENDING — 새 `Chagok Web` 프로젝트로 분리 예정**
+- 기존 `MyChapter` Supabase 프로젝트는 앱용이므로 차곡 웹에서 사용하지 않는다.
 
 ## Goal
 
-My Chapter에 계정 세션의 기반만 추가한다.
+차곡에 계정 세션의 기반만 추가한다.
 
 이번 Phase의 범위:
 
