@@ -388,9 +388,9 @@ Phase 15에서는 **Supabase Auth만 서비스 계층에 추가**한다. Supabas
 
 | ID | Screen | Current / Target | Strategy |
 |---|---|---|---|
-| S01 | Landing | **Phase 15 TARGET / pending implementation** | 신규 진입 화면. `/` |
+| S01 | Landing | **Phase 15 IMPLEMENTED / runtime QA pending** | 신규 진입 화면. `/` |
 | S02 | Auth | **Phase 15 PARTIAL IMPLEMENTED** | `_shared/auth.html/js`; Chagok Web 연결·runtime QA pending |
-| S03 | Library | **IMPLEMENTED / route move pending** | 기존 서재 KEEP / WRAP. 목표 `/library` |
+| S03 | Library | **IMPLEMENTED / `/library` route current** | 기존 서재 KEEP / WRAP |
 | S04 | New Book Method | **IMPLEMENTED** | Wizard |
 | S05 | Manuscript Input | **IMPLEMENTED** | TXT / MD / PDF / DOCX / paste |
 | S06 | Metadata | **IMPLEMENTED** | 제목·부제·저자 |
@@ -417,7 +417,7 @@ Phase 15에서는 **Supabase Auth만 서비스 계층에 추가**한다. Supabas
 /__pdf?file=... → S15
 ```
 
-Phase 15 완료 전에는 현재 코드와 목표 Route가 다를 수 있다. 이 차이는 버그가 아니라 **진행 중인 Implementation Gap**으로 추적한다.
+Phase 15 Entry Routing 코드는 구현되었다. 남은 Phase 15 gap은 전용 Chagok Web Supabase 연결과 Runtime Auth QA다.
 
 ### 9.2 Auth vs Ownership
 
