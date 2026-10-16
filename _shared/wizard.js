@@ -907,7 +907,7 @@
     clearStructureSession();
     state.themeId = 'practical';
     state.meta = { title: '', subtitle: '', author: '' };
-    location.href = '/';
+    location.href = '/library';
   }
 
   methodCards.forEach((card) => {
