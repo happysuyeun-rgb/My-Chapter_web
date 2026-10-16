@@ -27,6 +27,7 @@ const syntaxFiles = [
   "_shared/paged_book_viewer.js",
   "_shared/book_editor.js",
   "_shared/auth.js",
+  "_shared/landing.js",
   "_shared/book_tools.js",
 ];
 
@@ -57,10 +58,32 @@ for (const authMarker of ["chagok-auth-v1", "signInWithPassword", "signUp", "sig
 }
 const serverText = fs.readFileSync("preview-server.mjs", "utf8");
 if (!serverText.includes('"GET /__auth"')) fail("auth route is missing");
+if (!serverText.includes('"GET /library"')) fail("library route is missing");
+if (!serverText.includes("landingPage()")) fail("landing route is missing");
+
+const landingText = fs.readFileSync("_shared/landing.html", "utf8");
+for (const marker of ["/__auth?returnTo=/library", "/__auth?returnTo=/__wizard", "/library", "/_shared/landing.js"]) {
+  if (!landingText.includes(marker)) fail(`landing marker missing: ${marker}`);
+}
+
 const libraryText = fs.readFileSync("_shared/library.html", "utf8");
-for (const authMarker of ["/__auth", "auth-login", "auth-logout", "/_shared/auth.js"]) {
+for (const authMarker of ["/__auth?returnTo=/library", "auth-login", "auth-logout", "/_shared/auth.js"]) {
   if (!libraryText.includes(authMarker)) fail(`library auth marker missing: ${authMarker}`);
 }
-pass("auth foundation markers");
+
+for (const authMarker of ["safeReturnTo", "getReturnTo", "isConfigured", "raw.startsWith('//')", "raw.includes('\\\\')"]) {
+  if (!authClient.includes(authMarker)) fail(`auth return marker missing: ${authMarker}`);
+}
+
+const authHtml = fs.readFileSync("_shared/auth.html", "utf8");
+if (!authHtml.includes("location.href = returnTo")) fail("auth success does not honor returnTo");
+
+const wizardText = fs.readFileSync("_shared/wizard.js", "utf8");
+if (!wizardText.includes("location.href = '/library'")) fail("wizard cancel does not return to library");
+
+const workspaceHtml = fs.readFileSync("_shared/workspace.html", "utf8");
+if (!workspaceHtml.includes('href="/library"')) fail("workspace library links are not aligned");
+
+pass("auth + entry routing markers");
 
 console.log("\nRelease static check: PASS");
