@@ -392,7 +392,7 @@ CONFIG.publishableKey = ""
 
 ### B. Landing
 
-S01 Landing 구현.
+✅ 구현 완료.
 
 Target:
 
@@ -416,25 +416,21 @@ GET /
 
 ### C. Library Route
 
-현재:
+✅ 구현 완료.
 
 ```text
 GET /
-→ Library
-```
+→ Landing
 
-Target:
-
-```text
 GET /library
 → 기존 Library
 ```
 
-기존 Library 기능은 재작성하지 않는다.
+기존 Library 기능은 재작성하지 않았다.
 
 ---
 
-### D. returnTo
+### D. returnTo — ✅ 구현 완료
 
 일반 로그인:
 
@@ -468,7 +464,7 @@ invalid/missing:
 
 ---
 
-### E. Navigation 정리
+### E. Navigation 정리 — ✅ 구현 완료
 
 Phase 15에서 맞춰야 할 이동:
 
@@ -737,20 +733,21 @@ Later
    ✅ QA Acceptance
    ✅ Implementation Plan v2.0
 
-2. 문서 Index 작성
+2. 문서 Index 작성 ✅
    ↓
 
-3. 전체 문서 Cross-check
+3. 전체 문서 Cross-check ✅
    ↓
 
-4. Phase 15 코드 구현
+4. Phase 15 Entry Routing 구현 ✅
    - Landing
    - /library
    - returnTo
    - navigation
+   - static release gate
    ↓
 
-5. Chagok Web Supabase 연결
+5. Chagok Web Supabase 연결 ← NEXT
    ↓
 
 6. Phase 15 Runtime QA
@@ -781,9 +778,8 @@ Later
 
 ## 9. Next Action
 
-Implementation Plan v2.0 이후 다음 작업:
+현재 다음 작업:
 
-> **문서 Index를 만들고 CURRENT / HISTORICAL / PHASE 문서를 한눈에 구분한다.**
+> **전용 `Chagok Web` Supabase 프로젝트를 생성/연결하고 Phase 15 Runtime Auth QA를 수행한다.**
 
-Index 완료 후 전체 문서 교차검증을 수행하고,
-그 다음 Phase 15 코드 구현으로 돌아간다.
+Entry Routing과 static release gate는 구현 및 CI PASS 상태다.
