@@ -520,8 +520,8 @@ S05 업로드/붙여넣기     POST /__parse (no write)
 S06 메타                client state
 S07 구조 검토           client state + draft recovery (no book write)
 S08 테마 선택           client state
-S09 생성                POST /__new-book
-                         → 필요 시 POST /__theme
+S09 생성                POST /__new-book { ..., themeId }
+                         → books.create() 내부에서 book.css theme 적용
                          → 성공 시 S10 /__workspace?file=...
 ```
 
@@ -593,7 +593,7 @@ image state 실패: 404 file, 또는 클라 fetch 실패 (슬롯 비움).
 | S08 | F-THEME-01..03 | client state / sample | CURRENT |
 | S09 | F-GEN-01..05 | API-BOOK-03 | WRAP |
 | S09 | F-IMPORT-05 | API-BOOK-03 source/ | WRAP |
-| S09 | F-THEME-04 | API-THEME-02 | CURRENT |
+| S09 | F-THEME-04 | API-BOOK-03 body.themeId → create 내부 CSS 적용 | CURRENT |
 | S10 | F-WS-01, F-LIB-02 | API-BOOK-11 | WRAP |
 | S10 | F-EDITOR-02,03 | API-EDIT-01 | CURRENT |
 | S10 | F-EDITOR-04 | API-BLOCK-01 | CURRENT |
