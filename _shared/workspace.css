@@ -221,6 +221,7 @@ button, a { font: inherit; color: inherit; }
   display: flex;
   flex-direction: column;
 }
+.ws-stage.show-preview .ws-preview { order: -1; }
 .ws-preview {
   display: flex;
   align-items: center;
