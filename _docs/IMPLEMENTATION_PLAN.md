@@ -758,16 +758,19 @@ Later
    - blank CONFIG 유지
    ↓
 
-6. Chagok Web Supabase 연결 ← HOLD (Phase 15B)
+6. Local E2E + PDF quality QA ← NEXT
    ↓
 
-7. Phase 15B Runtime Auth QA ← HOLD
+7. Phase 15A final regression
    ↓
 
-8. PR merge (15A 또는 15B 완료 기준에 따름)
+8. Phase 15A PR merge
    ↓
 
-9. Phase 16 설계 ← HOLD
+9. Chagok Web Supabase + Runtime Auth QA ← HOLD (Phase 15B)
+   ↓
+
+10. Phase 16 설계 ← HOLD
 ```
 
 ---
