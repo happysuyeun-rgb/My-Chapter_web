@@ -1,6 +1,7 @@
-# My Chapter Product Spec
+# 차곡 Product Spec
 
-- Product: My Chapter
+- Product: 차곡
+- Legacy filename note: 파일명 `MY_CHAPTER_PRODUCT_SPEC.md`는 참조 안정성을 위해 당분간 유지한다.
 - Version: **v1.3**
 - Date: 2026-10-03
 - Status: Product / Development Baseline
@@ -27,7 +28,7 @@ Audit에서 기각된 가정은 다시 살리지 않는다.
 
 ## 1. Product
 
-My Chapter는 원고를 받아 책을 만들고, 구조를 잡고, 디자인을 입히고, 표지를 두고, PDF로 내보내는 제품이다.
+차곡은 원고를 받아 책을 만들고, 구조를 잡고, 디자인을 입히고, 표지를 두고, PDF로 내보내는 제품이다.
 
 한 줄:
 
@@ -304,7 +305,7 @@ book.css
 
 ## 7. Expression Ceiling (168-page Designed Book)
 
-My Chapter가 보존해야 하는 표현력 기준은 설계본이다. M0.5-B 주요 수치:
+차곡이 보존해야 하는 표현력 기준은 설계본이다. M0.5-B 주요 수치:
 
 | Pattern | Count |
 |---|---|
