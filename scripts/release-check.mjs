@@ -26,6 +26,7 @@ const syntaxFiles = [
   "_shared/workspace.js",
   "_shared/paged_book_viewer.js",
   "_shared/book_editor.js",
+  "_shared/auth.js",
   "_shared/book_tools.js",
 ];
 
