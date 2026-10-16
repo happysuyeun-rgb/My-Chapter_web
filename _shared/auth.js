@@ -2,14 +2,17 @@
   'use strict';
 
   const CONFIG = Object.freeze({
-    url: "https://rdrafwfdwfzgcfiqkgug.supabase.co",
-    publishableKey: "sb_publishable_m8gFSdgINxhNqH6NlMW6Ew_-UIoL6l1"
+    url: "",
+    publishableKey: ""
   });
-  const STORAGE_KEY = 'mychapter-auth-v1';
+  const STORAGE_KEY = 'chagok-auth-v1';
   let client = null;
 
   function getClient() {
     if (client) return client;
+    if (!CONFIG.url || !CONFIG.publishableKey) {
+      throw new Error('차곡 웹 Supabase 연결이 아직 설정되지 않았습니다.');
+    }
     if (!window.supabase || typeof window.supabase.createClient !== 'function') {
       throw new Error('인증 모듈을 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.');
     }
@@ -59,7 +62,7 @@
     });
   }
 
-  window.MyChapterAuth = Object.freeze({
+  window.ChagokAuth = Object.freeze({
     getClient,
     getSession,
     signIn,
