@@ -782,7 +782,26 @@ textarea:focus {
 }
 
 @media (max-width: 700px) {
-  .theme-grid { grid-template-columns: 1fr; }
-  .preview-page { padding: 28px 24px; }
-  .theme-preview[data-theme="minimal"] .preview-page { padding: 32px 28px; }
+  .theme-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 22px;
+  }
+  .theme-card {
+    min-height: 0;
+    gap: 10px;
+    padding: 16px;
+  }
+  .theme-card-head strong { font-size: 16px; }
+  .theme-desc {
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  .theme-mini {
+    min-height: 104px;
+    padding: 14px;
+  }
+  .preview-page { padding: 24px 20px; }
+  .theme-preview[data-theme="minimal"] .preview-page { padding: 28px 22px; }
+  .preview-page h2 { font-size: 22px; }
 }
