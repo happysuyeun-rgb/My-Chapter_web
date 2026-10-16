@@ -1940,7 +1940,7 @@ Inventory 기준 (M0.5-B, 근사): Chapter 23, Part 5, chapter-ap 5, prompt 100,
 - **Preconditions:** 사본
 - **Test Data:** gif / 비이미지
 - **Steps:** 업로드
-- **Expected Result:** `PNG, JPEG, WebP 이미지만` (또는 기존 ACCEPT). sidecar 오염 없음
+- **Expected Result:** `PNG, JPEG, WebP, AVIF 이미지만` 또는 실제 허용 형식에 맞는 동일 의미 안내. sidecar 오염 없음
 - **Failure Condition:** 깨진 sidecar로 전 슬롯 소실
 - **Regression Risk:** 전체 JSON 덮어쓰기
 - **Manual / Automatable:** Manual
