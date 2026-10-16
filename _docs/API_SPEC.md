@@ -2,12 +2,13 @@
 
 - Product: 차곡
 - Stage: Development Specification — API
-- Version: 1.0
-- Date: 2026-10-03
-- Basis: `preview-server.mjs` 실제 Route, M0.5-A §14, FUNCTION_SPEC, SCREEN_SPEC
-- Pair: `_docs/ENGINE_CONTRACT.md`, `_docs/DATA_SPEC.md`
+- Version: **1.1**
+- Date: 2026-10-16
+- Status: **CURRENT / IMPLEMENTATION BASELINE**
+- Basis: 현재 `preview-server.mjs` Route + Product Spec v1.4 + FUNCTION_SPEC v1.1 + SCREEN_SPEC v1.1
+- Pair: `_docs/ENGINE_CONTRACT.md`, `_docs/DATA_SPEC.md`, `_docs/PHASE_15_AUTH_FOUNDATION.md`
 
-현재 Route를 기준으로 기능/화면과 연결한다. 새 프레임워크를 만들지 않는다. 없는 API는 TARGET_MVP / LATER로만 적는다.
+현재 Route를 기준으로 기능/화면과 연결한다. 새 프레임워크를 만들지 않는다. CURRENT와 Phase 15 TARGET Route를 명확히 구분한다.
 
 ---
 
@@ -21,12 +22,14 @@
 
 1. 존재하는 Route만 CURRENT라고 쓴다.
 2. Product는 가능하면 KEEP / WRAP.
-3. Wizard(S04–S07)의 parse-only·세션은 TARGET_MVP. 현재 `/__new-book`은 즉시 생성이다.
-4. Workspace(S10–S15)는 기존 edit / blocks / structure / state / pdf를 재사용한다.
-5. 새 Error 코드를 대량 발명하지 않는다. 현재 메시지/status를 우선한다.
-6. Identity 쿼리/바디 키는 `file` (경로). UUID 아님.
+3. Wizard parse-only는 현재 `POST /__parse`로 구현되어 있으며 S04~S08 state는 클라이언트 draft/session에서 관리한다.
+4. Theme read/apply는 현재 `GET/POST /__theme`으로 구현되어 있다.
+5. Workspace(S10–S15)는 기존 edit / blocks / structure / state / pdf를 재사용한다.
+6. 새 Error 코드를 대량 발명하지 않는다. 현재 메시지/status를 우선한다.
+7. Identity 쿼리/바디 키는 `file` (경로). UUID 아님.
+8. Phase 15 Auth는 브라우저 Supabase SDK를 사용하며 아직 서버 API authorization은 없다.
 
-상태: CURRENT / WRAP / TARGET_MVP / LATER.
+상태: CURRENT / WRAP / PHASE15_TARGET / LATER.
 
 ---
 
@@ -36,23 +39,64 @@
 |---|---|
 | CURRENT | 코드에 있고 동작함 |
 | WRAP | 그 Route를 제품 화면이 그대로 씀 (시점/UI만 변경) |
-| TARGET_MVP | 아직 없음. MVP 마법사/테마에 필요 |
+| PHASE15_TARGET | Phase 15에서 변경 예정이나 아직 코드 미반영 |
 | LATER | 제품 숨김 또는 이후 |
 
-**CURRENT에 없는 것:** parse-only, structure-review persist, theme apply, books JSON list, export-complete, Auth.
+**현재 구현됨:** `/__wizard`, `/__workspace`, `/__auth`, `/__parse`, `GET/POST /__theme`, 기존 Book/Edit/Structure/Block/State/PDF/History APIs.
 
-**CURRENT 목록 공급:** `GET /`가 서재 HTML 안에 `books.list()` JSON을 심는다. 별도 `GET /__books` 없음.
+**현재 Entry Gap:** `GET /`는 아직 Library를 반환한다. 목표는 `GET /` = Landing, `GET /library` = 기존 Library.
+
+**CURRENT 목록 공급:** 현재 `GET /`가 서재 HTML 안에 `books.list()` JSON을 심는다. Phase 15 routing 이후 동일 Library page를 `GET /library`에서 제공한다. 별도 `GET /__books`는 아직 없다.
+
+**Auth:** 회원가입/로그인/세션은 브라우저 Supabase SDK가 담당한다. 서버-side Auth API나 ownership authorization은 Phase 16 전에는 없다.
 
 ---
 
-## 4. Book APIs
+## 4. Entry / Auth Routes
+
+### API-ENTRY-01 Landing
+
+- **Status:** PHASE15_TARGET
+- **Related Screen:** S01
+- **Method / Path:** `GET /`
+- **Current:** Library HTML
+- **Target:** Landing HTML
+- **Persistence:** 없음
+- **Notes:** 로그인 여부에 따라 CTA만 바꾸며 자동 Library redirect는 하지 않는다.
+
+### API-ENTRY-02 Library
+
+- **Status:** PHASE15_TARGET
+- **Related Screen:** S03
+- **Method / Path:** `GET /library`
+- **Current:** Route 없음
+- **Target:** 현재 `libraryPage()`를 그대로 제공
+- **Persistence:** 없음
+- **Notes:** Library 기능/데이터 로직은 재작성하지 않는다.
+
+### API-AUTH-01 Auth Page
+
+- **Status:** CURRENT / INFRA PENDING
+- **Related Function ID:** F-AUTH-01..05
+- **Related Screen:** S02
+- **Method / Path:** `GET /__auth`
+- **Response:** `_shared/auth.html`
+- **Auth Operations:** 브라우저 Supabase SDK의 `signUp`, `signInWithPassword`, `getSession`, `signOut`
+- **Session:** `persistSession: true`, `autoRefreshToken: true`, storage key `chagok-auth-v1`
+- **returnTo:** client-side 내부 path 검증. invalid/external → `/library`
+- **Important:** 전용 Chagok Web Supabase 연결 전 Runtime QA 불가. 기존 MyChapter 앱 project 사용 금지.
+- **Boundary:** 서버 API authorization / Book ownership 없음.
+
+---
+
+## 5. Book APIs
 
 ### API-BOOK-01 서재 페이지 + 목록
 
 - **Status:** CURRENT / WRAP
 - **Related Function ID:** F-LIB-01, F-LIB-08, F-LIB-09
 - **Related Screen:** S03
-- **Method / Path:** `GET /`
+- **Method / Path:** CURRENT `GET /` → TARGET `GET /library`
 - **Purpose:** 서재 HTML과 인라인 책/휴지통 목록
 - **Request:** 없음
 - **Response:** HTML. 본문에 `books`, `trash` 배열
@@ -61,7 +105,7 @@
 - **Error:** 서버 오류
 - **Persistence:** 없음
 - **Existing Handler:** `libraryPage`
-- **Notes:** 검색/정렬은 클라이언트. 새 list Route를 CURRENT로 만들지 않음
+- **Notes:** 검색/정렬은 클라이언트. Phase 15에서는 handler를 재사용해 route만 `/library`로 옮긴다. 별도 list API는 만들지 않음
 
 ### API-BOOK-02 표지 썸네일
 
@@ -231,18 +275,18 @@
 
 ### API-IMPORT-02 Parse only
 
-- **Status:** TARGET_MVP
+- **Status:** CURRENT
 - **Related Function ID:** F-IMPORT-04, F-IMPORT-07, F-STRUCT-01
 - **Related Screen:** S05 → S07
-- **Method / Path:** 미정. 신규여야 함. 현재 없음
+- **Method / Path:** `POST /__parse`
 - **Purpose:** 원고 → 구조 초안. **디스크 쓰기 없음**
-- **Request:** TARGET `{ name, data }` 또는 `{ text }` (붙여넣기)
-- **Response:** TARGET `{ units, stats }` 또는 HTML fragment. 스키마는 구현 단계에서 parser 출력에 맞춤
-- **Validation:** 동일 확장자/본문 존재
-- **Error:** 위 Import 메시지 재사용
+- **Request:** 파일 = `{ name, data: base64, title? }`; 붙여넣기 = `{ text, title? }`
+- **Response:** `{ units:[{kind,num,no,title,body}], stats }`
+- **Validation:** 파일 name/data 또는 공백이 아닌 text
+- **Error:** Import parser 메시지를 400으로 전달
 - **Persistence:** 없음
-- **Existing Handler:** 없음. `importManuscript` 재사용 가능
-- **Notes:** 구현하지 않음. 없으면 S05가 `/__new-book`을 부를 수밖에 없어 제품 규칙을 위반
+- **Existing Handler:** `parseManuscript`
+- **Notes:** S05 parse-only 경로로 구현 완료. `/__new-book`은 S09 전에는 호출하지 않는다.
 
 ### API-IMPORT-03 Format 검증
 
@@ -273,17 +317,46 @@
 
 ### API-STRUCT-02 S07 세션 구조
 
-- **Status:** TARGET_MVP (클라 세션 또는 미구현 서버)
+- **Status:** CURRENT CLIENT STATE (서버 Route 없음)
 - **Related Function ID:** F-STRUCT-01..06
 - **Related Screen:** S07
 - **Method / Path:** 없음이 기본. 서버 없이 세션 가능
 - **Purpose:** 표시/수정/확정. write 없음
 - **Persistence:** 없음
-- **Notes:** 확정 CTA가 API-BOOK-03을 부르면 안 됨. S08을 거쳐 S09
+- **Notes:** Wizard JS state + Phase 13 draft recovery로 구현. 확정 CTA는 S08을 거쳐 S09에서만 API-BOOK-03을 호출한다.
 
 ---
 
-## 7. Editor APIs
+## 7. Theme APIs
+
+### API-THEME-01 Theme 조회
+
+- **Status:** CURRENT
+- **Related Function ID:** F-THEME-01..03
+- **Related Screen:** S11
+- **Method / Path:** `GET /__theme?file=`
+- **Request:** `file`
+- **Response:** `{ theme: "practical" | "minimal" }`
+- **Validation:** book/file + book.css 존재
+- **Persistence:** 없음
+- **Existing Handler:** `readTheme`
+
+### API-THEME-02 Theme 적용
+
+- **Status:** CURRENT
+- **Related Function ID:** F-THEME-04
+- **Related Screen:** S09, S11
+- **Method / Path:** `POST /__theme`
+- **Request:** `{ file, theme: "practical" | "minimal" }`
+- **Response:** `{ theme }`
+- **Validation:** theme allowlist. 보호 기준책에는 적용 금지
+- **Persistence:** `book.css` theme layer
+- **Side Effect:** `book.html` / `book.json` 변경 없음
+- **Existing Handler:** `applyThemeCss`
+
+---
+
+## 8. Editor APIs
 
 ### API-EDIT-01 텍스트 저장
 
@@ -303,7 +376,7 @@
 
 ---
 
-## 8. Block APIs
+## 9. Block APIs
 
 ### API-BLOCK-01 블록 연산
 
@@ -323,7 +396,7 @@
 
 ---
 
-## 9. Image State APIs
+## 10. Image State APIs
 
 ### API-STATE-01 sidecar 쓰기
 
@@ -343,7 +416,7 @@
 
 ---
 
-## 10. History APIs
+## 11. History APIs
 
 제품 MVP HIDE. 엔진 KEEP.
 
@@ -375,7 +448,7 @@
 
 ---
 
-## 11. Viewer / Live APIs
+## 12. Viewer / Live APIs
 
 ### API-LIVE-01 Live Reload
 
@@ -394,7 +467,7 @@ Viewer 모드/쪽 이동은 Route 없음. 브라우저 `paged_book_viewer.js`.
 
 ---
 
-## 12. Export / PDF APIs
+## 13. Export / PDF APIs
 
 ### API-EXPORT-01 PDF
 
@@ -437,41 +510,34 @@ S16 다운로드는 같은 PDF 응답 또는 캐시 파일. 새 Route 필수 아
 
 ---
 
-## 13. Creation Wizard Target Flow
+## 14. Creation Wizard Current Flow
 
-### CURRENT (지금)
-
-```text
-S03 #new-dialog
-  → POST /__new-book { title, subtitle, author, source? }
-  → 즉시 folder write
-  → GET book.html
-```
-
-S04–S08 Route 없음. S07 없음.
-
-### TARGET_MVP (제품 명세, 미구현)
+현재 구현:
 
 ```text
-S04 방식 선택          API 없음
-S05 업로드/붙여넣기     API-IMPORT-02 TARGET (parse, no write)
-S06 메타                세션
-S07 구조 검토           API-STRUCT-02 세션 (write 없음)
-S08 테마                세션 + CSS 미리보기
-S09 생성                API-BOOK-03 WRAP
-                        입력 = 세션 메타 + (고친 구조로 source/조립) + theme
-                        → 성공 시 S10 GET book.html
+S04 방식 선택          client state
+S05 업로드/붙여넣기     POST /__parse (no write)
+S06 메타                client state
+S07 구조 검토           client state + draft recovery (no book write)
+S08 테마 선택           client state
+S09 생성                POST /__new-book
+                         → 필요 시 POST /__theme
+                         → 성공 시 S10 /__workspace?file=...
 ```
 
-규칙: S05에서 API-BOOK-03 호출 금지.
+규칙:
 
-Theme 적용이 create 이후 CSS 패치면 TARGET `API-THEME-01`이 될 수 있음. 없으면 create가 Template CSS를 그대로 쓰고 S11에서 적용. **아직 Path 없음.**
+- S04~S08에서는 새 book folder 생성 금지
+- `/__parse`는 디스크 write 없음
+- 실제 book write는 S09의 `/__new-book`에서만
+- Wizard draft는 browser localStorage이며 서버 API가 아니다
+- 생성 실패 시 ghost folder를 남기지 않는 기존 생성/rollback 계약 유지
 
-실패 시 폴더 없음. 재시도는 같은 세션으로 S09 재호출.
+Phase 15에서 추가되는 것은 이 Wizard API 자체가 아니라 Entry/Auth routing이다.
 
 ---
 
-## 14. Error Handling
+## 15. Error Handling
 
 현재 엔진 메시지/status를 우선한다. 새 코드 체계를 대량 만들지 않음.
 
@@ -504,7 +570,7 @@ image state 실패: 404 file, 또는 클라 fetch 실패 (슬롯 비움).
 
 ---
 
-## 15. API Traceability Matrix
+## 16. API Traceability Matrix
 
 | Screen | Function | API | Status |
 |---|---|---|---|
@@ -518,23 +584,23 @@ image state 실패: 404 file, 또는 클라 fetch 실패 (슬롯 비움).
 | S03 | F-LIB-07 | API-BOOK-10 | CURRENT |
 | S03 | F-LIB-08, F-LIB-09 | API-BOOK-01 (클라) | CURRENT |
 | S03 | F-LIB-10 | API-BOOK-05 | CURRENT |
-| S04 | F-NEW-01, F-NEW-02 | 없음 | TARGET_MVP 세션 |
-| S05 | F-IMPORT-01..04,07 | API-IMPORT-02 | TARGET_MVP |
+| S04 | F-NEW-01..05 | 클라이언트 state / recovery | CURRENT |
+| S05 | F-IMPORT-01..04,07 | API-IMPORT-02 `POST /__parse` | CURRENT |
 | S05 | (현재 대화상자) | API-IMPORT-01 / API-BOOK-03 | CURRENT (쓰지 말 것) |
-| S06 | F-META-01..04 | 세션 → 이후 API-BOOK-03 | TARGET_MVP |
-| S07 | F-STRUCT-01..06 | API-STRUCT-02 | TARGET_MVP 세션 |
-| S07 | F-IMPORT-06 | 없음 | TARGET_MVP |
-| S08 | F-THEME-01..03 | 없음 | TARGET_MVP 세션 |
+| S06 | F-META-01..04 | client state → API-BOOK-03 | CURRENT |
+| S07 | F-STRUCT-01..06 | client state / draft | CURRENT |
+| S07 | F-IMPORT-06 | client state | CURRENT |
+| S08 | F-THEME-01..03 | client state / sample | CURRENT |
 | S09 | F-GEN-01..05 | API-BOOK-03 | WRAP |
 | S09 | F-IMPORT-05 | API-BOOK-03 source/ | WRAP |
-| S09 | F-THEME-04 | CSS in create or API-THEME-01 | TARGET_MVP |
+| S09 | F-THEME-04 | API-THEME-02 | CURRENT |
 | S10 | F-WS-01, F-LIB-02 | API-BOOK-11 | WRAP |
 | S10 | F-EDITOR-02,03 | API-EDIT-01 | CURRENT |
 | S10 | F-EDITOR-04 | API-BLOCK-01 | CURRENT |
 | S10 | F-STRUCT-07 | API-STRUCT-01 | CURRENT |
 | S10 | F-EDITOR-08, F-WS-02,03 | 클라 | CURRENT |
 | S10 | F-EXPORT-01 | API-EXPORT-01 | WRAP |
-| S11 | F-THEME-04 | API-THEME-01 또는 CSS write | TARGET_MVP |
+| S11 | F-THEME-01..04 | API-THEME-01..02 | CURRENT |
 | S12 | F-COVER-02 | API-STATE-01 / API-BOOK-06 | CURRENT |
 | S12 | F-COVER-03 | API-BOOK-04 | CURRENT |
 | S12 | F-COVER-04 | API-BOOK-05 | CURRENT |
@@ -542,27 +608,37 @@ image state 실패: 404 file, 또는 클라 fetch 실패 (슬롯 비움).
 | S14 | — | API-LIVE-01 | CURRENT |
 | S15 | F-EXPORT-01,03 | API-EXPORT-01 | CURRENT / WRAP |
 | S16 | F-EXPORT-02 | API-EXPORT-01 응답/캐시 | WRAP |
-| S16 | F-DONE-01,02 | 없음 (내비) | TARGET_MVP UI |
+| S16 | F-DONE-01,02 | client UI / existing PDF response | CURRENT |
 | — | F-HIST-01 | API-HISTORY-01..03 | CURRENT / LATER HIDE |
 | — | F-LINT-01 | API-EXPORT-04 | CURRENT / LATER HIDE |
 | — | F-EXPORT-06 | API-EXPORT-02 | CURRENT / LATER HIDE |
 | — | F-EXPORT-07 | API-EXPORT-03 | CURRENT / LATER HIDE |
-| S01 | F-LAND-01 | 없음 | LATER |
-| S02 | F-AUTH-01 | 없음 | LATER |
+| S01 | F-LAND-01 | API-ENTRY-01 | PHASE15_TARGET |
+| S02 | F-AUTH-01..05 | API-AUTH-01 + Supabase browser SDK | CURRENT / INFRA PENDING |
 | S13 | F-AICOVER-01 | 없음 | LATER |
 | S17 | F-PAY-01 | 없음 | LATER |
 
-`API-THEME-01`은 Path 없는 TARGET 자리표시. CURRENT Route로 쓰지 않음.
+Theme API는 현재 `GET/POST /__theme`으로 구현되어 있다.
 
 ---
 
-## 16. Unknowns
+## 17. Remaining Gaps
 
-- parse-only를 서버 Route로 둘지, 생성 직전 클라에서 구조를 HTML로 조립해 `/__new-book`에 넣을지 (후자면 API-IMPORT-02 없이 source만으로 S07을 재현하기 어려움).
-- Theme 적용을 create 시 CSS 치환으로 둘지, 별도 write인지.
-- S16이 캐시 PDF 경로를 쓰는지, 방금 받은 blob만 쓰는지.
-- `GET /` 인라인 목록을 제품 셸이 그대로 쓰는지.
-- Chrome 부재 시 PDF 오류 문구의 고정 문자열.
-- `import` history reason을 create에 연결할지 (현재 미호출).
+Phase 15에서 남은 API/route gap:
 
-이 Unknown은 구현 단계에서 고른다. 이 문서에서 Route를 만들지 않는다.
+- `GET /`을 Landing으로 변경
+- `GET /library`에 기존 Library handler 연결
+- Auth 성공 `returnTo` routing
+- Logout → `/`
+
+Phase 16에서 처음 설계할 것:
+
+- server-side Auth validation
+- User ↔ Book ownership
+- DB metadata API
+- Supabase Storage boundary
+- RLS / API authorization
+
+아직 별도 `GET /__books` JSON API는 필요성이 확정되지 않았다. 현재 Library page inline data를 유지한다.
+
+PDF는 현재 local Chrome 실행 의존성이 있으며 SaaS 배포 시 worker/queue 구조를 별도 설계한다.
