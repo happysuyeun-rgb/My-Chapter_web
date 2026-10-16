@@ -3,8 +3,8 @@
 - 작성일: 2026-10-16
 - Branch: `phase-15-auth-foundation`
 - Base: `main@2af7924`
-- Status: IMPLEMENTED / RUNTIME QA PENDING
-- Supabase project: **PENDING — 새 `Chagok Web` 프로젝트로 분리 예정**
+- Status: IMPLEMENTED / INFRA CONFIG PENDING / RUNTIME QA PENDING
+- Supabase project: **PENDING — 새 `Chagok Web` 프로젝트 생성·연결 필요**
 - 기존 `MyChapter` Supabase 프로젝트는 앱용이므로 차곡 웹에서 사용하지 않는다.
 
 ## Goal
@@ -21,6 +21,9 @@
 - 기존 로컬 책 엔진은 그대로 유지
 
 ## Architecture
+
+현재 `_shared/auth.js`의 Supabase URL/key는 비워 두어, 앱용 `MyChapter` 프로젝트로 잘못 접속하지 않도록 차단한다. 새 `Chagok Web` 프로젝트를 만든 뒤에만 연결한다.
+
 
 - Supabase Auth 사용
 - 브라우저 클라이언트는 Supabase publishable key만 사용
