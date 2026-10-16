@@ -2,10 +2,10 @@
 
 - Product: 차곡
 - Stage: Development Specification — Screen
-- Version: **1.1**
+- Version: **1.2**
 - Date: 2026-10-16
 - Status: **CURRENT / IMPLEMENTATION BASELINE**
-- Basis: `MY_CHAPTER_PRODUCT_SPEC.md` v1.4, `_docs/IA.md`, `_docs/TASK_FLOW.md`, `_docs/FUNCTION_SPEC.md`
+- Basis: `MY_CHAPTER_PRODUCT_SPEC.md` v1.5, `_docs/IA.md`, `_docs/TASK_FLOW.md`, `_docs/FUNCTION_SPEC.md` v1.2
 - Pair: `_docs/SCREEN_DESIGN.md`, `_docs/FUNCTION_SPEC.md`
 
 이 문서는 **각 화면에서 사용자가 무엇을 보고 무엇을 하는가**만 정한다.
@@ -18,7 +18,7 @@
 
 Architecture는 Product Spec v1.4와 IA/Task Flow를 따른다. 기존 S03 / S10 원고 / S14 / S15는 재설계하지 않고 KEEP / WRAP / MINOR UI CHANGE만 한다.
 
-현재 Route는 `/` = Landing, `/library` = Library로 구현되어 있다. Phase 15에서 남은 것은 전용 Supabase 연결과 Runtime Auth QA다.
+현재 Route는 `/` = Landing, `/library` = Library로 구현·QA 완료됐다. Phase 15A는 COMPLETE이며, 전용 Chagok Web Supabase 연결과 Runtime Auth QA는 Phase 15B HOLD다.
 
 ---
 
@@ -67,8 +67,8 @@ Later: S12 → S13 AI Cover. S16 / S03 → S17 Pricing/Payment.
 
 | Screen | Existing / Partial / New | MVP / Later | Main Reuse |
 |---|---|---|---|
-| S01 Landing | Implemented | Phase 15 | `_shared/landing.html/js` |
-| S02 Auth | Partial Implemented | Phase 15 | `_shared/auth.html`, `_shared/auth.js` |
+| S01 Landing | Implemented / QA PASS | Phase 15A COMPLETE | `_shared/landing.html/js` |
+| S02 Auth | Local fallback implemented + configured foundation | Phase 15B runtime HOLD | `_shared/auth.html`, `_shared/auth.js` |
 | S03 Library | Existing / `/library` current | MVP | `_shared/library.html` |
 | S04 New Book Method | Implemented | MVP | Wizard |
 | S05 Manuscript Input | Implemented | MVP | file/paste + parser |
@@ -83,7 +83,7 @@ Later: S12 → S13 AI Cover. S16 / S03 → S17 Pricing/Payment.
 | S14 Preview | Existing / Wrapped | MVP | `paged_book_viewer.js` |
 | S15 PDF Export | Existing / Wrapped | MVP | `/__pdf`, `server/pdf.mjs` |
 | S16 Export Complete | Implemented | MVP | Workspace 완료 패널 |
-| S17 Pricing / Payment | New | Later | 없음 |
+| S17 Pricing / Payment | Target defined in separate P01~P11 specs | Implementation HOLD | `_docs/PAYMENT_*` |
 
 ---
 
@@ -91,7 +91,7 @@ Later: S12 → S13 AI Cover. S16 / S03 → S17 Pricing/Payment.
 
 - **화면명:** Landing
 - **목적:** 차곡 소개와 제품 진입. 엔진 아님
-- **현재 구현 상태:** **Phase 15 Implemented / Runtime QA pending**
+- **현재 구현 상태:** **Phase 15A COMPLETE / Local QA PASS**
 - **목표 Route:** `/`
 - **기존 재사용 코드:** Auth session check만 재사용 가능. Book engine과 분리
 - **Entry / Exit:** 공개 URL → S02 / S03 / S04
@@ -111,7 +111,7 @@ Later: S12 → S13 AI Cover. S16 / S03 → S17 Pricing/Payment.
 
 - **화면명:** Auth
 - **목적:** 이메일 회원가입/로그인과 browser session 생성
-- **현재 구현 상태:** **Phase 15 Partial Implemented** — UI/client/route 있음, 전용 Chagok Web 연결·Runtime QA pending
+- **현재 구현 상태:** **Local fallback + UI/client/route foundation IMPLEMENTED** — Real Chagok Web Runtime은 Phase 15B HOLD
 - **Route:** `/__auth`
 - **기존 재사용 코드:** `_shared/auth.html`, `_shared/auth.js`
 - **Entry / Exit:** S01 → Auth → 안전한 `returnTo` 또는 `/library`
@@ -487,14 +487,15 @@ Later: S12 → S13 AI Cover. S16 / S03 → S17 Pricing/Payment.
 
 ---
 
-## 21. S17 Pricing
+## 21. S17 Pricing / Payment
 
-- **화면명:** Pricing
-- **목적:** 이후 요금
-- **현재 구현 상태:** 없음
-- **MVP / Later:** Later
-- **관련 Function ID:** F-PAY-01
-- **DO NOT BREAK:** 로컬 MVP PDF를 결제 뒤로 숨기지 말 것
+- **상태:** **POLICY + TARGET UI SPEC DEFINED / IMPLEMENTATION HOLD**
+- **초기 가격:** Free + Book Pass ₩14,900 / 책 1권
+- **결제벽:** Preview 이후 PDF Export 직전
+- **상세 화면:** P01~P11은 `_docs/PAYMENT_SCREEN_DESIGN.md`, `_docs/PAYMENT_SCREEN_SPEC.md` 기준
+- **Data/API:** `_docs/PAYMENT_DATA_SPEC.md` v1.1, `_docs/PAYMENT_API_SPEC.md` v1.1
+- **선행 Gate:** Phase 15B Auth → Phase 16 Ownership/stable book_id → Payment provider/server verification
+- **현재 금지:** Local MVP에 Paywall/Payment를 연결하지 않음
 
 ---
 
