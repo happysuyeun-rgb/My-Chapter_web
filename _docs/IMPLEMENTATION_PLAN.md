@@ -565,9 +565,9 @@ Phase 15B는 외부 사용자 테스트/서비스 배포 필요 시 별도 착�
 
 ## 상태
 
-⏳ NEXT — Phase 15 merge 후 시작
+⏸ HOLD — Phase 15B Runtime Auth 이후 시작
 
-Phase 15 완료 전 상세 스키마를 확정하지 않는다.
+Phase 15B 완료 전 상세 스키마를 확정하지 않는다.
 
 ---
 
