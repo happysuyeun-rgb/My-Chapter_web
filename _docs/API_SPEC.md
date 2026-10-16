@@ -39,14 +39,14 @@
 |---|---|
 | CURRENT | 코드에 있고 동작함 |
 | WRAP | 그 Route를 제품 화면이 그대로 씀 (시점/UI만 변경) |
-| PHASE15_TARGET | Phase 15에서 변경 예정이나 아직 코드 미반영 |
+| PHASE15_TARGET | Phase 15에서 아직 코드 미반영인 항목 |
 | LATER | 제품 숨김 또는 이후 |
 
 **현재 구현됨:** `/__wizard`, `/__workspace`, `/__auth`, `/__parse`, `GET/POST /__theme`, 기존 Book/Edit/Structure/Block/State/PDF/History APIs.
 
-**현재 Entry Gap:** `GET /`는 아직 Library를 반환한다. 목표는 `GET /` = Landing, `GET /library` = 기존 Library.
+**현재 Entry:** `GET /` = Landing, `GET /library` = existing Library.
 
-**CURRENT 목록 공급:** 현재 `GET /`가 서재 HTML 안에 `books.list()` JSON을 심는다. Phase 15 routing 이후 동일 Library page를 `GET /library`에서 제공한다. 별도 `GET /__books`는 아직 없다.
+**CURRENT 목록 공급:** `GET /library`가 서재 HTML 안에 `books.list()` JSON을 심는다. 별도 `GET /__books`는 아직 없다.
 
 **Auth:** 회원가입/로그인/세션은 브라우저 Supabase SDK가 담당한다. 서버-side Auth API나 ownership authorization은 Phase 16 전에는 없다.
 
@@ -56,21 +56,19 @@
 
 ### API-ENTRY-01 Landing
 
-- **Status:** PHASE15_TARGET
+- **Status:** CURRENT
 - **Related Screen:** S01
 - **Method / Path:** `GET /`
-- **Current:** Library HTML
-- **Target:** Landing HTML
+- **Current:** Landing HTML
 - **Persistence:** 없음
 - **Notes:** 로그인 여부에 따라 CTA만 바꾸며 자동 Library redirect는 하지 않는다.
 
 ### API-ENTRY-02 Library
 
-- **Status:** PHASE15_TARGET
+- **Status:** CURRENT / WRAP
 - **Related Screen:** S03
 - **Method / Path:** `GET /library`
-- **Current:** Route 없음
-- **Target:** 현재 `libraryPage()`를 그대로 제공
+- **Current:** 현재 `libraryPage()`를 그대로 제공
 - **Persistence:** 없음
 - **Notes:** Library 기능/데이터 로직은 재작성하지 않는다.
 
@@ -96,7 +94,7 @@
 - **Status:** CURRENT / WRAP
 - **Related Function ID:** F-LIB-01, F-LIB-08, F-LIB-09
 - **Related Screen:** S03
-- **Method / Path:** CURRENT `GET /` → TARGET `GET /library`
+- **Method / Path:** `GET /library`
 - **Purpose:** 서재 HTML과 인라인 책/휴지통 목록
 - **Request:** 없음
 - **Response:** HTML. 본문에 `books`, `trash` 배열
@@ -105,7 +103,7 @@
 - **Error:** 서버 오류
 - **Persistence:** 없음
 - **Existing Handler:** `libraryPage`
-- **Notes:** 검색/정렬은 클라이언트. Phase 15에서는 handler를 재사용해 route만 `/library`로 옮긴다. 별도 list API는 만들지 않음
+- **Notes:** 검색/정렬은 클라이언트. 기존 handler를 `/library`에서 재사용한다. 별도 list API는 만들지 않음
 
 ### API-BOOK-02 표지 썸네일
 
@@ -613,7 +611,7 @@ image state 실패: 404 file, 또는 클라 fetch 실패 (슬롯 비움).
 | — | F-LINT-01 | API-EXPORT-04 | CURRENT / LATER HIDE |
 | — | F-EXPORT-06 | API-EXPORT-02 | CURRENT / LATER HIDE |
 | — | F-EXPORT-07 | API-EXPORT-03 | CURRENT / LATER HIDE |
-| S01 | F-LAND-01 | API-ENTRY-01 | PHASE15_TARGET |
+| S01 | F-LAND-01 | API-ENTRY-01 | CURRENT |
 | S02 | F-AUTH-01..05 | API-AUTH-01 + Supabase browser SDK | CURRENT / INFRA PENDING |
 | S13 | F-AICOVER-01 | 없음 | LATER |
 | S17 | F-PAY-01 | 없음 | LATER |
@@ -626,10 +624,8 @@ Theme API는 현재 `GET/POST /__theme`으로 구현되어 있다.
 
 Phase 15에서 남은 API/route gap:
 
-- `GET /`을 Landing으로 변경
-- `GET /library`에 기존 Library handler 연결
-- Auth 성공 `returnTo` routing
-- Logout → `/`
+- 없음. Entry/Auth client routing은 구현됨.
+- 남은 것은 전용 Chagok Web Supabase config + Runtime Auth QA
 
 Phase 16에서 처음 설계할 것:
 
