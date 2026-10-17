@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="차곡 — 원고가 책이 되는 과정. 구조를 정리하고, 디자인과 표지를 입히고, PDF까지 한 흐름으로 완성합니다.">
-<title>차곡 · 원고가 책이 되는 과정</title>
+<meta name="description" content="차곡 — 이미 써둔 원고를 구조화하고, 디자인을 입히고, 표지와 미리보기를 거쳐 PDF 한 권으로 완성하는 Book Making Studio.">
+<title>차곡 · 당신의 글이, 책이 되는 순간</title>
 <style>
   @font-face {
     font-family: "Pretendard";
@@ -12,211 +12,1711 @@
     font-weight: 45 920;
     font-display: swap;
   }
+
   :root {
-    --paper: #faf8f4;
-    --ink: #1c1b19;
-    --ink2: #625f58;
-    --line: #ded8cc;
+    --dark: #12161c;
+    --dark-2: #181d26;
+    --paper: #faf8f3;
+    --paper-2: #f3efe7;
+    --ink: #161616;
+    --muted: #6d6a64;
+    --line: rgba(22, 22, 22, 0.12);
+    --line-light: rgba(255, 255, 255, 0.12);
     --accent: #2f55d4;
+    --max: 1280px;
+    --pad: clamp(24px, 5vw, 80px);
+    --radius: 14px;
+    --shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+    --shadow-soft: 0 10px 28px rgba(22, 22, 22, 0.08);
+    --header-h: 68px;
   }
+
   * { box-sizing: border-box; }
-  html, body { margin: 0; min-height: 100%; }
+  html { scroll-behavior: smooth; }
   body {
-    background:
-      radial-gradient(1200px 480px at 50% -10%, rgba(47, 85, 212, 0.08), transparent 60%),
-      linear-gradient(180deg, #f7f4ee 0%, var(--paper) 42%, #f3efe7 100%);
-    color: var(--ink);
+    margin: 0;
     font-family: "Pretendard", "Malgun Gothic", sans-serif;
+    color: var(--ink);
+    background: var(--dark);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
-  .top {
+  img { max-width: 100%; display: block; }
+  button { font: inherit; cursor: pointer; }
+  a { color: inherit; text-decoration: none; }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+
+  .wrap {
+    width: min(var(--max), 100%);
+    margin: 0 auto;
+    padding-inline: var(--pad);
+  }
+
+  .eyebrow {
+    margin: 0 0 14px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+  }
+  .section-title {
+    margin: 0;
+    font-size: clamp(32px, 5vw, 56px);
+    line-height: 1.12;
+    letter-spacing: -0.05em;
+    font-weight: 780;
+  }
+  .lead {
+    margin: 18px 0 0;
+    max-width: 36rem;
+    color: var(--muted);
+    font-size: clamp(15px, 1.5vw, 18px);
+    line-height: 1.75;
+  }
+  .quote {
+    margin: 22px 0 0;
+    max-width: 28rem;
+    font-size: clamp(18px, 2vw, 24px);
+    line-height: 1.55;
+    letter-spacing: -0.03em;
+    font-weight: 560;
+  }
+
+  .btn {
+    min-height: 48px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 20px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font-size: 14px;
+    font-weight: 720;
+    transition: transform .2s ease, opacity .2s ease, background .2s ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary {
+    background: #fff;
+    color: var(--ink);
+  }
+  .btn-primary.on-light {
+    background: var(--ink);
+    color: #fff;
+  }
+  .btn-ghost {
+    background: transparent;
+    border-color: var(--line-light);
+    color: rgba(255,255,255,.92);
+  }
+  .btn-ghost.on-light {
+    border-color: var(--line);
+    color: var(--ink);
+  }
+
+  /* Header */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    height: var(--header-h);
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 18px clamp(18px, 5vw, 64px);
-    border-bottom: 1px solid rgba(28, 27, 25, 0.07);
+    backdrop-filter: blur(14px);
+    background: rgba(18, 22, 28, 0.72);
+    border-bottom: 1px solid transparent;
+    transition: background .25s ease, border-color .25s ease;
+  }
+  .site-header.is-scrolled {
+    border-bottom-color: var(--line-light);
+    background: rgba(18, 22, 28, 0.9);
+  }
+  .site-header .wrap {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 18px;
   }
   .brand {
     margin-right: auto;
     font-size: 20px;
     font-weight: 850;
     letter-spacing: -0.04em;
-    text-decoration: none;
-    color: inherit;
+    color: #fff;
   }
-  .status-pill {
-    min-height: 40px;
-    display: inline-flex;
+  .nav {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 0 15px;
-    border: 1px solid var(--line);
-    border-radius: 9px;
-    background: #fff;
-    color: var(--ink2);
+    gap: 6px;
+  }
+  .nav a {
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: rgba(255,255,255,.78);
     font-size: 13px;
-    font-weight: 700;
-    opacity: 0.7;
+    font-weight: 650;
   }
+  .nav a:hover { color: #fff; background: rgba(255,255,255,.06); }
+  .header-cta { margin-left: 8px; min-height: 44px; }
+  .nav-toggle {
+    display: none;
+    min-width: 44px;
+    min-height: 44px;
+    border: 1px solid var(--line-light);
+    border-radius: 10px;
+    background: transparent;
+    color: #fff;
+  }
+
+  /* Hero */
   .hero {
-    min-height: 64vh;
+    min-height: calc(100svh - var(--header-h));
     display: grid;
-    place-items: center;
-    padding: 72px 20px 56px;
-    text-align: center;
+    align-items: center;
+    padding: 48px 0 72px;
+    background:
+      radial-gradient(900px 420px at 80% 20%, rgba(47,85,212,.18), transparent 60%),
+      linear-gradient(180deg, #101216 0%, #141820 70%, #171c24 100%);
+    color: #f5f2ea;
   }
-  .hero-inner { width: min(820px, 100%); }
-  .eyebrow {
-    margin: 0 0 16px;
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.13em;
-    color: var(--accent);
+  .hero .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(28px, 5vw, 64px);
+    align-items: center;
   }
-  h1 {
-    margin: 0;
-    font-size: clamp(42px, 7vw, 76px);
-    line-height: 1.02;
-    letter-spacing: -0.065em;
-  }
-  .lead {
-    width: min(620px, 100%);
-    margin: 24px auto 0;
-    color: var(--ink2);
-    font-size: clamp(16px, 2vw, 19px);
-    line-height: 1.7;
-  }
+  .hero .lead { color: rgba(245,242,234,.72); }
   .hero-actions {
     display: flex;
-    justify-content: center;
     flex-wrap: wrap;
     gap: 10px;
-    margin-top: 30px;
+    margin-top: 28px;
   }
-  .cta-ready {
-    min-width: 180px;
-    min-height: 48px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 18px;
-    border: 1px solid var(--line);
-    border-radius: 9px;
-    background: #fff;
-    color: var(--ink2);
-    font-size: 14px;
-    font-weight: 700;
-    opacity: 0.6;
-    cursor: default;
-    user-select: none;
+  .hero-visual {
+    position: relative;
+    width: 100%;
+    min-height: 440px;
+    max-width: 560px;
+    margin-left: auto;
+    perspective: 1200px;
   }
-  .note {
-    margin: 14px 0 0;
-    color: var(--ink2);
-    font-size: 13px;
-    line-height: 1.5;
+  .paper-card {
+    position: absolute;
+    border-radius: 12px;
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(28px);
+    animation: rise-in .9s ease forwards;
   }
-  .flow {
-    width: min(960px, calc(100% - 36px));
-    margin: 0 auto 64px;
-    padding: 26px;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.88);
+  .paper-card.front {
+    width: min(250px, 58%);
+    left: 0;
+    top: 22%;
+    padding: 22px 20px;
+    z-index: 3;
+    animation-delay: .05s;
+    transform: translateY(28px) rotate(-2.2deg);
   }
-  .flow h2 { margin: 0 0 18px; font-size: 15px; }
-  .steps {
+  .paper-card.mid {
+    width: min(260px, 60%);
+    left: 22%;
+    top: 6%;
+    padding: 18px;
+    z-index: 2;
+    animation-delay: .18s;
+    transform: translateY(28px) rotate(1.4deg);
+  }
+  .paper-card.back {
+    width: min(320px, 78%);
+    left: 18%;
+    bottom: 4%;
+    height: 210px;
+    z-index: 1;
+    animation-delay: .3s;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
+    grid-template-columns: 1fr 1fr;
+    transform: translateY(28px) rotate(2deg);
   }
-  .step {
-    padding: 16px 10px;
-    border-radius: 10px;
-    background: #f5f2eb;
-    text-align: center;
-  }
-  .step b {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 12px;
+  .paper-card .label {
+    margin: 0 0 10px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .12em;
     color: var(--accent);
   }
-  .step span { font-size: 13px; font-weight: 700; }
-  .promise {
-    width: min(960px, calc(100% - 36px));
-    margin: 0 auto 80px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
+  .paper-card h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    letter-spacing: -.03em;
   }
-  .promise article { padding: 22px; border-top: 1px solid var(--line); }
-  .promise h3 { margin: 0 0 8px; font-size: 16px; }
-  .promise p {
+  .paper-card p {
     margin: 0;
-    color: var(--ink2);
+    color: var(--muted);
     font-size: 13px;
     line-height: 1.65;
   }
-  footer {
-    padding: 26px clamp(18px, 5vw, 64px);
-    border-top: 1px solid var(--line);
-    color: var(--ink2);
+  .toc-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
     font-size: 12px;
   }
-  @media (max-width: 720px) {
-    .steps { grid-template-columns: 1fr; }
-    .promise { grid-template-columns: 1fr; }
-    .hero { min-height: auto; padding-top: 60px; }
+  .spread-page {
+    padding: 18px 14px;
+    border-right: 1px solid var(--line);
+  }
+  .spread-page:last-child { border-right: 0; }
+  .spread-page strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+  .spread-page p {
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  @keyframes rise-in {
+    to { opacity: 1; transform: translateY(0) rotate(var(--r, 0deg)); }
+  }
+  .paper-card.front { --r: -2.2deg; }
+  .paper-card.mid { --r: 1.4deg; }
+  .paper-card.back { --r: 2deg; }
+
+  /* Manuscript */
+  .scene-manuscript {
+    padding: 100px 0 80px;
+    background: linear-gradient(180deg, #171c24 0%, #1a202a 100%);
+    color: #f5f2ea;
+  }
+  .scene-manuscript .lead,
+  .scene-manuscript .quote { color: rgba(245,242,234,.78); }
+  .manuscript-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+    margin-top: 40px;
+  }
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 22px;
+  }
+  .badge {
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line-light);
+    font-size: 12px;
+    font-weight: 720;
+    color: rgba(245,242,234,.86);
+  }
+  .manuscript-sheet {
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 14px;
+    padding: 34px 28px;
+    box-shadow: var(--shadow);
+    transform: rotate(-0.6deg);
+  }
+  .manuscript-sheet .meta {
+    margin: 0 0 18px;
+    font-size: 12px;
+    font-weight: 750;
+    letter-spacing: .08em;
+    color: var(--accent);
+  }
+  .manuscript-sheet h3 {
+    margin: 0 0 6px;
+    font-size: 28px;
+    letter-spacing: -.04em;
+  }
+  .manuscript-sheet .chapter {
+    margin: 0 0 18px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 650;
+  }
+  .manuscript-sheet p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.9;
+    color: #2a2926;
+  }
+
+  /* Transform */
+  .transform-desktop { display: block; }
+  .transform-mobile { display: none; }
+  .transform-outer {
+    position: relative;
+    height: 280vh;
+    background: #12161c;
+  }
+  .transform-sticky {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background:
+      radial-gradient(700px 360px at 70% 30%, rgba(47,85,212,.12), transparent 55%),
+      #12161c;
+    color: #f5f2ea;
+  }
+  .transform-inner {
+    width: min(var(--max), 100%);
+    margin: 0 auto;
+    padding-inline: var(--pad);
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 36px;
+    align-items: center;
+  }
+  .progress-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .progress-item {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: rgba(245,242,234,.45);
+    transition: background .25s ease, color .25s ease;
+  }
+  .progress-item.is-active {
+    background: rgba(255,255,255,.06);
+    color: #fff;
+  }
+  .progress-item b {
+    font-size: 12px;
+    letter-spacing: .08em;
+  }
+  .progress-item span { font-size: 14px; font-weight: 700; }
+  .transform-stage {
+    position: relative;
+    min-height: 460px;
+  }
+  .transform-copy {
+    margin-bottom: 22px;
+  }
+  .transform-copy .step-label {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .14em;
+    color: var(--accent);
+  }
+  .transform-copy h2 {
+    margin: 0;
+    font-size: clamp(28px, 4vw, 44px);
+    letter-spacing: -.04em;
+    line-height: 1.2;
+  }
+  .transform-copy .hint {
+    margin: 10px 0 0;
+    color: rgba(245,242,234,.55);
+    font-size: 14px;
+  }
+  .stage-visual {
+    position: relative;
+    min-height: 340px;
+  }
+  .stage-card {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: translateY(16px) scale(.985);
+    transition: opacity .35s ease, transform .35s ease;
+    pointer-events: none;
+  }
+  .stage-card.is-active {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+  .book-page {
+    width: min(520px, 100%);
+    margin: 0 auto;
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 12px;
+    padding: 28px 26px;
+    box-shadow: var(--shadow);
+  }
+  .book-page.practical {
+    font-family: "Pretendard", Georgia, serif;
+  }
+  .book-page.practical h3 {
+    margin: 0 0 4px;
+    font-size: 13px;
+    letter-spacing: .16em;
+    color: var(--accent);
+    font-weight: 750;
+  }
+  .book-page.practical .title {
+    margin: 0 0 18px;
+    font-size: 26px;
+    letter-spacing: -.04em;
+  }
+  .book-page.practical p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.95;
+  }
+  .book-page.minimal {
+    background: #fff;
+    border: 1px solid #e8e4db;
+  }
+  .book-page.minimal .title {
+    margin: 0 0 22px;
+    font-size: 22px;
+    font-weight: 560;
+    letter-spacing: -.02em;
+  }
+  .book-page.minimal p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 2.05;
+    color: #333;
+  }
+  .theme-toggle {
+    display: inline-flex;
+    gap: 6px;
+    margin-top: 14px;
+    padding: 4px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.08);
+  }
+  .theme-toggle button {
+    min-height: 36px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: rgba(255,255,255,.7);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .theme-toggle button[aria-pressed="true"] {
+    background: #fff;
+    color: var(--ink);
+  }
+  .structure-panel {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 16px;
+    align-items: stretch;
+  }
+  .toc-panel {
+    background: rgba(255,255,255,.05);
+    border: 1px solid var(--line-light);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .toc-panel h4 {
+    margin: 0 0 12px;
+    font-size: 11px;
+    letter-spacing: .12em;
+    color: rgba(245,242,234,.55);
+  }
+  .toc-panel ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .toc-panel li {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    font-size: 13px;
+  }
+  .spread-mock {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    width: min(620px, 100%);
+    margin: 0 auto;
+    background: var(--paper);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    min-height: 280px;
+  }
+  .spread-mock > div {
+    padding: 24px 20px;
+  }
+  .spread-mock > div + div {
+    border-left: 1px solid var(--line);
+    background: #f7f3eb;
+  }
+  .spread-mock .kicker {
+    margin: 0 0 10px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    color: var(--accent);
+  }
+  .spread-mock h3 {
+    margin: 0 0 14px;
+    font-size: 20px;
+    letter-spacing: -.03em;
+  }
+  .spread-mock p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #2f2d29;
+  }
+
+  .transform-mobile {
+    background: #12161c;
+    color: #f5f2ea;
+    padding: 40px 0 20px;
+  }
+  .mobile-step {
+    padding: 36px 0;
+    border-top: 1px solid rgba(255,255,255,.08);
+  }
+  .mobile-step .arrow {
+    margin: 18px 0 0;
+    color: rgba(245,242,234,.4);
+    font-size: 22px;
+  }
+
+  /* Inside */
+  .scene-inside {
+    padding: 110px 0;
+    background:
+      linear-gradient(180deg, #f7f3eb 0%, var(--paper) 40%, var(--paper-2) 100%);
+    color: var(--ink);
+  }
+  .scene-inside .lead { color: var(--muted); }
+  .product-shell {
+    margin-top: 36px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+  }
+  .product-label {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--line);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .14em;
+    color: var(--muted);
+    background: #faf8f4;
+  }
+  .product-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    background: #fcfbf8;
+  }
+  .product-tabs [role="tab"] {
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .product-tabs [role="tab"][aria-selected="true"] {
+    background: var(--ink);
+    color: #fff;
+  }
+  .product-panels { padding: 22px; min-height: 360px; }
+  .product-panel[hidden] { display: none !important; }
+  .mock-editor {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 16px;
+  }
+  .mock-side, .mock-main, .mock-cover, .mock-preview {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #faf8f4;
+  }
+  .mock-side { padding: 16px; }
+  .mock-side h4 {
+    margin: 0 0 12px;
+    font-size: 12px;
+    letter-spacing: .08em;
+    color: var(--muted);
+  }
+  .mock-side li {
+    list-style: none;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+  }
+  .mock-side ul { margin: 0; padding: 0; }
+  .mock-main { padding: 22px; }
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: #e8efe4;
+    color: #2f5d2f;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .theme-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .theme-card {
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #faf8f4;
+  }
+  .theme-card h4 { margin: 0 0 8px; font-size: 16px; }
+  .theme-card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+  .theme-card.is-active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .mock-cover {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 18px;
+    padding: 18px;
+  }
+  .cover-art {
+    aspect-ratio: 3/4;
+    border-radius: 10px;
+    background:
+      linear-gradient(160deg, #2a3340 0%, #1a1f28 55%, #3d4d6b 100%);
+    color: #f5f2ea;
+    display: grid;
+    place-content: end start;
+    padding: 18px;
+  }
+  .cover-art strong { font-size: 22px; letter-spacing: -.03em; }
+  .cover-art span { font-size: 12px; opacity: .75; margin-top: 6px; }
+  .cover-fields label {
+    display: block;
+    margin: 0 0 12px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .cover-fields .field {
+    margin-top: 4px;
+    padding: 12px 12px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid var(--line);
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .mock-preview {
+    padding: 18px;
+  }
+  .mode-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .mode-row span,
+  .mode-row button {
+    min-height: 36px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .mode-row .is-on {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .preview-spread {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 260px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: #fff;
+  }
+  .preview-spread > div { padding: 20px 16px; }
+  .preview-spread > div + div {
+    border-left: 1px solid var(--line);
+    background: #f8f5ee;
+  }
+  .inside-cta { margin-top: 28px; }
+
+  /* Before / After */
+  .scene-compare {
+    padding: 90px 0;
+    background: var(--paper-2);
+  }
+  .compare-grid {
+    margin-top: 34px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 18px;
+    align-items: center;
+  }
+  .compare-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: var(--shadow-soft);
+    min-height: 260px;
+  }
+  .compare-card .tag {
+    margin: 0 0 12px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    color: var(--accent);
+  }
+  .compare-card.raw {
+    background: #f7f4ee;
+  }
+  .compare-card.raw p {
+    margin: 14px 0 0;
+    font-size: 14px;
+    line-height: 1.85;
+    white-space: pre-line;
+  }
+  .compare-card.book {
+    background: #fff;
+  }
+  .compare-card.book h3 {
+    margin: 0 0 12px;
+    font-size: 22px;
+    letter-spacing: -.03em;
+  }
+  .compare-card.book p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.95;
+  }
+  .compare-arrow {
+    font-size: 28px;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  /* Final book */
+  .scene-book {
+    padding: 100px 0 90px;
+    background: linear-gradient(180deg, var(--paper) 0%, #efe9de 100%);
+  }
+  .book-viewer {
+    margin-top: 34px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: var(--shadow-soft);
+    padding: 20px;
+  }
+  .book-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .book-toolbar .modes {
+    display: flex;
+    gap: 6px;
+    margin-right: auto;
+  }
+  .book-toolbar .modes button,
+  .book-nav button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .book-toolbar .modes button[aria-pressed="true"] {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .book-stage {
+    min-height: 320px;
+    display: grid;
+    place-items: center;
+    background: #f6f2ea;
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .book-frame {
+    width: min(720px, 100%);
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: var(--shadow-soft);
+    padding: 28px 24px;
+    min-height: 260px;
+  }
+  .book-frame.is-spread {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  .book-frame.is-spread > div { padding: 28px 22px; }
+  .book-frame.is-spread > div + div {
+    border-left: 1px solid var(--line);
+    background: #faf7f1;
+  }
+  .book-frame.is-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+  }
+  .book-frame.is-grid .grid-page {
+    min-height: 120px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .pdf-badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .pdf-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 8px;
+    background: var(--ink);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .1em;
+  }
+  .pdf-badge-row p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* Final CTA */
+  .scene-cta {
+    padding: 110px 0 80px;
+    background:
+      radial-gradient(700px 320px at 50% 0%, rgba(47,85,212,.18), transparent 60%),
+      #101216;
+    color: #f5f2ea;
+    text-align: center;
+  }
+  .scene-cta .lead {
+    margin-left: auto;
+    margin-right: auto;
+    color: rgba(245,242,234,.72);
+  }
+  .scene-cta .hero-actions { justify-content: center; }
+  .flow-line {
+    margin: 28px auto 0;
+    max-width: 520px;
+    color: rgba(245,242,234,.55);
+    font-size: 13px;
+    letter-spacing: .04em;
+  }
+  .formats {
+    margin-top: 14px;
+    color: rgba(245,242,234,.55);
+    font-size: 13px;
+  }
+
+  .site-footer {
+    padding: 28px var(--pad) 40px;
+    background: #0e1217;
+    color: rgba(245,242,234,.55);
+    border-top: 1px solid rgba(255,255,255,.06);
+  }
+  .site-footer .wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 24px;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .site-footer strong {
+    color: #f5f2ea;
+    font-size: 16px;
+    letter-spacing: -.03em;
+  }
+
+  /* Modal */
+  .modal[hidden] { display: none !important; }
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+  }
+  .modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 12, 16, 0.62);
+  }
+  .modal-dialog {
+    position: relative;
+    width: min(420px, 100%);
+    border-radius: 16px;
+    background: var(--paper);
+    color: var(--ink);
+    padding: 28px 24px 22px;
+    box-shadow: var(--shadow);
+  }
+  .modal-dialog h2 {
+    margin: 0;
+    font-size: 22px;
+    letter-spacing: -.03em;
+  }
+  .modal-dialog p {
+    margin: 12px 0 0;
+    color: var(--muted);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+  .modal-dialog .btn { margin-top: 22px; width: 100%; }
+
+  @media (max-width: 1023px) {
+    .hero .wrap,
+    .manuscript-layout,
+    .transform-inner,
+    .structure-panel,
+    .mock-editor,
+    .mock-cover,
+    .compare-grid {
+      grid-template-columns: 1fr;
+    }
+    .transform-desktop { display: none; }
+    .transform-mobile { display: block; }
+    .compare-arrow {
+      transform: rotate(90deg);
+      justify-self: center;
+    }
+    .nav { display: none; }
+    .nav.is-open {
+      display: flex;
+      position: absolute;
+      top: var(--header-h);
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      padding: 12px var(--pad) 16px;
+      background: rgba(18,22,28,.96);
+      border-bottom: 1px solid var(--line-light);
+    }
+    .nav-toggle { display: inline-flex; align-items: center; justify-content: center; }
+    .hero-visual { min-height: 360px; }
+    .paper-card.front { left: 8%; top: 10%; }
+    .paper-card.mid { left: 22%; top: 4%; }
+    .paper-card.back { width: min(360px, 92%); right: 4%; }
+  }
+
+  @media (max-width: 767px) {
+    .section-title { font-size: clamp(40px, 10vw, 52px); }
+    #hero-title { font-size: clamp(40px, 10.5vw, 52px); }
+    .hero { padding-top: 28px; }
+    .hero-visual { min-height: 320px; }
+    .paper-card.back { height: 180px; }
+    .theme-cards,
+    .preview-spread,
+    .spread-mock,
+    .book-frame.is-spread,
+    .book-frame.is-grid {
+      grid-template-columns: 1fr;
+    }
+    .preview-spread > div + div,
+    .spread-mock > div + div,
+    .book-frame.is-spread > div + div {
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+    .product-panels { padding: 14px; min-height: 280px; }
+    .mock-cover { grid-template-columns: 1fr; }
+    .cover-art { max-width: 220px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+    .paper-card {
+      opacity: 1;
+      transform: none;
+    }
+    .stage-card {
+      position: static;
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+      margin-bottom: 18px;
+    }
+    .stage-card[hidden] { display: none !important; }
   }
 </style>
 </head>
 <body>
-<header class="top">
-  <a class="brand" href="/">차곡</a>
-  <span class="status-pill" aria-disabled="true">웹 데모 준비 중</span>
+<header class="site-header" id="site-header">
+  <div class="wrap">
+    <a class="brand" href="#top">차곡</a>
+    <button class="nav-toggle" type="button" id="nav-toggle" aria-expanded="false" aria-controls="site-nav">메뉴</button>
+    <nav class="nav" id="site-nav" aria-label="주요 이동">
+      <a href="#manuscript">과정</a>
+      <a href="#inside">차곡 안에서</a>
+      <a href="#final-book">결과물</a>
+      <a href="#final-cta">체험하기</a>
+    </nav>
+    <button class="btn btn-primary header-cta js-demo" type="button">체험하기</button>
+  </div>
 </header>
 
-<main>
-  <section class="hero">
-    <div class="hero-inner">
-      <p class="eyebrow">CHAGOK · AI PUBLISHING STUDIO</p>
-      <h1>원고가 책이 되는 과정,<br>차곡.</h1>
-      <p class="lead">원고를 준비하면 구조를 정리하고, 디자인과 표지를 입히고, 미리보기와 PDF까지 한 흐름으로 완성합니다.</p>
-      <div class="hero-actions">
-        <span class="cta-ready" aria-disabled="true">웹 데모 준비 중</span>
+<main id="top">
+  <!-- SCENE 00 -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">CHAGOK — BOOK MAKING STUDIO</p>
+        <h1 class="section-title" id="hero-title">당신의 글이,<br>책이 되는 순간.</h1>
+        <p class="lead">원고를 가져와 구조를 다듬고,<br>디자인을 입히고,<br>책처럼 미리본 뒤<br>PDF로 완성하세요.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary js-demo" type="button">체험하기</button>
+          <a class="btn btn-ghost" href="#manuscript">책이 되는 과정 보기</a>
+        </div>
       </div>
-      <p class="note">현재 웹 데모를 준비하고 있습니다.</p>
+      <div class="hero-visual" aria-hidden="true">
+        <article class="paper-card front">
+          <p class="label">MANUSCRIPT</p>
+          <h3>언젠가, 다시</h3>
+          <p>한동안 잊고 있던 문장을<br>다시 꺼내 읽었다.</p>
+        </article>
+        <article class="paper-card mid">
+          <p class="label">STRUCTURE</p>
+          <div class="toc-line"><span>PART 01</span><span>01</span></div>
+          <div class="toc-line"><span>CHAPTER 01</span><span>03</span></div>
+          <div class="toc-line"><span>CHAPTER 02</span><span>17</span></div>
+          <div class="toc-line"><span>CHAPTER 03</span><span>31</span></div>
+        </article>
+        <article class="paper-card back">
+          <div class="spread-page">
+            <strong>CHAPTER 01</strong>
+            <p>한동안 잊고 있던 문장을 다시 꺼내 읽었다.</p>
+          </div>
+          <div class="spread-page">
+            <strong>펼침면</strong>
+            <p>그때의 나는 무엇을 남기고 싶었던 걸까.</p>
+          </div>
+        </article>
+      </div>
     </div>
   </section>
 
-  <section class="flow" aria-labelledby="flow-title">
-    <h2 id="flow-title">원고 → 구조 → 디자인 → 표지 → PDF</h2>
-    <div class="steps">
-      <div class="step"><b>01</b><span>원고</span></div>
-      <div class="step"><b>02</b><span>구조</span></div>
-      <div class="step"><b>03</b><span>디자인</span></div>
-      <div class="step"><b>04</b><span>표지</span></div>
-      <div class="step"><b>05</b><span>PDF</span></div>
+  <!-- SCENE 01 -->
+  <section class="scene-manuscript" id="manuscript" aria-labelledby="manuscript-title">
+    <div class="wrap">
+      <p class="eyebrow">01 / THE MANUSCRIPT</p>
+      <h2 class="section-title" id="manuscript-title">모든 책은<br>한 장의 원고에서 시작됩니다.</h2>
+      <p class="quote">“어쩌면, 이미 당신의 책은<br>시작되었을지도 모릅니다.”</p>
+      <div class="manuscript-layout">
+        <div>
+          <p class="lead">써둔 원고가 있다면,<br>차곡에서 책 만들기를 시작할 수 있어요.</p>
+          <div class="badges" aria-label="지원 형식">
+            <span class="badge">TXT</span>
+            <span class="badge">MD</span>
+            <span class="badge">PDF</span>
+            <span class="badge">DOCX</span>
+          </div>
+        </div>
+        <article class="manuscript-sheet">
+          <p class="meta">SAMPLE MANUSCRIPT</p>
+          <h3>언젠가, 다시</h3>
+          <p class="chapter">Chapter 01</p>
+          <p>한동안 잊고 있던 문장을<br>다시 꺼내 읽었다.<br><br>그때의 나는 무엇을 남기고 싶었던 걸까.</p>
+        </article>
+      </div>
     </div>
   </section>
 
-  <section class="promise" aria-label="차곡 핵심 가치">
-    <article>
-      <h3>원고를 구조화</h3>
-      <p>원고를 책의 장과 절 구조로 정리해, 편집 가능한 흐름으로 만듭니다.</p>
-    </article>
-    <article>
-      <h3>책답게 디자인</h3>
-      <p>내용은 그대로 두고, 책다운 여백과 타이포그래피로 디자인을 입힙니다.</p>
-    </article>
-    <article>
-      <h3>PDF로 완성</h3>
-      <p>미리보기로 확인하고, 같은 책 계약으로 전자책 PDF까지 완성합니다.</p>
-    </article>
+  <!-- SCENE 02 Desktop sticky -->
+  <section class="transform-desktop" id="transform" aria-label="책이 되는 과정">
+    <div class="transform-outer" id="transform-outer">
+      <div class="transform-sticky">
+        <div class="transform-inner">
+          <ol class="progress-rail" id="progress-rail" aria-label="변환 단계">
+            <li class="progress-item is-active" data-step="0"><b>01</b><span>원고</span></li>
+            <li class="progress-item" data-step="1"><b>02</b><span>구조</span></li>
+            <li class="progress-item" data-step="2"><b>03</b><span>디자인</span></li>
+            <li class="progress-item" data-step="3"><b>04</b><span>완성</span></li>
+          </ol>
+          <div class="transform-stage">
+            <div class="transform-copy">
+              <p class="step-label" id="transform-label">01 · 원고</p>
+              <h2 id="transform-title">써둔 글을 가져오고</h2>
+              <p class="hint" id="transform-hint">같은 문장을 유지한 채, 책의 형태로 바뀝니다.</p>
+            </div>
+            <div class="stage-visual" id="stage-visual">
+              <div class="stage-card is-active" data-state="0">
+                <article class="book-page">
+                  <p class="kicker" style="margin:0 0 10px;font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--accent)">RAW MANUSCRIPT</p>
+                  <h3 class="title" style="margin:0 0 14px;font-size:24px">언젠가, 다시</h3>
+                  <p>한동안 잊고 있던 문장을 다시 꺼내 읽었다.<br><br>그때의 나는 무엇을 남기고 싶었던 걸까.</p>
+                </article>
+              </div>
+              <div class="stage-card" data-state="1">
+                <div class="structure-panel">
+                  <aside class="toc-panel">
+                    <h4>STRUCTURE</h4>
+                    <ul>
+                      <li>PART 01</li>
+                      <li>CHAPTER 01</li>
+                      <li>CHAPTER 02</li>
+                    </ul>
+                    <p style="margin:14px 0 0;font-size:12px;color:rgba(245,242,234,.55);line-height:1.5">구조를 확인하고 다듬습니다.</p>
+                  </aside>
+                  <article class="book-page">
+                    <h3 class="title" style="margin:0 0 10px;font-size:20px">Chapter 01</h3>
+                    <p>한동안 잊고 있던 문장을 다시 꺼내 읽었다.<br><br>그때의 나는 무엇을 남기고 싶었던 걸까.</p>
+                  </article>
+                </div>
+              </div>
+              <div class="stage-card" data-state="2">
+                <article class="book-page practical" id="design-sample">
+                  <h3>CHAPTER 01</h3>
+                  <p class="title">언젠가, 다시</p>
+                  <p>한동안 잊고 있던 문장을 다시 꺼내 읽었다.<br><br>그때의 나는 무엇을 남기고 싶었던 걸까.</p>
+                </article>
+                <div class="theme-toggle" role="group" aria-label="테마 미리보기">
+                  <button type="button" data-theme="practical" aria-pressed="true">Practical</button>
+                  <button type="button" data-theme="minimal" aria-pressed="false">Minimal</button>
+                </div>
+              </div>
+              <div class="stage-card" data-state="3">
+                <div class="spread-mock" aria-label="완성된 책 펼침면">
+                  <div>
+                    <p class="kicker">CHAPTER 01</p>
+                    <h3>언젠가, 다시</h3>
+                    <p>한동안 잊고 있던 문장을 다시 꺼내 읽었다.</p>
+                  </div>
+                  <div>
+                    <p class="kicker">SPREAD</p>
+                    <h3>본문</h3>
+                    <p>그때의 나는 무엇을 남기고 싶었던 걸까.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCENE 02 Mobile stacked -->
+  <section class="transform-mobile" aria-label="책이 되는 과정">
+    <div class="wrap">
+      <article class="mobile-step">
+        <p class="eyebrow">01 · 원고</p>
+        <h2 class="section-title">써둔 글을 가져오고</h2>
+        <article class="book-page" style="margin-top:20px">
+          <h3 class="title" style="margin:0 0 12px;font-size:22px">언젠가, 다시</h3>
+          <p>한동안 잊고 있던 문장을 다시 꺼내 읽었다.<br><br>그때의 나는 무엇을 남기고 싶었던 걸까.</p>
+        </article>
+        <p class="arrow" aria-hidden="true">↓</p>
+      </article>
+      <article class="mobile-step">
+        <p class="eyebrow">02 · 구조</p>
+        <h2 class="section-title">이야기의 순서를 정리하고</h2>
+        <p class="lead" style="color:rgba(245,242,234,.65)">구조를 확인하고 다듬습니다. 글은 그대로입니다.</p>
+        <aside class="toc-panel" style="margin-top:18px">
+          <h4>STRUCTURE</h4>
+          <ul>
+            <li>PART 01</li>
+            <li>CHAPTER 01</li>
+            <li>CHAPTER 02</li>
+          </ul>
+        </aside>
+        <p class="arrow" aria-hidden="true">↓</p>
+      </article>
+      <article class="mobile-step">
+        <p class="eyebrow">03 · 디자인</p>
+        <h2 class="section-title">책의 디자인을 입히고</h2>
+        <article class="book-page practical" style="margin-top:20px">
+          <h3>CHAPTER 01</h3>
+          <p class="title">언젠가, 다시</p>
+          <p>한동안 잊고 있던 문장을 다시 꺼내 읽었다.<br><br>그때의 나는 무엇을 남기고 싶었던 걸까.</p>
+        </article>
+        <p class="arrow" aria-hidden="true">↓</p>
+      </article>
+      <article class="mobile-step">
+        <p class="eyebrow">04 · 책</p>
+        <h2 class="section-title">마침내,<br>한 권의 책으로.</h2>
+        <div class="spread-mock" style="margin-top:20px">
+          <div>
+            <p class="kicker">CHAPTER 01</p>
+            <h3>언젠가, 다시</h3>
+            <p>한동안 잊고 있던 문장을 다시 꺼내 읽었다.</p>
+          </div>
+          <div>
+            <p class="kicker">SPREAD</p>
+            <h3>본문</h3>
+            <p>그때의 나는 무엇을 남기고 싶었던 걸까.</p>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- SCENE 03 -->
+  <section class="scene-inside" id="inside" aria-labelledby="inside-title">
+    <div class="wrap">
+      <p class="eyebrow">03 / INSIDE CHAGOK</p>
+      <h2 class="section-title" id="inside-title">직접 다듬고,<br>꾸미고,<br>넘겨보세요.</h2>
+      <p class="lead">원고 편집부터 디자인, 표지, 미리보기까지.<br>차곡 안에서 책 제작의 각 단계를 이어갑니다.</p>
+
+      <div class="product-shell">
+        <div class="product-label">PRODUCT PREVIEW</div>
+        <div class="product-tabs" role="tablist" aria-label="차곡 작업 단계">
+          <button role="tab" type="button" id="tab-edit" aria-controls="panel-edit" aria-selected="false" tabindex="-1">원고 편집</button>
+          <button role="tab" type="button" id="tab-design" aria-controls="panel-design" aria-selected="false" tabindex="-1">디자인</button>
+          <button role="tab" type="button" id="tab-cover" aria-controls="panel-cover" aria-selected="false" tabindex="-1">표지</button>
+          <button role="tab" type="button" id="tab-preview" aria-controls="panel-preview" aria-selected="true" tabindex="0">미리보기</button>
+        </div>
+        <div class="product-panels">
+          <div class="product-panel" role="tabpanel" id="panel-edit" aria-labelledby="tab-edit" hidden>
+            <div class="mock-editor">
+              <aside class="mock-side">
+                <h4>OUTLINE</h4>
+                <ul>
+                  <li>Chapter 01</li>
+                  <li>Chapter 02</li>
+                  <li>Chapter 03</li>
+                </ul>
+              </aside>
+              <div class="mock-main">
+                <span class="status-chip">저장됨</span>
+                <h3 style="margin:14px 0 8px;font-size:20px">언젠가, 다시</h3>
+                <p style="margin:0;color:var(--muted);font-size:14px;line-height:1.8">문단과 제목을 다듬고, 책의 흐름을 정리합니다.</p>
+              </div>
+            </div>
+          </div>
+          <div class="product-panel" role="tabpanel" id="panel-design" aria-labelledby="tab-design" hidden>
+            <div class="theme-cards">
+              <article class="theme-card is-active">
+                <h4>Practical</h4>
+                <p>읽기 좋은 여백과 또렷한 계층. 기본 테마입니다.</p>
+              </article>
+              <article class="theme-card">
+                <h4>Minimal</h4>
+                <p>더 조용한 타이포와 여백. 내용은 그대로입니다.</p>
+              </article>
+            </div>
+          </div>
+          <div class="product-panel" role="tabpanel" id="panel-cover" aria-labelledby="tab-cover" hidden>
+            <div class="mock-cover">
+              <div class="cover-art" aria-hidden="true">
+                <strong>언젠가, 다시</strong>
+                <span>이서아</span>
+              </div>
+              <div class="cover-fields">
+                <label>제목<div class="field">언젠가, 다시</div></label>
+                <label>부제<div class="field">남겨둔 문장들</div></label>
+                <label>저자<div class="field">이서아</div></label>
+              </div>
+            </div>
+          </div>
+          <div class="product-panel" role="tabpanel" id="panel-preview" aria-labelledby="tab-preview">
+            <div class="mock-preview">
+              <div class="mode-row" aria-label="미리보기 모드">
+                <span>Single</span>
+                <span class="is-on">Spread</span>
+                <span>Grid</span>
+              </div>
+              <div class="preview-spread">
+                <div>
+                  <strong style="display:block;margin-bottom:10px;font-size:12px;letter-spacing:.1em;color:var(--accent)">CHAPTER 01</strong>
+                  <p style="margin:0;font-size:14px;line-height:1.85">한동안 잊고 있던 문장을 다시 꺼내 읽었다.</p>
+                </div>
+                <div>
+                  <strong style="display:block;margin-bottom:10px;font-size:12px">펼침면</strong>
+                  <p style="margin:0;font-size:14px;line-height:1.85">그때의 나는 무엇을 남기고 싶었던 걸까.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="inside-cta">
+        <button class="btn btn-primary on-light js-demo" type="button">차곡 체험하기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- BEFORE / AFTER -->
+  <section class="scene-compare" id="compare" aria-labelledby="compare-title">
+    <div class="wrap">
+      <p class="eyebrow">SAME WORDS</p>
+      <h2 class="section-title" id="compare-title">같은 글,<br>완전히 다른 인상.</h2>
+      <div class="compare-grid">
+        <article class="compare-card raw">
+          <p class="tag">원고</p>
+          <h3 style="margin:0;font-size:18px">언젠가, 다시</h3>
+          <p>한동안 잊고 있던 문장을
+다시 꺼내 읽었다.
+
+그때의 나는 무엇을 남기고 싶었던 걸까.</p>
+        </article>
+        <div class="compare-arrow" aria-hidden="true">→</div>
+        <article class="compare-card book">
+          <p class="tag">책</p>
+          <h3>Chapter 01</h3>
+          <p>한동안 잊고 있던 문장을 다시 꺼내 읽었다.<br><br>그때의 나는 무엇을 남기고 싶었던 걸까.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCENE 04 -->
+  <section class="scene-book" id="final-book" aria-labelledby="final-book-title">
+    <div class="wrap">
+      <p class="eyebrow">04 / THE FINAL BOOK</p>
+      <h2 class="section-title" id="final-book-title">이제,<br>진짜 책처럼.</h2>
+      <p class="lead">한 쪽씩, 펼침면으로, 전체 페이지를 확인한 뒤<br>전자책 PDF로 완성하세요.</p>
+
+      <div class="book-viewer">
+        <div class="book-toolbar">
+          <div class="modes" role="group" aria-label="보기 모드">
+            <button type="button" data-mode="single" aria-pressed="false">낱장</button>
+            <button type="button" data-mode="spread" aria-pressed="true">펼침면</button>
+            <button type="button" data-mode="grid" aria-pressed="false">전체 보기</button>
+          </div>
+          <div class="book-nav">
+            <button type="button" id="book-prev" aria-label="이전 페이지">←</button>
+            <button type="button" id="book-next" aria-label="다음 페이지">→</button>
+          </div>
+        </div>
+        <div class="book-stage">
+          <div class="book-frame is-spread" id="book-frame" aria-live="polite"></div>
+        </div>
+        <div class="pdf-badge-row">
+          <span class="pdf-badge">PDF EXPORT</span>
+          <p>미리보기로 확인한 책을 PDF로 완성합니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCENE 05 -->
+  <section class="scene-cta" id="final-cta" aria-labelledby="final-cta-title">
+    <div class="wrap">
+      <p class="eyebrow">YOUR STORY, YOUR BOOK</p>
+      <h2 class="section-title" id="final-cta-title">쌓아둔 원고가 있다면,<br>이제 책으로.</h2>
+      <p class="lead">준비한 글을 가져와<br>나만의 책을 만들기 시작하세요.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary js-demo" type="button">체험하기</button>
+      </div>
+      <p class="formats">TXT · MD · PDF · DOCX</p>
+      <p class="flow-line">원고 → 구조 → 디자인 → 표지 → PDF</p>
+    </div>
   </section>
 </main>
 
-<footer>차곡 · 글이 책이 되는 과정.</footer>
+<footer class="site-footer">
+  <div class="wrap">
+    <div>
+      <strong>차곡</strong>
+      <span> · 글이 책이 되는 과정.</span>
+    </div>
+    <small>© Chagok</small>
+  </div>
+</footer>
+
+<div class="modal" id="demo-modal" hidden>
+  <div class="modal-backdrop" data-close-modal></div>
+  <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="demo-modal-title" tabindex="-1">
+    <h2 id="demo-modal-title">차곡 데모 준비 중</h2>
+    <p>조금만 기다려주세요.<br>곧 직접 책을 만들어볼 수 있어요.</p>
+    <button class="btn btn-primary on-light" type="button" data-close-modal>확인</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const SAMPLE = {
+    title: "언젠가, 다시",
+    body: "한동안 잊고 있던 문장을 다시 꺼내 읽었다.\n\n그때의 나는 무엇을 남기고 싶었던 걸까."
+  };
+
+  /* Header */
+  const header = document.getElementById("site-header");
+  const onScrollHeader = () => {
+    header.classList.toggle("is-scrolled", window.scrollY > 12);
+  };
+  window.addEventListener("scroll", onScrollHeader, { passive: true });
+  onScrollHeader();
+
+  const nav = document.getElementById("site-nav");
+  const navToggle = document.getElementById("nav-toggle");
+  navToggle.addEventListener("click", () => {
+    const open = nav.classList.toggle("is-open");
+    navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  nav.querySelectorAll("a").forEach((a) => {
+    a.addEventListener("click", () => {
+      nav.classList.remove("is-open");
+      navToggle.setAttribute("aria-expanded", "false");
+    });
+  });
+
+  /* Demo modal */
+  const modal = document.getElementById("demo-modal");
+  const dialog = modal.querySelector(".modal-dialog");
+  let lastFocus = null;
+
+  function openDemo() {
+    lastFocus = document.activeElement;
+    modal.hidden = false;
+    dialog.focus();
+  }
+  function closeDemo() {
+    modal.hidden = true;
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  document.querySelectorAll(".js-demo").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.preventDefault();
+      openDemo();
+    });
+  });
+  modal.querySelectorAll("[data-close-modal]").forEach((el) => {
+    el.addEventListener("click", closeDemo);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.hidden) closeDemo();
+  });
+
+  /* Transform scroll storytelling (desktop) */
+  const states = [
+    { label: "01 · 원고", title: "써둔 글을 가져오고", hint: "TXT · MD · PDF · DOCX 원고를 가져옵니다." },
+    { label: "02 · 구조", title: "이야기의 순서를 정리하고", hint: "구조를 확인하고 다듬습니다. 글은 새로 쓰지 않습니다." },
+    { label: "03 · 디자인", title: "책의 디자인을 입히고", hint: "Practical 또는 Minimal로 책답게 바꿉니다." },
+    { label: "04 · 책", title: "마침내,\n한 권의 책으로.", hint: "펼침면으로 완성된 인상을 확인합니다." }
+  ];
+  const outer = document.getElementById("transform-outer");
+  const railItems = Array.from(document.querySelectorAll("#progress-rail .progress-item"));
+  const stageCards = Array.from(document.querySelectorAll("#stage-visual .stage-card"));
+  const labelEl = document.getElementById("transform-label");
+  const titleEl = document.getElementById("transform-title");
+  const hintEl = document.getElementById("transform-hint");
+  let currentState = 0;
+
+  function setTransformState(next) {
+    if (next === currentState) return;
+    currentState = next;
+    const s = states[next];
+    labelEl.textContent = s.label;
+    titleEl.innerHTML = s.title.replace("\n", "<br>");
+    hintEl.textContent = s.hint;
+    railItems.forEach((item, i) => item.classList.toggle("is-active", i === next));
+    stageCards.forEach((card, i) => {
+      const on = i === next;
+      card.classList.toggle("is-active", on);
+      if (reduced) card.hidden = !on;
+    });
+  }
+
+  function updateTransform() {
+    if (!outer || window.innerWidth < 1024) return;
+    const rect = outer.getBoundingClientRect();
+    const total = outer.offsetHeight - window.innerHeight;
+    if (total <= 0) return;
+    const scrolled = Math.min(Math.max(-rect.top, 0), total);
+    const p = scrolled / total;
+    let state = 0;
+    if (p >= 0.75) state = 3;
+    else if (p >= 0.5) state = 2;
+    else if (p >= 0.28) state = 1;
+    setTransformState(state);
+  }
+
+  let ticking = false;
+  window.addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      updateTransform();
+      ticking = false;
+    });
+  }, { passive: true });
+  window.addEventListener("resize", updateTransform);
+  if (reduced) {
+    stageCards.forEach((card, i) => { card.hidden = i !== 0; card.classList.add("is-active"); });
+  }
+  updateTransform();
+
+  /* Theme toggle in transform */
+  const designSample = document.getElementById("design-sample");
+  document.querySelectorAll(".theme-toggle button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const theme = btn.getAttribute("data-theme");
+      document.querySelectorAll(".theme-toggle button").forEach((b) => {
+        b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+      });
+      if (!designSample) return;
+      designSample.classList.toggle("practical", theme === "practical");
+      designSample.classList.toggle("minimal", theme === "minimal");
+    });
+  });
+
+  /* Product tabs */
+  const tabs = Array.from(document.querySelectorAll('.product-tabs [role="tab"]'));
+  const panels = tabs.map((t) => document.getElementById(t.getAttribute("aria-controls")));
+
+  function activateTab(tab) {
+    tabs.forEach((t, i) => {
+      const on = t === tab;
+      t.setAttribute("aria-selected", on ? "true" : "false");
+      t.tabIndex = on ? 0 : -1;
+      panels[i].hidden = !on;
+    });
+  }
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => activateTab(tab));
+    tab.addEventListener("keydown", (e) => {
+      const i = tabs.indexOf(tab);
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        const next = tabs[(i + 1) % tabs.length];
+        activateTab(next);
+        next.focus();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        const prev = tabs[(i - 1 + tabs.length) % tabs.length];
+        activateTab(prev);
+        prev.focus();
+      }
+    });
+  });
+
+  /* Final book pages */
+  const pages = [
+    {
+      kind: "cover",
+      html: `<div style="min-height:220px;display:grid;place-content:end start;background:linear-gradient(160deg,#2a3340,#1a1f28);color:#f5f2ea;border-radius:8px;padding:28px"><strong style="font-size:28px;letter-spacing:-.03em">${SAMPLE.title}</strong><span style="margin-top:8px;opacity:.75">이서아</span></div>`
+    },
+    {
+      kind: "toc",
+      html: `<p style="margin:0 0 12px;font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--accent)">CONTENTS</p><h3 style="margin:0 0 16px">${SAMPLE.title}</h3><p style="margin:0 0 8px">Chapter 01 · 03</p><p style="margin:0 0 8px">Chapter 02 · 17</p><p style="margin:0">Chapter 03 · 31</p>`
+    },
+    {
+      kind: "opener",
+      html: `<p style="margin:0 0 10px;font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--accent)">CHAPTER 01</p><h3 style="margin:0 0 18px;font-size:28px;letter-spacing:-.03em">${SAMPLE.title}</h3><p style="margin:0;line-height:1.9;white-space:pre-line">${SAMPLE.body}</p>`
+    },
+    {
+      kind: "body",
+      left: `<p style="margin:0 0 10px;font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--accent)">CHAPTER 01</p><p style="margin:0;line-height:1.9">한동안 잊고 있던 문장을 다시 꺼내 읽었다.</p>`,
+      right: `<p style="margin:0 0 10px;font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--muted)">본문</p><p style="margin:0;line-height:1.9">그때의 나는 무엇을 남기고 싶었던 걸까.</p>`
+    }
+  ];
+  const frame = document.getElementById("book-frame");
+  const modeButtons = Array.from(document.querySelectorAll(".book-toolbar .modes button"));
+  let pageIndex = 0;
+  let mode = "spread";
+
+  function renderBook() {
+    if (mode === "grid") {
+      frame.className = "book-frame is-grid";
+      frame.innerHTML = pages.map((p, i) => {
+        const text = p.kind === "body" ? "Body spread" : p.kind.toUpperCase();
+        return `<div class="grid-page"><strong>${i + 1}. ${text}</strong><div style="margin-top:8px;color:var(--muted)">${SAMPLE.title}</div></div>`;
+      }).join("");
+      return;
+    }
+    if (mode === "spread") {
+      frame.className = "book-frame is-spread";
+      const p = pages[pageIndex];
+      if (p.kind === "body") {
+        frame.innerHTML = `<div>${p.left}</div><div>${p.right}</div>`;
+      } else {
+        frame.innerHTML = `<div>${p.html}</div><div><p style="margin:0;color:var(--muted);font-size:13px;line-height:1.7">펼침면 미리보기 · ${pageIndex + 1} / ${pages.length}</p></div>`;
+      }
+      return;
+    }
+    frame.className = "book-frame";
+    const p = pages[pageIndex];
+    frame.innerHTML = p.kind === "body"
+      ? `<div>${p.left}<div style="margin-top:18px">${p.right}</div></div>`
+      : p.html;
+  }
+
+  modeButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      mode = btn.getAttribute("data-mode");
+      modeButtons.forEach((b) => b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
+      renderBook();
+    });
+  });
+  document.getElementById("book-prev").addEventListener("click", () => {
+    pageIndex = (pageIndex - 1 + pages.length) % pages.length;
+    renderBook();
+  });
+  document.getElementById("book-next").addEventListener("click", () => {
+    pageIndex = (pageIndex + 1) % pages.length;
+    renderBook();
+  });
+  renderBook();
+})();
+</script>
 </body>
 </html>
