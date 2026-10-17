@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="차곡 — 원고가 책이 되는 과정. 구조를 정리하고, 디자인과 표지를 입히고, PDF까지 한 흐름으로 완성합니다.">
+<title>차곡 · 원고가 책이 되는 과정</title>
+<style>
+  @font-face {
+    font-family: "Pretendard";
+    src: url("/_shared/fonts/PretendardVariable.woff2") format("woff2");
+    font-weight: 45 920;
+    font-display: swap;
+  }
+  :root {
+    --paper: #faf8f4;
+    --ink: #1c1b19;
+    --ink2: #625f58;
+    --line: #ded8cc;
+    --accent: #2f55d4;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background:
+      radial-gradient(1200px 480px at 50% -10%, rgba(47, 85, 212, 0.08), transparent 60%),
+      linear-gradient(180deg, #f7f4ee 0%, var(--paper) 42%, #f3efe7 100%);
+    color: var(--ink);
+    font-family: "Pretendard", "Malgun Gothic", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px clamp(18px, 5vw, 64px);
+    border-bottom: 1px solid rgba(28, 27, 25, 0.07);
+  }
+  .brand {
+    margin-right: auto;
+    font-size: 20px;
+    font-weight: 850;
+    letter-spacing: -0.04em;
+    text-decoration: none;
+    color: inherit;
+  }
+  .status-pill {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: #fff;
+    color: var(--ink2);
+    font-size: 13px;
+    font-weight: 700;
+    opacity: 0.7;
+  }
+  .hero {
+    min-height: 64vh;
+    display: grid;
+    place-items: center;
+    padding: 72px 20px 56px;
+    text-align: center;
+  }
+  .hero-inner { width: min(820px, 100%); }
+  .eyebrow {
+    margin: 0 0 16px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(42px, 7vw, 76px);
+    line-height: 1.02;
+    letter-spacing: -0.065em;
+  }
+  .lead {
+    width: min(620px, 100%);
+    margin: 24px auto 0;
+    color: var(--ink2);
+    font-size: clamp(16px, 2vw, 19px);
+    line-height: 1.7;
+  }
+  .hero-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 30px;
+  }
+  .cta-ready {
+    min-width: 180px;
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 18px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: #fff;
+    color: var(--ink2);
+    font-size: 14px;
+    font-weight: 700;
+    opacity: 0.6;
+    cursor: default;
+    user-select: none;
+  }
+  .note {
+    margin: 14px 0 0;
+    color: var(--ink2);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .flow {
+    width: min(960px, calc(100% - 36px));
+    margin: 0 auto 64px;
+    padding: 26px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.88);
+  }
+  .flow h2 { margin: 0 0 18px; font-size: 15px; }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+  .step {
+    padding: 16px 10px;
+    border-radius: 10px;
+    background: #f5f2eb;
+    text-align: center;
+  }
+  .step b {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .step span { font-size: 13px; font-weight: 700; }
+  .promise {
+    width: min(960px, calc(100% - 36px));
+    margin: 0 auto 80px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .promise article { padding: 22px; border-top: 1px solid var(--line); }
+  .promise h3 { margin: 0 0 8px; font-size: 16px; }
+  .promise p {
+    margin: 0;
+    color: var(--ink2);
+    font-size: 13px;
+    line-height: 1.65;
+  }
+  footer {
+    padding: 26px clamp(18px, 5vw, 64px);
+    border-top: 1px solid var(--line);
+    color: var(--ink2);
+    font-size: 12px;
+  }
+  @media (max-width: 720px) {
+    .steps { grid-template-columns: 1fr; }
+    .promise { grid-template-columns: 1fr; }
+    .hero { min-height: auto; padding-top: 60px; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">차곡</a>
+  <span class="status-pill" aria-disabled="true">웹 데모 준비 중</span>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">CHAGOK · AI PUBLISHING STUDIO</p>
+      <h1>원고가 책이 되는 과정,<br>차곡.</h1>
+      <p class="lead">원고를 준비하면 구조를 정리하고, 디자인과 표지를 입히고, 미리보기와 PDF까지 한 흐름으로 완성합니다.</p>
+      <div class="hero-actions">
+        <span class="cta-ready" aria-disabled="true">웹 데모 준비 중</span>
+      </div>
+      <p class="note">공개 웹 데모는 준비 중입니다. Local MVP 앱은 별도 환경에서 동작합니다.</p>
+    </div>
+  </section>
+
+  <section class="flow" aria-labelledby="flow-title">
+    <h2 id="flow-title">원고 → 구조 → 디자인 → 표지 → PDF</h2>
+    <div class="steps">
+      <div class="step"><b>01</b><span>원고</span></div>
+      <div class="step"><b>02</b><span>구조</span></div>
+      <div class="step"><b>03</b><span>디자인</span></div>
+      <div class="step"><b>04</b><span>표지</span></div>
+      <div class="step"><b>05</b><span>PDF</span></div>
+    </div>
+  </section>
+
+  <section class="promise" aria-label="차곡 핵심 가치">
+    <article>
+      <h3>원고를 구조화</h3>
+      <p>원고를 책의 장과 절 구조로 정리해, 편집 가능한 흐름으로 만듭니다.</p>
+    </article>
+    <article>
+      <h3>책답게 디자인</h3>
+      <p>내용은 그대로 두고, 책다운 여백과 타이포그래피로 디자인을 입힙니다.</p>
+    </article>
+    <article>
+      <h3>PDF로 완성</h3>
+      <p>미리보기로 확인하고, 같은 책 계약으로 전자책 PDF까지 완성합니다.</p>
+    </article>
+  </section>
+</main>
+
+<footer>차곡 · 글이 책이 되는 과정.</footer>
+</body>
+</html>
